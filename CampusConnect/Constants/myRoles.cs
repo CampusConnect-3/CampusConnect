@@ -3,7 +3,9 @@
     public enum Roles
     { 
         Admin,
-        User
+        User,
+        Manager,
+        Staff
     }
 
     public class myRoles
