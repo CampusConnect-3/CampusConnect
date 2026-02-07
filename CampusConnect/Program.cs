@@ -10,6 +10,11 @@ builder.Services.AddRazorPages();
 // DbContext Registeration
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
 
+// Register the TablesDbContext for legacy tables
+var tablesCs = builder.Configuration.GetConnectionString("ApplicationDbContext")
+    ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.");
+builder.Services.AddDbContext<TablesDbContext>(options => options.UseSqlServer(tablesCs));
+
 // Register the Identity services
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -42,6 +47,5 @@ using (var scope = app.Services.CreateScope())
 {
     await DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
 }
-
 
 app.Run();
