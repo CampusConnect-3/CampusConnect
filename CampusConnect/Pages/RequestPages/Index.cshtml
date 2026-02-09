@@ -1,0 +1,108 @@
+﻿@page
+@model CampusConnect.Pages.RequestPages.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].priority)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].createdAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].closedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].buildingName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].roomNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].phoneNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].createdBy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].assignedTo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.request[0].status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.request) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.priority)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.createdAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.closedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.buildingName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.roomNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.phoneNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.createdBy.email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.assignedTo.email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.category.categoryName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.status.statusName)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.requestID">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.requestID">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.requestID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

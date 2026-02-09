@@ -1,0 +1,61 @@
+﻿@page
+@model CampusConnect.Pages.UserPages.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>user</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.fName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.fName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.lName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.lName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.username)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.username)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.password)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.password)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.email)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.email)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.department)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.department)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.user.status)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.user.status)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.user.userID">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>
