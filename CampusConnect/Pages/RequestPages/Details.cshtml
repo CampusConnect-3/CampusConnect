@@ -1,0 +1,97 @@
+﻿@page
+@model CampusConnect.Pages.RequestPages.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>request</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.title)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.description)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.priority)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.priority)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.createdAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.createdAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.closedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.closedAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.buildingName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.buildingName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.roomNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.roomNumber)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.phoneNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.phoneNumber)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.email)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.email)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.createdBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.createdBy.email)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.assignedTo)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.assignedTo.email)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.category)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.category.categoryName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.request.status)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.request.status.statusName)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.request.requestID">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>
