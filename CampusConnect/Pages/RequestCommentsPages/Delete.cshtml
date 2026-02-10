@@ -1,0 +1,46 @@
+﻿@page
+@model CampusConnect.Pages.RequestCommentsPages.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>requestComments</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.requestComments.commentText)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.requestComments.commentText)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.requestComments.createdAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.requestComments.createdAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.requestComments.request)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.requestComments.request.buildingName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.requestComments.creator)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.requestComments.creator.email)
+        </dd>
+    </dl>
+    
+    <form method="post">
+        <input type="hidden" asp-for="requestComments.commentID" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-page="./Index">Back to List</a>
+    </form>
+</div>
