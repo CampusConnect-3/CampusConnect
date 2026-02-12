@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusConnect.Pages.UserPages
 {
+    [Authorize(Roles="Admin")]
     public class CreateModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
