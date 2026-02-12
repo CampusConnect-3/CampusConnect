@@ -10,6 +10,7 @@ using CampusConnect.Models;
 
 namespace CampusConnect.Pages.UserPages
 {
+
     public class DetailsModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
