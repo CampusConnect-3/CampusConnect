@@ -1,0 +1,101 @@
+﻿@page
+@model CampusConnect.Pages.RequestPages.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>request</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="request.requestID" />
+            <div class="form-group">
+                <label asp-for="request.created_by" class="control-label"></label>
+                <select asp-for="request.created_by" class="form-control" asp-items="ViewBag.created_by" ></select>
+                <span asp-validation-for="request.created_by" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="request.assigned_to" class="control-label"></label>
+                <select asp-for="request.assigned_to" class="form-control" asp-items="ViewBag.assigned_to" ></select>
+                <span asp-validation-for="request.assigned_to" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+<span class="text-danger">*</span>
+                <label asp-for="request.title" class="control-label"></label>
+                <input asp-for="request.title" class="form-control" aria-required="true"/>
+                <span asp-validation-for="request.title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+<span class="text-danger">*</span>
+                <label asp-for="request.description" class="control-label"></label>
+                <input asp-for="request.description" class="form-control" aria-required="true"/>
+                <span asp-validation-for="request.description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="request.categoryID" class="control-label"></label>
+                <select asp-for="request.categoryID" class="form-control" asp-items="ViewBag.categoryID" ></select>
+                <span asp-validation-for="request.categoryID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+<span class="text-danger">*</span>
+                <label asp-for="request.priority" class="control-label"></label>
+                <input asp-for="request.priority" class="form-control" aria-required="true"/>
+                <span asp-validation-for="request.priority" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="request.statusID" class="control-label"></label>
+                <select asp-for="request.statusID" class="form-control" asp-items="ViewBag.statusID" ></select>
+                <span asp-validation-for="request.statusID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="request.createdAt" class="control-label"></label>
+                <input asp-for="request.createdAt" class="form-control" />
+                <span asp-validation-for="request.createdAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="request.closedAt" class="control-label"></label>
+                <input asp-for="request.closedAt" class="form-control" />
+                <span asp-validation-for="request.closedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+<span class="text-danger">*</span>
+                <label asp-for="request.buildingName" class="control-label"></label>
+                <input asp-for="request.buildingName" class="form-control" aria-required="true"/>
+                <span asp-validation-for="request.buildingName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+<span class="text-danger">*</span>
+                <label asp-for="request.roomNumber" class="control-label"></label>
+                <input asp-for="request.roomNumber" class="form-control" aria-required="true"/>
+                <span asp-validation-for="request.roomNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="request.phoneNumber" class="control-label"></label>
+                <input asp-for="request.phoneNumber" class="form-control" />
+                <span asp-validation-for="request.phoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+<span class="text-danger">*</span>
+                <label asp-for="request.email" class="control-label"></label>
+                <input asp-for="request.email" class="form-control" aria-required="true"/>
+                <span asp-validation-for="request.email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

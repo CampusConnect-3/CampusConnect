@@ -1,0 +1,54 @@
+﻿@page
+@model CampusConnect.Pages.RequestCommentsPages.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.requestComments[0].commentText)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.requestComments[0].createdAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.requestComments[0].request)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.requestComments[0].creator)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.requestComments) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.commentText)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.createdAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.request.buildingName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.creator.email)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.commentID">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.commentID">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.commentID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
