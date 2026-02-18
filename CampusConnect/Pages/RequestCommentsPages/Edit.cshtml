@@ -1,0 +1,50 @@
+﻿@page
+@model CampusConnect.Pages.RequestCommentsPages.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>requestComments</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="requestComments.commentID" />
+            <div class="form-group">
+                <label asp-for="requestComments.requestID" class="control-label"></label>
+                <select asp-for="requestComments.requestID" class="form-control" asp-items="ViewBag.requestID" ></select>
+                <span asp-validation-for="requestComments.requestID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="requestComments.commentText" class="control-label"></label>
+                <input asp-for="requestComments.commentText" class="form-control" />
+                <span asp-validation-for="requestComments.commentText" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="requestComments.createdAt" class="control-label"></label>
+                <input asp-for="requestComments.createdAt" class="form-control" />
+                <span asp-validation-for="requestComments.createdAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="requestComments.creatorID" class="control-label"></label>
+                <select asp-for="requestComments.creatorID" class="form-control" asp-items="ViewBag.creatorID" ></select>
+                <span asp-validation-for="requestComments.creatorID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

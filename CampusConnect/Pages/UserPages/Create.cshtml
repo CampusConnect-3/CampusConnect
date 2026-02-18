@@ -1,0 +1,69 @@
+﻿@page
+@model CampusConnect.Pages.UserPages.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>user</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="user.fName" class="control-label"></label>
+                <input asp-for="user.fName" class="form-control" aria-required="true"/>
+                <span asp-validation-for="user.fName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="user.lName" class="control-label"></label>
+                <input asp-for="user.lName" class="form-control" aria-required="true"/>
+                <span asp-validation-for="user.lName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="user.username" class="control-label"></label>
+                <input asp-for="user.username" class="form-control" aria-required="true"/>
+                <span asp-validation-for="user.username" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="user.password" class="control-label"></label>
+                <input asp-for="user.password" class="form-control" aria-required="true"/>
+                <span asp-validation-for="user.password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="user.email" class="control-label"></label>
+                <input asp-for="user.email" class="form-control" aria-required="true"/>
+                <span asp-validation-for="user.email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="user.department" class="control-label"></label>
+                <input asp-for="user.department" class="form-control" />
+                <span asp-validation-for="user.department" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="user.status" class="control-label"></label>
+                <input asp-for="user.status" class="form-control" />
+                <span asp-validation-for="user.status" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

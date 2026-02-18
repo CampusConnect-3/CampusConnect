@@ -1,10 +1,213 @@
 ﻿@page
-@model IndexModel
-@{
-    ViewData["Title"] = "Home page";
-}
+@model CampusConnect.Pages.Home.IndexModel
+@using Microsoft.AspNetCore.Identity
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    /* Page shell */
+    .home-shell {
+        padding: 48px 24px;
+    }
+
+    .home-title {
+        font-size: 48px;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .student-id {
+        color: #333;
+        margin-bottom: 28px;
+    }
+
+    /* Primary large buttons */
+    .hero-actions {
+        display: flex;
+        gap: 28px;
+        justify-content: center;
+        margin-bottom: 18px;
+    }
+
+    .btn-hero {
+        padding: 18px 48px;
+        border-radius: 14px;
+        font-size: 18px;
+        font-weight: 500;
+        display: inline-block;
+        text-decoration: none;
+        box-shadow: 6px 8px 0 rgba(0,0,0,0.9);
+        border: 2px solid rgba(0,0,0,0.7);
+    }
+
+    .btn-hero-primary {
+        background: #2156b0;
+        color: white;
+    }
+
+    .btn-hero-outline {
+        background: #fff;
+        color: #222;
+        border-color: #222;
+    }
+
+    /* Count pills */
+    .counts {
+        display: flex;
+        gap: 18px;
+        justify-content: center;
+        margin: 20px 0 34px 0;
+    }
+
+    .pill {
+        padding: 14px 36px;
+        border-radius: 12px;
+        font-size: 18px;
+        box-shadow: 6px 6px 0 rgba(0,0,0,0.9);
+        border: 2px solid rgba(0,0,0,0.9);
+    }
+
+    .pill-blue {
+        background: #2156b0;
+        color: #fff;
+    }
+
+    .pill-orange {
+        background: #f39f5f;
+        color: #222;
+    }
+
+    .pill-green {
+        background: #4CAF50;
+        color: #fff;
+    }
+
+    /* Recent requests card */
+    .recent-card {
+        max-width: 920px;
+        margin: 0 auto;
+        border: 4px solid #0b0b0b;
+        padding: 0;
+        background: #fff;
+    }
+
+    .recent-header {
+        padding: 18px 22px;
+        font-size: 22px;
+        border-bottom: 3px solid #111;
+    }
+
+    .recent-inner {
+        padding: 18px 28px 8px 28px;
+    }
+
+    table.recent-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        table.recent-table thead th {
+            text-align: left;
+            padding: 18px 8px 6px 8px;
+            font-size: 18px;
+            border-bottom: 4px solid transparent;
+        }
+            /* purple underline like design */
+            table.recent-table thead th.status-underline {
+                border-bottom: 4px solid #6a3fae;
+            }
+
+        table.recent-table td {
+            padding: 18px 8px;
+            font-size: 18px;
+            border-top: 4px solid #111;
+        }
+
+    .status-closed {
+        color: #2f9b54;
+        font-weight: 500;
+    }
+
+    .status-progress {
+        color: #f39f5f;
+        font-weight: 500;
+    }
+
+    .status-todo {
+        color: #9b9b9b;
+        font-weight: 500;
+    }
+
+    .view-all {
+        text-align: center;
+        padding: 12px 0 20px 0;
+    }
+
+        .view-all a {
+            color: #2b67b8;
+            text-decoration: none;
+            font-size: 16px;
+        }
+</style>
+
+<div class="home-shell">
+    <div class="text-center">
+        <h1 class="home-title">Welcome @Model.DisplayName</h1>
+        <div class="student-id">Student ID: @Model.StudentId</div>
+
+        <div class="hero-actions">
+            <!-- fixed page route to the RequestPages Create page -->
+            <a class="btn-hero btn-hero-primary" asp-page="/RequestPages/Create">+ Submit New Request</a>
+            <a class="btn-hero btn-hero-outline" asp-page="/RequestPages/MyRequests">View My Request</a>
+        </div>
+
+        <div class="counts">
+            <div class="pill pill-blue">@Model.OpenCount Open Request</div>
+            <div class="pill pill-orange">@Model.InProgressCount In Progress</div>
+            <div class="pill pill-green">@Model.ClosedCount Closed Request</div>
+        </div>
+
+        <div class="recent-card">
+            <div class="recent-header">Recent Request</div>
+
+            <div class="recent-inner">
+                <table class="recent-table">
+                    <thead>
+                        <tr>
+                            <th style="width:18%;">Request ID</th>
+                            <th style="width:44%;">Title</th>
+                            <th style="width:20%;" class="status-underline">Status</th>
+                            <th style="width:18%;">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.RecentRequests)
+                        {
+                            <tr>
+                                <td>@r.Id</td>
+                                <td>@r.Title</td>
+                                <td>
+                                    @if (r.Status == "Closed")
+                                    {
+                                        <span class="status-closed">@r.Status</span>
+                                    }
+                                    else if (r.Status == "In Progress")
+                                    {
+                                        <span class="status-progress">@r.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-todo">@r.Status</span>
+                                    }
+                                </td>
+                                <td>@r.LastUpdated.ToString("MM/dd/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="view-all">
+                    <a asp-page="/Requests/Index">View All Request</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

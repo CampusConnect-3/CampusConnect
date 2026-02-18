@@ -1,0 +1,55 @@
+﻿@page
+@model CampusConnect.Pages.RequestAttachmentsPages.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>attachments</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.attachments.fileName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.attachments.fileName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.attachments.contentType)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.attachments.contentType)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.attachments.fileUrl)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.attachments.fileUrl)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.attachments.uploadedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.attachments.uploadedAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.attachments.request)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.attachments.request.buildingName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.attachments.creator)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.attachments.creator.email)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.attachments.fileID">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>
