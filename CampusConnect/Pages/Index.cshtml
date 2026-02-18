@@ -154,8 +154,9 @@
         <div class="student-id">Student ID: @Model.StudentId</div>
 
         <div class="hero-actions">
-            <a class="btn-hero btn-hero-primary" asp-page="/Requests/Create">+ Submit New Request</a>
-            <a class="btn-hero btn-hero-outline" asp-page="/Requests/MyRequests">View My Request</a>
+            <!-- fixed page route to the RequestPages Create page -->
+            <a class="btn-hero btn-hero-primary" asp-page="/RequestPages/Create">+ Submit New Request</a>
+            <a class="btn-hero btn-hero-outline" asp-page="/RequestPages/MyRequests">View My Request</a>
         </div>
 
         <div class="counts">
