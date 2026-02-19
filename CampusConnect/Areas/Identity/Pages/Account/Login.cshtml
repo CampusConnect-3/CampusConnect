@@ -41,7 +41,19 @@
 
         .logo-section {
             text-align: center;
-            margin-bottom: 32px;
+            margin: 0 auto 32px;
+            max-width: 260px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 12px 30px rgba(30,136,255,.25));
+        }
+
+        .logo-image {
+            display: block;
+            width: 200px; /* adjust the  */
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto 8px;
         }
 
         .logo-title {
@@ -83,13 +95,13 @@
             transition: all 0.3s ease;
         }
 
-        input[type="email"]:focus,
-        input[type="password"]:focus,
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #4a9eff;
-            background: #161b26;
-        }
+            input[type="email"]:focus,
+            input[type="password"]:focus,
+            input[type="text"]:focus {
+                outline: none;
+                border-color: #4a9eff;
+                background: #161b26;
+            }
 
         input::placeholder {
             color: #5a6170;
@@ -108,18 +120,18 @@
             gap: 8px;
         }
 
-        .checkbox-wrapper input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
+            .checkbox-wrapper input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+            }
 
-        .checkbox-wrapper label {
-            margin: 0;
-            font-size: 14px;
-            color: #e0e3ed;
-            cursor: pointer;
-        }
+            .checkbox-wrapper label {
+                margin: 0;
+                font-size: 14px;
+                color: #e0e3ed;
+                cursor: pointer;
+            }
 
         .forgot-link {
             color: #4a9eff;
@@ -128,9 +140,9 @@
             transition: color 0.3s ease;
         }
 
-        .forgot-link:hover {
-            color: #6bb0ff;
-        }
+            .forgot-link:hover {
+                color: #6bb0ff;
+            }
 
         .btn-signin {
             width: 100%;
@@ -147,15 +159,15 @@
             letter-spacing: 0.5px;
         }
 
-        .btn-signin:hover {
-            background: #3d8eeb;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(74, 158, 255, 0.3);
-        }
+            .btn-signin:hover {
+                background: #3d8eeb;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(74, 158, 255, 0.3);
+            }
 
-        .btn-signin:active {
-            transform: translateY(0);
-        }
+            .btn-signin:active {
+                transform: translateY(0);
+            }
 
         .footer-links {
             text-align: center;
@@ -177,9 +189,9 @@
             transition: color 0.3s ease;
         }
 
-        .footer-links a:hover {
-            color: #4a9eff;
-        }
+            .footer-links a:hover {
+                color: #4a9eff;
+            }
 
         .text-danger {
             color: #ff6b6b;
@@ -196,22 +208,22 @@
             margin-bottom: 20px;
         }
 
-        .validation-summary ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
+            .validation-summary ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
 
-        .validation-summary li {
-            color: #ff6b6b;
-            font-size: 14px;
-        }
+            .validation-summary li {
+                color: #ff6b6b;
+                font-size: 14px;
+            }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="logo-section">
-            <div class="logo-title">CAMPUS<br/>CONNECT</div>
+            <img src="@(Url.Content("~/images/campus-connect-logo.png"))" alt="Campus Connect Logo" class="logo-image" loading="lazy" />
             <p class="logo-subtitle">Smart Request for a Smarter Campus</p>
         </div>
 
@@ -246,7 +258,7 @@
             <div class="footer-links">
                 <div class="footer-text">
                     © @DateTime.Now.Year Campus Connect
-                    <br/>
+                    <br />
                     <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register</a>
                     <span style="color: #5a6170;">|</span>
                     <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend Confirmation</a>
