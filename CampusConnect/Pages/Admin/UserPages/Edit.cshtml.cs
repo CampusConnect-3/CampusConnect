@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using CampusConnect.Data;
-using CampusConnect.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.UserPages
 {
+    [Authorize(Roles = "Admin")]
     public class EditModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;

@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusConnect.Pages.RequestPages
 {
+    [Authorize(Roles= "Admin,Manager")]
     public class EditModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
