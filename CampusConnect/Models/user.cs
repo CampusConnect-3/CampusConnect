@@ -9,6 +9,7 @@ namespace CampusConnect.Models
     {
         [Key]
         [Column("userID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int userID { get; set; }
 
         [Required, MaxLength(256)]

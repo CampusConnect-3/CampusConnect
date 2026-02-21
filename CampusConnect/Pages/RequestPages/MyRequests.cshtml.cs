@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CampusConnect.Constants;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CampusConnect.Pages.RequestPages
 {
+    [Authorize(Roles = "User")]
     public class MyRequestsModel : PageModel
     {
         private readonly TablesDbContext _context;
