@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using CampusConnect.Data;
-using CampusConnect.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestAttachmentsPages
 {
+    [Authorize]
     public class DetailsModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
