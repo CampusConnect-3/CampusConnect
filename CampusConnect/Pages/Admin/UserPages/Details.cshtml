@@ -29,11 +29,12 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.user.username)
         </dd>
+        <!-- Do not display plaintext password. Show whether an Identity account exists. -->
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.user.password)
+            Account type
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.user.password)
+            @(string.IsNullOrWhiteSpace(Model.user.identityUserId) ? "Legacy local (no Identity account)" : "Identity account")
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.user.email)

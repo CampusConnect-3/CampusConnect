@@ -1,5 +1,7 @@
 ﻿using CampusConnect.Constants;
+using CampusConnect.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 namespace CampusConnect.Data
@@ -18,9 +20,8 @@ namespace CampusConnect.Data
             await roleManager.CreateAsync(new IdentityRole(Roles.Staff.ToString()));
             await roleManager.CreateAsync(new IdentityRole(Roles.Manager.ToString()));
 
-            //Create Admin
-
-            var user = new IdentityUser
+            //Create Admin Identity user
+            var adminIdentity = new IdentityUser
             {
                 UserName = "admin@gmail.com",
                 Email = "admin@gmail.com",
@@ -28,14 +29,43 @@ namespace CampusConnect.Data
                 PhoneNumberConfirmed = true
             };
 
-            var userInDb = await userManager.FindByEmailAsync(user.Email);
+            var userInDb = await userManager.FindByEmailAsync(adminIdentity.Email);
             if (userInDb == null)
             {
-                await userManager.CreateAsync(user, "Admin@123");
-                await userManager.AddToRoleAsync(user, Roles.Admin.ToString());
+                await userManager.CreateAsync(adminIdentity, "Admin@123");
+                await userManager.AddToRoleAsync(adminIdentity, Roles.Admin.ToString());
+            }
+            else
+            {
+                // ensure we have the Identity object to link
+                adminIdentity = userInDb;
             }
 
+            // Create corresponding application user row and link to Identity user
+            var tablesDb = service.GetService<TablesDbContext>();
+            if (tablesDb != null)
+            {
+                // avoid duplicates by email or identityUserId
+                var existingAppUser = await tablesDb.users
+                    .FirstOrDefaultAsync(u => u.email == adminIdentity.Email || u.identityUserId == adminIdentity.Id);
 
+                if (existingAppUser == null)
+                {
+                    var adminUser = new user
+                    {
+                        identityUserId = adminIdentity.Id,  // link them
+                        fName = "System",
+                        lName = "Admin",
+                        username = adminIdentity.UserName ?? "admin",
+                        email = adminIdentity.Email ?? "admin@example.com",
+                        status = "Active",
+                        password = null // do NOT store plaintext password
+                    };
+
+                    tablesDb.users.Add(adminUser);
+                    await tablesDb.SaveChangesAsync();
+                }
+            }
         }
     }       
 }
