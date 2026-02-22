@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model CampusConnect.Pages.UserPages.CreateModel
 
 @{
@@ -31,11 +31,11 @@
                 <input asp-for="user.username" class="form-control" aria-required="true"/>
                 <span asp-validation-for="user.username" class="text-danger"></span>
             </div>
+            <!-- Password is handled by Identity. Admin may optionally set an initial password -->
             <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="user.password" class="control-label"></label>
-                <input asp-for="user.password" class="form-control" aria-required="true"/>
-                <span asp-validation-for="user.password" class="text-danger"></span>
+                <label asp-for="Password" class="control-label">Initial password (optional)</label>
+                <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <span class="text-danger">*</span>
