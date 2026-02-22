@@ -10,6 +10,7 @@ namespace CampusConnect.Models
     {
         [Key]
         [Column("requestID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int requestID { get; set; }
 
         [Column("created_by")]
@@ -35,7 +36,7 @@ namespace CampusConnect.Models
 
         public DateTime createdAt { get; set; }
 
-        public DateTime? closedAt { get; set; }
+        public DateTime? closedAt { get; set; }  // Changed to nullable
 
         [Required, MaxLength(256)]
         public string buildingName { get; set; }
