@@ -9,6 +9,7 @@ namespace CampusConnect.Models
     {
         [Key]
         [Column("userID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int userID { get; set; }
 
         [Required, MaxLength(256)]
@@ -20,8 +21,9 @@ namespace CampusConnect.Models
         [Required, MaxLength(256)]
         public string username { get; set; }
 
-        [Required, MaxLength(256)]
-        public string password { get; set; }
+        // Remove [Required] and make nullable (or delete this property if you will drop the column)
+        [MaxLength(256)]
+        public string? password { get; set; }
 
         [Required, MaxLength(256)]
         public string email { get; set; }
@@ -31,6 +33,10 @@ namespace CampusConnect.Models
 
         [MaxLength(50)]
         public string? status { get; set; }
+
+        // Link to AspNetUsers.Id (Identity user)
+        [MaxLength(450)]
+        public string? identityUserId { get; set; }
 
         // Navigation
         public virtual ICollection<userRoles> userRoles { get; set; } = new List<userRoles>();
