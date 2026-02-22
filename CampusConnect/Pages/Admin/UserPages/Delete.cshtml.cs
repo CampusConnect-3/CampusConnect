@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.UserPages
@@ -14,11 +12,13 @@ namespace CampusConnect.Pages.UserPages
     [Authorize(Roles = "Admin")]
     public class DeleteModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public DeleteModel(CampusConnect.Data.TablesDbContext context)
+        public DeleteModel(TablesDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [BindProperty]
@@ -31,16 +31,13 @@ namespace CampusConnect.Pages.UserPages
                 return NotFound();
             }
 
-            var user = await _context.users.FirstOrDefaultAsync(m => m.userID == id);
+            var u = await _context.users.FirstOrDefaultAsync(m => m.userID == id);
 
-            if (user == null)
+            if (u == null)
             {
                 return NotFound();
             }
-            else
-            {
-                user = user;
-            }
+            user = u;
             return Page();
         }
 
@@ -51,11 +48,20 @@ namespace CampusConnect.Pages.UserPages
                 return NotFound();
             }
 
-            var user = await _context.users.FindAsync(id);
-            if (user != null)
+            var u = await _context.users.FindAsync(id);
+            if (u != null)
             {
-                user = user;
-                _context.users.Remove(user);
+                // delete linked Identity user if present
+                if (!string.IsNullOrWhiteSpace(u.identityUserId))
+                {
+                    var identityUser = await _userManager.FindByIdAsync(u.identityUserId);
+                    if (identityUser != null)
+                    {
+                        await _userManager.DeleteAsync(identityUser);
+                    }
+                }
+
+                _context.users.Remove(u);
                 await _context.SaveChangesAsync();
             }
 

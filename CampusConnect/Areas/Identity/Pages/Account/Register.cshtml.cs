@@ -102,7 +102,8 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                 username = identityUser.UserName ?? Input.Email,
                 email = identityUser.Email ?? Input.Email,
                 department = Input?.Department,
-                status = "Active" // or whatever default you want
+                status = "Active",
+                identityUserId = identityUser.Id, // important: link to AspNetUsers
             };
 
             try

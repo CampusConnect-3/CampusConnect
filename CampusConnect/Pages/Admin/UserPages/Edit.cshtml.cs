@@ -1,27 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace CampusConnect.Pages.UserPages
 {
     public class EditModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public EditModel(CampusConnect.Data.TablesDbContext context)
+        public EditModel(TablesDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [BindProperty]
         public user user { get; set; } = default!;
+
+        // optional new password to set via Identity (admin action)
+        [BindProperty]
+        public string? NewPassword { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -30,12 +34,12 @@ namespace CampusConnect.Pages.UserPages
                 return NotFound();
             }
 
-            var user =  await _context.users.FirstOrDefaultAsync(m => m.userID == id);
-            if (user == null)
+            var u =  await _context.users.FirstOrDefaultAsync(m => m.userID == id);
+            if (u == null)
             {
                 return NotFound();
             }
-            user = user;
+            user = u;
             return Page();
         }
 
@@ -47,6 +51,9 @@ namespace CampusConnect.Pages.UserPages
             {
                 return Page();
             }
+
+            // Ensure we do not save any plaintext password into the app table
+            // user.password = null;
 
             _context.Attach(user).State = EntityState.Modified;
 
@@ -63,6 +70,26 @@ namespace CampusConnect.Pages.UserPages
                 else
                 {
                     throw;
+                }
+            }
+
+            // If admin provided a new password, reset Identity password for linked identity user
+            if (!string.IsNullOrWhiteSpace(NewPassword) && !string.IsNullOrWhiteSpace(user.identityUserId))
+            {
+                var identityUser = await _userManager.FindByIdAsync(user.identityUserId);
+                if (identityUser == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Linked identity account not found.");
+                    return Page();
+                }
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+                var resetResult = await _userManager.ResetPasswordAsync(identityUser, token, NewPassword);
+                if (!resetResult.Succeeded)
+                {
+                    foreach (var err in resetResult.Errors)
+                        ModelState.AddModelError(string.Empty, err.Description);
+                    return Page();
                 }
             }
 
