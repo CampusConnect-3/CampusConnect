@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize(Roles = "User")]
+    [Authorize]
     public class MyRequestsModel : PageModel
     {
         private readonly TablesDbContext _context;
