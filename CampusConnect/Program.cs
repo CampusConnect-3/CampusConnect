@@ -1,6 +1,8 @@
 using CampusConnect.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,16 +22,42 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     .AddDefaultUI()
     .AddDefaultTokenProviders();
 
+// Secure session management for Identity = harden the auth cookie
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // HTTPS-only
+    options.Cookie.SameSite = SameSiteMode.Lax;              // Strong CSRF protection; avoids breaking common flows
+
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);       // session lifetime
+    options.SlidingExpiration = true;                        // refresh on activity
+
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
+
 
 var app = builder.Build();
 
+// Global exception handling (logs + routes to custom error page)
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage(); // detailed errors (dev only)
+}
+else
+{
+    app.UseExceptionHandler("/Error"); // Razor Page at /Pages/Error.cshtml
+    app.UseHsts();
+}
+
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+/*if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-}
+}*/
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

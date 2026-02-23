@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace CampusConnect.Pages.UserRolesPages
 {
@@ -17,9 +19,11 @@ namespace CampusConnect.Pages.UserRolesPages
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
 
-        public EditModel(CampusConnect.Data.TablesDbContext context)
+        private readonly ILogger<EditModel> _logger;
+        public EditModel(TablesDbContext context, ILogger<EditModel> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [BindProperty]
@@ -57,17 +61,29 @@ namespace CampusConnect.Pages.UserRolesPages
             try
             {
                 await _context.SaveChangesAsync();
+
+                _logger.LogWarning(
+                    "CRITICAL: Role assignment edited. TargetUserId={TargetUserId} RoleId={RoleId} AdminUserId={AdminUserId} TraceId={TraceId}",
+                    userRoles.userID,
+                    userRoles.roleID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning(ex,
+                    "Concurrency conflict editing user role. RoleId={RoleId} TargetUserId={TargetUserId} AdminUserId={AdminUserId} TraceId={TraceId}",
+                    userRoles.roleID,
+                    userRoles.userID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
+
                 if (!userRolesExists(userRoles.roleID))
-                {
                     return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return RedirectToPage("./Index");

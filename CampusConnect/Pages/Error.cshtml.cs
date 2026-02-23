@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -22,6 +23,16 @@ namespace CampusConnect.Pages
         public void OnGet()
         {
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
+            var exceptionFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+            if (exceptionFeature?.Error != null)
+            {
+                _logger.LogError(exceptionFeature.Error,
+                    "Unhandled exception occurred at Path={Path} TraceId={TraceId}",
+                    exceptionFeature.Path,
+                    RequestId);
+            }
         }
     }
 
