@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace CampusConnect.Pages.UserRolesPages
 {
@@ -16,9 +18,11 @@ namespace CampusConnect.Pages.UserRolesPages
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
 
-        public DeleteModel(CampusConnect.Data.TablesDbContext context)
+        private readonly ILogger<DeleteModel> _logger;
+        public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [BindProperty]
@@ -57,6 +61,14 @@ namespace CampusConnect.Pages.UserRolesPages
                 userRoles = userroles;
                 _context.userRoles.Remove(userRoles);
                 await _context.SaveChangesAsync();
+
+                _logger.LogWarning(
+                    "CRITICAL: Role removed. TargetUserId={TargetUserId} RoleId={RoleId} AdminUserId={AdminUserId} TraceId={TraceId}",
+                    userRoles.userID,
+                    userRoles.roleID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
             }
 
             return RedirectToPage("./Index");

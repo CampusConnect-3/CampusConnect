@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace CampusConnect.Pages.RequestPages
 {
@@ -15,9 +17,11 @@ namespace CampusConnect.Pages.RequestPages
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
 
-        public EditModel(CampusConnect.Data.TablesDbContext context)
+        private readonly ILogger<EditModel> _logger;
+        public EditModel(TablesDbContext context, ILogger<EditModel> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [BindProperty]
@@ -57,17 +61,25 @@ namespace CampusConnect.Pages.RequestPages
             try
             {
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("CRITICAL: Request edited. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    request.requestID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning(ex,
+                    "Concurrency conflict editing request. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    request.requestID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
+
                 if (!requestExists(request.requestID))
-                {
                     return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return RedirectToPage("./Index");
