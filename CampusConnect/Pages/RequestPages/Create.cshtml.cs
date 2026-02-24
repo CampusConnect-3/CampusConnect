@@ -8,6 +8,8 @@ using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace CampusConnect.Pages.RequestPages
 {
