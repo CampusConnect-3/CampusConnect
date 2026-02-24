@@ -15,10 +15,9 @@ namespace CampusConnect.Data
             var roleManager = service.GetService<RoleManager<IdentityRole>>();
             await roleManager.CreateAsync(new IdentityRole(Roles.Admin.ToString()));
             await roleManager.CreateAsync(new IdentityRole(Roles.User.ToString()));
-
-            //If there are more roles, add them here
             await roleManager.CreateAsync(new IdentityRole(Roles.Staff.ToString()));
             await roleManager.CreateAsync(new IdentityRole(Roles.Manager.ToString()));
+            await roleManager.CreateAsync(new IdentityRole(Roles.Pending.ToString()));
 
             //Create Admin Identity user
             var adminIdentity = new IdentityUser
@@ -39,6 +38,12 @@ namespace CampusConnect.Data
             {
                 // ensure we have the Identity object to link
                 adminIdentity = userInDb;
+                
+                // Ensure admin has Admin role
+                if (!await userManager.IsInRoleAsync(adminIdentity, Roles.Admin.ToString()))
+                {
+                    await userManager.AddToRoleAsync(adminIdentity, Roles.Admin.ToString());
+                }
             }
 
             // Create corresponding application user row and link to Identity user
