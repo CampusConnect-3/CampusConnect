@@ -8,6 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace CampusConnect.Pages.RequestPages
 {
@@ -16,9 +23,11 @@ namespace CampusConnect.Pages.RequestPages
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
 
-        public DeleteModel(CampusConnect.Data.TablesDbContext context)
+        private readonly ILogger<DeleteModel> _logger;
+        public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [BindProperty]
@@ -57,6 +66,11 @@ namespace CampusConnect.Pages.RequestPages
                 request = request;
                 _context.request.Remove(request);
                 await _context.SaveChangesAsync();
+
+                _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    id,User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier 
+                );
             }
 
             return RedirectToPage("./Index");

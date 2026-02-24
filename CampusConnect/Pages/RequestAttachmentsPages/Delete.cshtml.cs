@@ -8,6 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace CampusConnect.Pages.RequestAttachmentsPages
 {
@@ -16,9 +23,11 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
 
-        public DeleteModel(CampusConnect.Data.TablesDbContext context)
+        private readonly ILogger<DeleteModel> _logger;
+        public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [BindProperty]
@@ -54,9 +63,17 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
             var attachments = await _context.attachments.FindAsync(id);
             if (attachments != null)
             {
-                attachments = attachments;
                 _context.attachments.Remove(attachments);
                 await _context.SaveChangesAsync();
+
+                // ⭐ CRITICAL OPERATION LOGGING
+                _logger.LogWarning(
+                    "CRITICAL: Attachment deleted. FileId={FileId} RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    attachments.fileID,
+                    attachments.requestID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
             }
 
             return RedirectToPage("./Index");
