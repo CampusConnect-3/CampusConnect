@@ -14,6 +14,7 @@ namespace CampusConnect.Pages.Home
         public int OpenCount { get; private set; } = 0;
         public int InProgressCount { get; private set; } = 0;
         public int ClosedCount { get; private set; } = 0;
+        public bool IsAdmin { get; private set; } = false;
 
         public List<(string Id, string Title, string Status, DateTime LastUpdated)> RecentRequests { get; private set; }
             = new();
@@ -28,10 +29,12 @@ namespace CampusConnect.Pages.Home
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // Redirect admins to admin home
-            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            // Check if admin (for displaying admin-specific UI elements)
+            IsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+
+            if (IsAdmin)
             {
-                return RedirectToPage("/Admin/Index");
+                return RedirectToPage("/Admin/UserPages/Index"); // Changed from /Admin/Index
             }
 
             DisplayName = user.UserName ?? user.Email ?? "User";

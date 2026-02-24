@@ -36,7 +36,7 @@ namespace CampusConnect.Pages.UserPages
             }
             else
             {
-                user = user;
+                this.user = user;
             }
             return Page();
         }
