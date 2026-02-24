@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Constants;
 
 namespace CampusConnect.Areas.Identity.Pages.Account
 {
@@ -94,6 +95,9 @@ namespace CampusConnect.Areas.Identity.Pages.Account
 
             _logger.LogInformation("Identity user created.");
 
+            // Assign Pending role by default
+            await _userManager.AddToRoleAsync(identityUser, Roles.Pending.ToString());
+
             // Now create the application user row and link it via email/username.
             var appUser = new user
             {
@@ -102,7 +106,7 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                 username = identityUser.UserName ?? Input.Email,
                 email = identityUser.Email ?? Input.Email,
                 department = Input?.Department,
-                status = "Active",
+                status = "Pending", // Mark as Pending until role is assigned
                 identityUserId = identityUser.Id, // important: link to AspNetUsers
             };
 
