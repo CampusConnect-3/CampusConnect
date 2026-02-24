@@ -20,7 +20,6 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     .AddDefaultUI()
     .AddDefaultTokenProviders();
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
