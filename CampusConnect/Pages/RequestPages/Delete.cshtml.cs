@@ -8,11 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using CampusConnect.Data;
-using CampusConnect.Models;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -48,7 +43,7 @@ namespace CampusConnect.Pages.RequestPages
             }
             else
             {
-                request = request;
+                this.request = request;  // ✅ Assign to the property
             }
             return Page();
         }
