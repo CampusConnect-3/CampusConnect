@@ -13,30 +13,26 @@ namespace CampusConnect.Pages.UserPages
     public class DeleteModel : PageModel
     {
         private readonly TablesDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DeleteModel(TablesDbContext context, UserManager<IdentityUser> userManager)
+        public DeleteModel(TablesDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
 
         [BindProperty]
-        public user user { get; set; } = default!;
+        public User user { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var u = await _context.users.FirstOrDefaultAsync(m => m.userID == id);
-
             if (u == null)
-            {
                 return NotFound();
-            }
+
             user = u;
             return Page();
         }
@@ -44,17 +40,15 @@ namespace CampusConnect.Pages.UserPages
         public async Task<IActionResult> OnPostAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var u = await _context.users.FindAsync(id);
             if (u != null)
             {
                 // delete linked Identity user if present
-                if (!string.IsNullOrWhiteSpace(u.identityUserId))
+                if (!string.IsNullOrWhiteSpace(u.IdentityUserId))
                 {
-                    var identityUser = await _userManager.FindByIdAsync(u.identityUserId);
+                    var identityUser = await _userManager.FindByIdAsync(u.IdentityUserId);
                     if (identityUser != null)
                     {
                         await _userManager.DeleteAsync(identityUser);

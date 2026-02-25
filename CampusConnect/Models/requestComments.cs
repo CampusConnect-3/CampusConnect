@@ -24,9 +24,9 @@ namespace CampusConnect.Models
 
         // Navigation
         [ForeignKey("requestID")]
-        public virtual request? request { get; set; }
+        public virtual Request? request { get; set; }
 
         [ForeignKey("creatorID")]
-        public virtual user? creator { get; set; }
+        public virtual User? creator { get; set; }
     }
 }

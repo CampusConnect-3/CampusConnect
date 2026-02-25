@@ -1,25 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using CampusConnect.Data;
-using CampusConnect.Models;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize(Roles= "Admin,Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public class EditModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
-
+        private readonly TablesDbContext _context;
         private readonly ILogger<EditModel> _logger;
+
         public EditModel(TablesDbContext context, ILogger<EditModel> logger)
         {
             _context = context;
@@ -27,43 +25,40 @@ namespace CampusConnect.Pages.RequestPages
         }
 
         [BindProperty]
-        public request request { get; set; } = default!;
+        public Request request { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var request =  await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
-            if (request == null)
-            {
+            var found = await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
+            if (found == null)
                 return NotFound();
-            }
-            request = request;
-           ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-           ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-           ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-           ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
+
+            request = found;
+
+            ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
+            ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
+            ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
+            ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
+
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
             _context.Attach(request).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("CRITICAL: Request edited. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+
+                _logger.LogInformation(
+                    "CRITICAL: Request edited. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
                     request.requestID,
                     User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
                     HttpContext.TraceIdentifier
@@ -71,14 +66,15 @@ namespace CampusConnect.Pages.RequestPages
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogWarning(ex,
+                _logger.LogWarning(
+                    ex,
                     "Concurrency conflict editing request. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
                     request.requestID,
                     User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
                     HttpContext.TraceIdentifier
                 );
 
-                if (!requestExists(request.requestID))
+                if (!RequestExists(request.requestID))
                     return NotFound();
 
                 throw;
@@ -87,7 +83,7 @@ namespace CampusConnect.Pages.RequestPages
             return RedirectToPage("./Index");
         }
 
-        private bool requestExists(int id)
+        private bool RequestExists(int id)
         {
             return _context.request.Any(e => e.requestID == id);
         }

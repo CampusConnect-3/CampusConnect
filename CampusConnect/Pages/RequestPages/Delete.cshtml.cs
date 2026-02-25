@@ -4,21 +4,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
     [Authorize(Roles = "Admin,Manager")]
     public class DeleteModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
-
+        private readonly TablesDbContext _context;
         private readonly ILogger<DeleteModel> _logger;
+
         public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
         {
             _context = context;
@@ -26,45 +23,37 @@ namespace CampusConnect.Pages.RequestPages
         }
 
         [BindProperty]
-        public request request { get; set; } = default!;
+        public Request request { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var request = await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
-
-            if (request == null)
-            {
+            var found = await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
+            if (found == null)
                 return NotFound();
-            }
-            else
-            {
-                this.request = request;  // ✅ Assign to the property
-            }
+
+            request = found; // assign to PageModel property for Razor
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var request = await _context.request.FindAsync(id);
-            if (request != null)
+            var found = await _context.request.FindAsync(id);
+            if (found != null)
             {
-                request = request;
-                _context.request.Remove(request);
+                _context.request.Remove(found);
                 await _context.SaveChangesAsync();
 
-                _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    id,User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier 
+                _logger.LogWarning(
+                    "CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    found.requestID,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
                 );
             }
 

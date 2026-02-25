@@ -3,10 +3,8 @@ using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,48 +14,42 @@ namespace CampusConnect.Pages.UserPages
     public class EditModel : PageModel
     {
         private readonly TablesDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public EditModel(TablesDbContext context, UserManager<IdentityUser> userManager)
+        public EditModel(TablesDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
 
         [BindProperty]
-        public user user { get; set; } = default!;
+        public User user { get; set; } = default!;
 
-        // optional new password to set via Identity (admin action)
+        // Optional new password to set via Identity (admin action)
         [BindProperty]
         public string? NewPassword { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var u =  await _context.users.FirstOrDefaultAsync(m => m.userID == id);
+            var u = await _context.users.FirstOrDefaultAsync(m => m.userID == id);
+
             if (u == null)
-            {
                 return NotFound();
-            }
+
             user = u;
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
-            // Ensure we do not save any plaintext password into the app table
-            // user.password = null;
+            // Ensure we do not save plaintext password in legacy table
+            user.password = "IDENTITY_ONLY";
 
             _context.Attach(user).State = EntityState.Modified;
 
@@ -67,20 +59,18 @@ namespace CampusConnect.Pages.UserPages
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!userExists(user.userID))
-                {
+                if (!UserExists(user.userID))
                     return NotFound();
-                }
                 else
-                {
                     throw;
-                }
             }
 
-            // If admin provided a new password, reset Identity password for linked identity user
-            if (!string.IsNullOrWhiteSpace(NewPassword) && !string.IsNullOrWhiteSpace(user.identityUserId))
+            // If admin provided a new password, reset Identity password
+            if (!string.IsNullOrWhiteSpace(NewPassword) &&
+                !string.IsNullOrWhiteSpace(user.IdentityUserId))
             {
-                var identityUser = await _userManager.FindByIdAsync(user.identityUserId);
+                var identityUser = await _userManager.FindByIdAsync(user.IdentityUserId);
+
                 if (identityUser == null)
                 {
                     ModelState.AddModelError(string.Empty, "Linked identity account not found.");
@@ -89,10 +79,12 @@ namespace CampusConnect.Pages.UserPages
 
                 var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
                 var resetResult = await _userManager.ResetPasswordAsync(identityUser, token, NewPassword);
+
                 if (!resetResult.Succeeded)
                 {
                     foreach (var err in resetResult.Errors)
                         ModelState.AddModelError(string.Empty, err.Description);
+
                     return Page();
                 }
             }
@@ -100,7 +92,7 @@ namespace CampusConnect.Pages.UserPages
             return RedirectToPage("./Index");
         }
 
-        private bool userExists(int id)
+        private bool UserExists(int id)
         {
             return _context.users.Any(e => e.userID == id);
         }

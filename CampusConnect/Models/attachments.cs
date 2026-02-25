@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CampusConnect.Models
 {
-    [Table("attachments")]
-    public class attachments
+    [Table("attachments")] // DB table stays lowercase — this is correct
+    public class Attachments
     {
         [Key]
         [Column("fileID")]
@@ -24,15 +24,15 @@ namespace CampusConnect.Models
         public string? contentType { get; set; }
 
         [Required, MaxLength(256)]
-        public string fileUrl { get; set; }
+        public string fileUrl { get; set; } = string.Empty;
 
         public DateTime uploadedAt { get; set; }
 
         // Navigation
         [ForeignKey("requestID")]
-        public virtual request? request { get; set; }
+        public virtual Request? request { get; set; }
 
         [ForeignKey("creatorID")]
-        public virtual user? creator { get; set; }
+        public virtual User? creator { get; set; }
     }
 }

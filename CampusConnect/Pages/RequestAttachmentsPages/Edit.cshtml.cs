@@ -23,7 +23,7 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
         }
 
         [BindProperty]
-        public attachments attachments { get; set; } = default!;
+        public Attachments attachments { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -32,7 +32,7 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
                 return NotFound();
             }
 
-            var attachments =  await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
+            var Attachments =  await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
             if (attachments == null)
             {
                 return NotFound();

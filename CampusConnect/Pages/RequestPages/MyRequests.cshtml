@@ -1,177 +1,91 @@
-﻿@page
-@model CampusConnect.Pages.RequestPages.MyRequestsModel
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CampusConnect.Constants;
+using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
-@{
-    ViewData["Title"] = "My Requests";
-}
+namespace CampusConnect.Pages.RequestPages
+{
+    [Authorize]
+    public class MyRequestsModel : PageModel
+    {
+        private readonly TablesDbContext _context;
 
-<style>
-    .my-requests-shell {
-        max-width: 1100px;
-        margin: 18px auto;
-        padding: 18px;
-    }
+        public MyRequestsModel(TablesDbContext context)
+        {
+            _context = context;
+        }
 
-    .card-box {
-        border: 4px solid #000;
-        padding: 6px 12px 18px 12px;
-        background: #fff;
-    }
+        [BindProperty(SupportsGet = true)]
+        public string? StatusFilter { get; set; }
 
-    .filter-bar {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        margin-bottom: 8px;
-    }
+        public IList<request>
+    Requests { get; set; } = new List<request>
+        ();
 
-    .filter-label {
-        background: #333;
-        color: #fff;
-        padding: 8px 12px;
-        font-weight: 700;
-    }
+        public SelectList? StatusOptions { get; set; }
 
-    .filter-select {
-        padding: 8px 12px;
-        background: #ddd;
-        border: 1px solid #bbb;
-    }
+        public async Task<IActionResult>
+            OnGetAsync()
+            {
+            // Populate status dropdown
+            var statuses = await _context.requestStatus
+            .OrderBy(s => s.statusName)
+            .ToListAsync();
 
-    table.requests-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 6px;
-    }
+            StatusOptions = new SelectList(statuses, "statusID", "statusName");
 
-    table.requests-table thead th {
-        text-align: left;
-        padding: 14px 8px;
-        border-bottom: 4px solid #111;
-    }
+            // Resolve current user by email (Identity uses email as username)
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail))
+            {
+            Requests = new List<request>
+                ();
+                return Page();
+                }
 
-    table.requests-table tbody td {
-        padding: 18px 8px;
-        border-top: 4px solid #111;
-        vertical-align: middle;
-    }
+                var appUser = await _context.users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.email == userEmail);
 
-    .status-closed { color: #2f9b54; font-weight: 600; }
-    .status-inprogress { color: #f39f5f; font-weight: 600; }
-    .status-todo { color: #9b9b9b; font-weight: 600; }
-
-    .priority-high { color: #e74c3c; font-weight: 600; }
-    .priority-medium { color: #f39f5f; font-weight: 600; }
-    .priority-low { color: #2ecc71; font-weight: 600; }
-
-    .pager {
-        text-align: center;
-        margin-top: 18px;
-    }
-
-    a.details-link { color: #1b6ec2; text-decoration: none; }
-</style>
-
-<div class="my-requests-shell">
-    <div class="breadcrumb">
-        <a asp-page="/Index">Home</a> / My Request
-    </div>
-
-    <h1>My Requests</h1>
-
-    <div class="card-box">
-        <form method="get" class="filter-bar" aria-label="Filter requests">
-            <div class="filter-label">Filter by</div>
-
-            <select name="StatusFilter" class="filter-select" onchange="this.form.submit()">
-                <option value="">Status</option>
-                <option value="">All</option>
-                @if (Model.StatusOptions != null)
+                if (appUser == null)
                 {
-                    foreach (var s in Model.StatusOptions)
-                    {
-                        <option value="@s.Value" selected="@(Model.StatusFilter == s.Value ? "selected" : null)">@s.Text</option>
+                Requests = new List<request>
+                    ();
+                    return Page();
                     }
-                }
-            </select>
-            <noscript><button type="submit" class="btn btn-sm btn-primary">Apply</button></noscript>
-        </form>
 
-        <table class="requests-table" role="table">
-            <thead>
-                <tr>
-                    <th style="width:12%;">Request ID</th>
-                    <th style="width:46%;">Subject</th>
-                    <th style="width:14%;">Status</th>
-                    <th style="width:12%;">Priority</th>
-                    <th style="width:16%;">Last Updated</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Requests?.Any() != true)
-                {
-                    <tr>
-                        <td colspan="5" style="padding:28px; text-align:center; color:#666;">You have not submitted any requests.</td>
-                    </tr>
-                }
-                else
-                {
-                    foreach (var r in Model.Requests)
+                    // Query requests created by this user, include navigation properties
+                    var q = _context.request
+                    .AsNoTracking()
+                    .Include(r => r.status)
+                    .Include(r => r.category)
+                    .Where(r => r.created_by == appUser.userID)
+                    .OrderByDescending(r => r.createdAt)
+                    .AsQueryable();
+
+                    if (!string.IsNullOrEmpty(StatusFilter))
                     {
-                        <tr>
-                            <td>
-                                <a class="details-link" asp-page="./Details" asp-route-id="@r.requestID">@r.requestID.ToString("D5")</a>
-                            </td>
-                            <td>@r.title</td>
-                            <td>
-                                @if (r.status != null)
-                                {
-                                    var s = r.status.statusName?.ToLowerInvariant() ?? "";
-                                    if (s.Contains("closed"))
-                                    {
-                                        <span class="status-closed">@r.status.statusName</span>
-                                    }
-                                    else if (s.Contains("progress"))
-                                    {
-                                        <span class="status-inprogress">@r.status.statusName</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-todo">@r.status.statusName</span>
-                                    }
-                                }
-                                else
-                                {
-                                    <span class="status-todo">Unknown</span>
-                                }
-                            </td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(r.priority))
-                                {
-                                    var p = r.priority.ToLowerInvariant();
-                                    if (p.Contains("high"))
-                                    {
-                                        <span class="priority-high">@r.priority</span>
-                                    }
-                                    else if (p.Contains("med"))
-                                    {
-                                        <span class="priority-medium">@r.priority</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="priority-low">@r.priority</span>
-                                    }
-                                }
-                            </td>
-                            <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
-                        </tr>
+                    if (int.TryParse(StatusFilter, out var sid))
+                    {
+                    q = q.Where(r => r.statusID == sid);
                     }
-                }
-            </tbody>
-        </table>
+                    else
+                    {
+                    q = q.Where(r => r.status != null && r.status.statusName == StatusFilter);
+                    }
+                    }
 
-        <div class="pager">
-            <span>Previous</span> &nbsp;&nbsp; <span>1 of 1</span> &nbsp;&nbsp; <span>Next</span>
-        </div>
-    </div>
-</div>
+                    Requests = await q.ToListAsync();
+
+                    return Page();
+                    }
+                    }
+                    }

@@ -21,7 +21,7 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
             _context = context;
         }
 
-        public IList<attachments> attachments { get;set; } = default!;
+        public IList<Attachments> attachments { get;set; } = default!;
 
         public async Task OnGetAsync()
         {

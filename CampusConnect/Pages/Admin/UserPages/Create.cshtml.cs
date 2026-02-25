@@ -8,13 +8,13 @@ using Microsoft.AspNetCore.Identity;
 
 namespace CampusConnect.Pages.UserPages
 {
-    [Authorize(Roles="Admin")]
+    [Authorize(Roles = "Admin")]
     public class CreateModel : PageModel
     {
         private readonly TablesDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CreateModel(TablesDbContext context, UserManager<IdentityUser> userManager)
+        public CreateModel(TablesDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -26,22 +26,24 @@ namespace CampusConnect.Pages.UserPages
         }
 
         [BindProperty]
-        public user user { get; set; } = default!;
+        public User user { get; set; } = default!;
 
-        // optional initial password for Identity account
+        // Optional initial password for Identity account
         [BindProperty]
         public string? Password { get; set; }
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
-            // Create Identity user first (so we can link identityUserId)
-            var identityUser = new IdentityUser { UserName = user.email, Email = user.email };
+            // Create Identity user first (so we can link IdentityUserId)
+            var identityUser = new ApplicationUser
+            {
+                UserName = user.email,
+                Email = user.email,
+                EmailConfirmed = true
+            };
 
             IdentityResult createResult;
             if (!string.IsNullOrWhiteSpace(Password))
@@ -58,15 +60,19 @@ namespace CampusConnect.Pages.UserPages
             {
                 foreach (var err in createResult.Errors)
                     ModelState.AddModelError(string.Empty, err.Description);
+
                 return Page();
             }
 
-            // Do not store cleartext password in the app table
-            // user.password = null;
-            user.identityUserId = identityUser.Id;
-            // Ensure username/email align
-            user.username = identityUser.UserName ?? user.email;
+            // Link legacy profile to Identity user (PascalCase property)
+            user.IdentityUserId = identityUser.Id;
+
+            // Ensure username/email align (optional)
+            user.username = identityUser.UserName ?? user.email ?? "";
             user.email = identityUser.Email ?? user.email;
+
+            // Do not store plaintext password
+            user.password = "IDENTITY_ONLY"; // or null if your DB allows nulls
 
             try
             {

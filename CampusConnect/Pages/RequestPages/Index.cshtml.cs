@@ -21,7 +21,7 @@ namespace CampusConnect.Pages.RequestPages
             _context = context;
         }
 
-        public IList<request> request { get;set; } = default!;
+        public IList<Request> request { get;set; } = default!;
 
         public async Task OnGetAsync()
         {

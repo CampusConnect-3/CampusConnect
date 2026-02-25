@@ -5,36 +5,31 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CampusConnect.Models
 {
     [Table("users")]
-    public class user
+    public class User
     {
         [Key]
         [Column("userID")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int userID { get; set; }
 
-        // NEW: link to AspNetUsers.Id (string)
+        // Link to AspNetUsers.Id (string)
         [Required, MaxLength(450)]
-        public string? IdentityUserId { get; set; } = default!;
+        public string IdentityUserId { get; set; } = string.Empty;
 
         [Required, MaxLength(256)]
-        public string fName { get; set; }
+        public string fName { get; set; } = string.Empty;
 
         [Required, MaxLength(256)]
-        public string lName { get; set; }
+        public string lName { get; set; } = string.Empty;
 
         // We'll store SchoolId here (unique)
         [Required, MaxLength(256)]
-        public string username { get; set; }
+        public string username { get; set; } = string.Empty;
 
-<<<<<<< HEAD
         // Legacy column: do NOT use for auth anymore
-=======
-        // Remove [Required] and make nullable (or delete this property if you will drop the column)
->>>>>>> origin/testing
         [MaxLength(256)]
         public string? password { get; set; }
 
-        // Email is Identity-only source of truth now (keep nullable if column exists)
         [MaxLength(256)]
         public string? email { get; set; }
 
@@ -44,15 +39,13 @@ namespace CampusConnect.Models
         [MaxLength(50)]
         public string? status { get; set; }
 
-        // Link to AspNetUsers.Id (Identity user)
-        [MaxLength(450)]
-        public string? identityUserId { get; set; }
-
         // Navigation
         public virtual ICollection<userRoles> userRoles { get; set; } = new List<userRoles>();
-        public virtual ICollection<request> requestsCreated { get; set; } = new List<request>();
-        public virtual ICollection<request> requestsAssigned { get; set; } = new List<request>();
+        public virtual ICollection<Request> requestsCreated { get; set; } = new List<Request>();
+        public virtual ICollection<Request> requestsAssigned { get; set; } = new List<Request>();
         public virtual ICollection<requestComments> comments { get; set; } = new List<requestComments>();
-        public virtual ICollection<attachments> attachments { get; set; } = new List<attachments>();
+
+        // IMPORTANT: this type must match your renamed class Attachments
+        public virtual ICollection<Attachments> attachments { get; set; } = new List<Attachments>();
     }
 }

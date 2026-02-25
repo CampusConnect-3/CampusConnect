@@ -18,37 +18,43 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.user.fName)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.user.lName)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.user.lName)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.user.username)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.user.username)
         </dd>
+
         <!-- Do not display plaintext password -->
         <dt class="col-sm-2">
             Account type
         </dt>
         <dd class="col-sm-10">
-            @(string.IsNullOrWhiteSpace(Model.user.identityUserId) ? "Legacy local (no Identity account)" : "Identity account")
+            @(string.IsNullOrWhiteSpace(Model.user.IdentityUserId) ? "Legacy local (no Identity account)" : "Identity account")
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.user.email)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.user.email)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.user.department)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.user.department)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.user.status)
         </dt>
@@ -56,7 +62,7 @@
             @Html.DisplayFor(model => model.user.status)
         </dd>
     </dl>
-    
+
     <form method="post">
         <input type="hidden" asp-for="user.userID" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |

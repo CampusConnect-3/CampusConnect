@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestAttachmentsPages
@@ -14,31 +11,27 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
     [Authorize]
     public class DetailsModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
 
-        public DetailsModel(CampusConnect.Data.TablesDbContext context)
+        public DetailsModel(TablesDbContext context)
         {
             _context = context;
         }
 
-        public attachments attachments { get; set; } = default!;
+        public Attachments attachments { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var attachments = await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
-            if (attachments == null)
-            {
+            var found = await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
+            if (found == null)
                 return NotFound();
-            }
-            else
-            {
-                attachments = attachments;
-            }
+
+            // Assign to PageModel property so Razor can access it
+            attachments = found;
+
             return Page();
         }
     }

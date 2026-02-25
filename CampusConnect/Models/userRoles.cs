@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace CampusConnect.Models
 {
     [Table("userRoles")]
@@ -13,9 +14,10 @@ namespace CampusConnect.Models
 
         // Navigation
         [ForeignKey("userID")]
-        public virtual user? user { get; set; }
+        public virtual User? user { get; set; }
 
+        // ⭐ MUST reference the EF MODEL, not the enum
         [ForeignKey("roleID")]
-        public virtual roles? role { get; set; }
+        public virtual Roles? role { get; set; }
     }
 }

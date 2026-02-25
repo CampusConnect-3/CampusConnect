@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
@@ -14,31 +11,27 @@ namespace CampusConnect.Pages.RequestPages
     [Authorize]
     public class DetailsModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
 
-        public DetailsModel(CampusConnect.Data.TablesDbContext context)
+        public DetailsModel(TablesDbContext context)
         {
             _context = context;
         }
 
-        public request request { get; set; } = default!;
+        public Request request { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var request = await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
-            if (request == null)
-            {
+            var found = await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
+            if (found == null)
                 return NotFound();
-            }
-            else
-            {
-                request = request;
-            }
+
+            // Assign to PageModel property so Razor can access it
+            request = found;
+
             return Page();
         }
     }

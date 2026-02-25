@@ -21,7 +21,7 @@ namespace CampusConnect.Pages.UserPages
             _context = context;
         }
 
-        public user user { get; set; } = default!;
+        public User user { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
