@@ -11,20 +11,27 @@ namespace CampusConnect.Models
         [Column("userID")]
         public int userID { get; set; }
 
+        // NEW: link to AspNetUsers.Id (string)
+        [Required, MaxLength(450)]
+        public string? IdentityUserId { get; set; } = default!;
+
         [Required, MaxLength(256)]
         public string fName { get; set; }
 
         [Required, MaxLength(256)]
         public string lName { get; set; }
 
+        // We'll store SchoolId here (unique)
         [Required, MaxLength(256)]
         public string username { get; set; }
 
-        [Required, MaxLength(256)]
-        public string password { get; set; }
+        // Legacy column: do NOT use for auth anymore
+        [MaxLength(256)]
+        public string? password { get; set; }
 
-        [Required, MaxLength(256)]
-        public string email { get; set; }
+        // Email is Identity-only source of truth now (keep nullable if column exists)
+        [MaxLength(256)]
+        public string? email { get; set; }
 
         [MaxLength(256)]
         public string? department { get; set; }

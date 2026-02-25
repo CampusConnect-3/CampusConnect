@@ -1,41 +1,85 @@
 ﻿using CampusConnect.Constants;
+using CampusConnect.Models; // <-- ApplicationUser
 using Microsoft.AspNetCore.Identity;
-using System.Data;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CampusConnect.Data
 {
-    public class DbSeeder
+    public static class DbSeeder
     {
-        public static async Task SeedRolesAndAdminAsync(IServiceProvider service)
+        public static async Task SeedRolesAndAdminAsync(IServiceProvider services)
         {
-            //Seed Roles
-            var userManager = service.GetService<UserManager<IdentityUser>>();
-            var roleManager = service.GetService<RoleManager<IdentityRole>>();
-            await roleManager.CreateAsync(new IdentityRole(Roles.Admin.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.User.ToString()));
+            // Resolve managers (must match Program.cs Identity types)
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var logger = services.GetRequiredService<ILoggerFactory>()
+                                 .CreateLogger("DbSeeder");
 
-            //If there are more roles, add them here
-            await roleManager.CreateAsync(new IdentityRole(Roles.Staff.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.Manager.ToString()));
-
-            //Create Admin
-
-            var user = new IdentityUser
+            // -----------------------------
+            // Seed roles safely
+            // -----------------------------
+            string[] roles =
             {
-                UserName = "admin@gmail.com",
-                Email = "admin@gmail.com",
-                EmailConfirmed = true,
-                PhoneNumberConfirmed = true
+                Roles.Admin.ToString(),
+                Roles.User.ToString(),
+                Roles.Staff.ToString(),
+                Roles.Manager.ToString()
             };
 
-            var userInDb = await userManager.FindByEmailAsync(user.Email);
-            if (userInDb == null)
+            foreach (var role in roles)
             {
-                await userManager.CreateAsync(user, "Admin@123");
-                await userManager.AddToRoleAsync(user, Roles.Admin.ToString());
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    var roleResult = await roleManager.CreateAsync(new IdentityRole(role));
+
+                    if (!roleResult.Succeeded)
+                    {
+                        foreach (var err in roleResult.Errors)
+                        {
+                            logger.LogError("Role creation failed: {Error}", err.Description);
+                        }
+                    }
+                }
             }
 
+            // -----------------------------
+            // Seed admin user safely
+            // -----------------------------
+            var email = "admin@gmail.com";
+            var userInDb = await userManager.FindByEmailAsync(email);
 
+            if (userInDb == null)
+            {
+                var adminUser = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
+
+                if (createResult.Succeeded)
+                {
+                    var roleAssign = await userManager.AddToRoleAsync(adminUser, Roles.Admin.ToString());
+
+                    if (!roleAssign.Succeeded)
+                    {
+                        foreach (var err in roleAssign.Errors)
+                        {
+                            logger.LogError("Admin role assignment failed: {Error}", err.Description);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var err in createResult.Errors)
+                    {
+                        logger.LogError("Admin creation failed: {Error}", err.Description);
+                    }
+                }
+            }
         }
-    }       
+    }
 }

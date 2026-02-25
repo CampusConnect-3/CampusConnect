@@ -1,42 +1,58 @@
-using CampusConnect.Data;
+﻿using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// DbContext Registeration
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
+// DbContext Registration
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ApplicationDbContext")
+        ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
 
 // Register the TablesDbContext for legacy tables
-builder.Services.AddDbContext<TablesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("TablesDbContext") ?? throw new InvalidOperationException("Connection string 'TablesDbContext' not found.")));
+builder.Services.AddDbContext<TablesDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("TablesDbContext")
+        ?? throw new InvalidOperationException("Connection string 'TablesDbContext' not found.")));
 
 // Register the Identity services
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => 
-    options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultUI()
-    .AddDefaultTokenProviders();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+
+    // Prevent duplicate accounts by email
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultUI()
+.AddDefaultTokenProviders();
 
 // Secure session management for Identity = harden the auth cookie
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // HTTPS-only
-    options.Cookie.SameSite = SameSiteMode.Lax;              // Strong CSRF protection; avoids breaking common flows
 
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);       // session lifetime
-    options.SlidingExpiration = true;                        // refresh on activity
+    // Dev-friendly: secure cookie only when request is HTTPS in Development,
+    // but HTTPS-only in non-Development environments.
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+
+    options.Cookie.SameSite = SameSiteMode.Lax; // Strong CSRF protection; avoids breaking common flows
+
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // session lifetime
+    options.SlidingExpiration = true;                  // refresh on activity
 
     options.LoginPath = "/Identity/Account/Login";
     options.LogoutPath = "/Identity/Account/Logout";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
-
 
 var app = builder.Build();
 
@@ -51,14 +67,6 @@ else
     app.UseHsts();
 }
 
-// Configure the HTTP request pipeline.
-/*if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}*/
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -69,9 +77,14 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
-//Db Seeder Resgistration
-using (var scope = app.Services.CreateScope())
+// ✅ Db Seeder Registration (async-scope safe)
+await using (var scope = app.Services.CreateAsyncScope())
 {
+    // (Optional but recommended) Ensure Identity DB schema is applied before seeding.
+    // Comment out if you manage migrations manually.
+    var identityDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await identityDb.Database.MigrateAsync();
+
     await DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
 }
 

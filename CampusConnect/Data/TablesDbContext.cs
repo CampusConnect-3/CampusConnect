@@ -71,6 +71,18 @@ namespace CampusConnect.Data
                 .WithMany(u => u.attachments)
                 .HasForeignKey(a => a.creatorID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Prevent duplicate profile rows per Identity user
+            modelBuilder.Entity<user>()
+                .HasIndex(u => u.IdentityUserId)
+                .IsUnique()
+                .HasFilter("[IdentityUserId] IS NOT NULL");
+
+            // Prevent duplicate School ID registrations
+            modelBuilder.Entity<user>()
+                .HasIndex(u => u.username)
+                .IsUnique();
+
         }
     }
 }

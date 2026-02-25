@@ -1,14 +1,16 @@
+using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Identity;
 
 namespace CampusConnect.Pages.Home
 {
     [Authorize]
     public class IndexModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+
         public string DisplayName { get; private set; } = "User";
         public string StudentId { get; private set; } = "";
         public int OpenCount { get; private set; } = 0;
@@ -18,7 +20,7 @@ namespace CampusConnect.Pages.Home
         public List<(string Id, string Title, string Status, DateTime LastUpdated)> RecentRequests { get; private set; }
             = new();
 
-        public IndexModel(UserManager<IdentityUser> userManager)
+        public IndexModel(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
@@ -36,9 +38,9 @@ namespace CampusConnect.Pages.Home
 
             DisplayName = user.UserName ?? user.Email ?? "User";
 
-            // StudentId and counts / recent list: populate from your existing CRUD/data stores.
-            // Here we populate some safe defaults for immediate compile/run.
-            StudentId = User.FindFirst("StudentId")?.Value ?? "N/A";
+            // StudentId: use your ApplicationUser property first (recommended)
+            // Falls back to claim if you set one elsewhere.
+            StudentId = user.SchoolId ?? User.FindFirst("StudentId")?.Value ?? "N/A";
 
             // Replace with real queries against your data context:
             OpenCount = 2;

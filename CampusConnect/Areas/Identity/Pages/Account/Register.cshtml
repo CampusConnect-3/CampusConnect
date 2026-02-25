@@ -4,64 +4,210 @@
     ViewData["Title"] = "Register";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="cc-page">
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
+    <!-- HEADER -->
+    <div class="cc-header">
+        <img class="cc-logo"
+             src="~/images/campus-connect-logo.png"
+             asp-append-version="true"
+             alt="Campus Connect Logo" />
+
+        <p class="cc-tagline">Smart Request for a Smarter Campus</p>
     </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+
+    <!-- CARD -->
+    <div class="cc-card">
+        <div class="cc-card-inner">
+
+            <h1 class="cc-title">Create Your Account</h1>
+            <p class="cc-subtitle">Please fill out the form to register.</p>
+
+            <div class="cc-divider"></div>
+            <h2 class="cc-section-title">Registration Form</h2>
+
+            <form id="registerForm"
+                  asp-route-returnUrl="@Model.ReturnUrl"
+                  method="post">
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger"
+                     role="alert"></div>
+
+                <!-- FIRST NAME -->
+                <div class="cc-row">
+                    <label asp-for="Input.FirstName" class="cc-label">
+                        First Name: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.FirstName"
+                           class="cc-input"
+                           placeholder="Enter your first name"
+                           autocomplete="given-name" />
+                    <span asp-validation-for="Input.FirstName"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- LAST NAME -->
+                <div class="cc-row">
+                    <label asp-for="Input.LastName" class="cc-label">
+                        Last Name: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.LastName"
+                           class="cc-input"
+                           placeholder="Enter your last name"
+                           autocomplete="family-name" />
+                    <span asp-validation-for="Input.LastName"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- ID NUMBER -->
+                <div class="cc-row">
+                    <label asp-for="Input.SchoolId" class="cc-label">
+                        ID Number: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.SchoolId"
+                           class="cc-input"
+                           placeholder="Enter your school ID number"
+                           autocomplete="off" />
+                    <span asp-validation-for="Input.SchoolId"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- ROLE -->
+                <div class="cc-row">
+                    <label asp-for="Input.Role" class="cc-label">
+                        Role: <span class="cc-required">*</span>
+                    </label>
+
+                    <select asp-for="Input.Role"
+                            class="cc-select"
+                            autocomplete="off">
+                        <option value="">Select Role</option>
+                        <option value="Student">Student</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+
+                    <span asp-validation-for="Input.Role" class="text-danger"></span>
+                </div>
+
+                <!-- CLASS YEAR -->
+                <div class="cc-row" id="classYearRow">
+                    <label asp-for="Input.ClassYear" class="cc-label">Class Year:</label>
+
+                    <select asp-for="Input.ClassYear"
+                            class="cc-select"
+                            autocomplete="off">
+                        <option value="">Select Class</option>
+                        <option>Freshman</option>
+                        <option>Sophomore</option>
+                        <option>Junior</option>
+                        <option>Senior</option>
+                    </select>
+
+                    <span asp-validation-for="Input.ClassYear" class="text-danger"></span>
+                </div>
+
+                <!-- DEPARTMENT -->
+                <div class="cc-row" id="departmentRow">
+                    <label asp-for="Input.Department" class="cc-label">Department:</label>
+                    <input asp-for="Input.Department"
+                           class="cc-input"
+                           placeholder="Enter your department"
+                           autocomplete="organization" />
+                    <span asp-validation-for="Input.Department" class="text-danger"></span>
+                </div>
+
+                <!-- EMAIL -->
+                <div class="cc-row">
+                    <label asp-for="Input.Email" class="cc-label">
+                        Email Address: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.Email"
+                           class="cc-input"
+                           placeholder="Enter your email address"
+                           autocomplete="email" />
+                    <span asp-validation-for="Input.Email"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="cc-row">
+                    <label asp-for="Input.Password" class="cc-label">
+                        Create Password: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.Password"
+                           class="cc-input"
+                           placeholder="Create a password"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="Input.Password"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- CONFIRM PASSWORD -->
+                <div class="cc-row">
+                    <label asp-for="Input.ConfirmPassword" class="cc-label">Confirm Password:</label>
+                    <input asp-for="Input.ConfirmPassword"
+                           class="cc-input"
+                           placeholder="Confirm your password"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <!-- PHONE -->
+                <div class="cc-row">
+                    <label asp-for="Input.PhoneNumber" class="cc-label">Phone Number:</label>
+                    <input asp-for="Input.PhoneNumber"
+                           class="cc-input"
+                           placeholder="+1 (555) 123-4567"
+                           autocomplete="tel" />
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <!-- TERMS -->
+                <div class="cc-terms">
+                    <input type="checkbox" id="termsCheck" name="termsCheck" required />
+                    <label for="termsCheck">
+                        I agree to the
+                        <a href="#">Terms and Conditions</a>
+                        &
+                        <a href="#">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- SUBMIT -->
+                <button id="registerSubmit"
+                        type="submit"
+                        class="cc-btn">
+                    REGISTER ACCOUNT
+                </button>
+
+                <div class="cc-footer-links">
+                    <a asp-page="./Login" class="cc-back">
+                        ‹ Back to Login
+                    </a>
+                    <span>© @DateTime.Now.Year Campus Connect</span>
+                </div>
+
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const role = document.getElementById("Input_Role");
+        const classRow = document.getElementById("classYearRow");
+        const deptRow = document.getElementById("departmentRow");
+
+        function updateRoleFields() {
+            classRow.style.display = role.value === "Student" ? "grid" : "none";
+            deptRow.style.display = role.value === "Staff" ? "grid" : "none";
+        }
+
+        updateRoleFields();
+        role.addEventListener("change", updateRoleFields);
+    </script>
 }
