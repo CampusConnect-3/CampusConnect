@@ -5,7 +5,8 @@
         Admin,
         User,
         Manager,
-        Staff
+        Staff,
+        Pending  // For users awaiting role assignment
     }
 
     public class myRoles

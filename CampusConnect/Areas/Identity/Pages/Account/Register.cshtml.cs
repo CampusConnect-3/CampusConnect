@@ -1,6 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -22,11 +22,16 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using CampusConnect.Data;
+using CampusConnect.Models;
+using CampusConnect.Constants;
 
 namespace CampusConnect.Areas.Identity.Pages.Account
 {
+    [AllowAnonymous]
     public class RegisterModel : PageModel
     {
+<<<<<<< HEAD
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserStore<ApplicationUser> _userStore;
@@ -41,20 +46,33 @@ namespace CampusConnect.Areas.Identity.Pages.Account
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
+=======
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly ILogger<RegisterModel> _logger;
+        private readonly TablesDbContext _tablesDb;
+
+        public RegisterModel(
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
+            ILogger<RegisterModel> logger,
+>>>>>>> origin/testing
             TablesDbContext tablesDb)
         {
             _userManager = userManager;
-            _userStore = userStore;
-            _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
+<<<<<<< HEAD
             _emailSender = emailSender;
+=======
+>>>>>>> origin/testing
             _tablesDb = tablesDb;
         }
 
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = default!;
 
+<<<<<<< HEAD
         public string ReturnUrl { get; set; }
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
@@ -97,14 +115,40 @@ namespace CampusConnect.Areas.Identity.Pages.Account
         }
 
         public async Task OnGetAsync(string returnUrl = null)
+=======
+        public string ReturnUrl { get; set; } = default!;
+
+        public class InputModel
         {
-            ReturnUrl = returnUrl;
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            [Required, Display(Name = "First name")]
+            public string FirstName { get; set; } = string.Empty;
+
+            [Required, Display(Name = "Last name")]
+            public string LastName { get; set; } = string.Empty;
+
+            [Required, EmailAddress]
+            public string Email { get; set; } = string.Empty;
+
+            [Required, DataType(DataType.Password)]
+            public string Password { get; set; } = string.Empty;
+
+            [DataType(DataType.Password), Compare(nameof(Password))]
+            public string ConfirmPassword { get; set; } = string.Empty;
+
+            [Display(Name = "Department")]
+            public string? Department { get; set; }
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public void OnGet(string? returnUrl = null)
+>>>>>>> origin/testing
+        {
+            ReturnUrl = returnUrl ?? Url.Content("~/");
+        }
+
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
+<<<<<<< HEAD
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             // Basic sanity check (prevents null ref if Input is ever null)
@@ -263,9 +307,48 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                     : "Account created. Please log in.";
 
                 return RedirectToPage("./Login");
+=======
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
+            var identityUser = new IdentityUser { UserName = Input.Email, Email = Input.Email };
+
+            var createResult = await _userManager.CreateAsync(identityUser, Input.Password);
+            if (!createResult.Succeeded)
+            {
+                foreach (var err in createResult.Errors)
+                    ModelState.AddModelError(string.Empty, err.Description);
+                return Page();
+            }
+
+            _logger.LogInformation("Identity user created.");
+
+            // Assign Pending role by default
+            await _userManager.AddToRoleAsync(identityUser, Roles.Pending.ToString());
+
+            // Now create the application user row and link it via email/username.
+            var appUser = new user
+            {
+                fName = Input.FirstName,
+                lName = Input.LastName,
+                username = identityUser.UserName ?? Input.Email,
+                email = identityUser.Email ?? Input.Email,
+                department = Input?.Department,
+                status = "Pending", // Mark as Pending until role is assigned
+                identityUserId = identityUser.Id, // important: link to AspNetUsers
+            };
+
+            try
+            {
+                _tablesDb.users.Add(appUser);
+                await _tablesDb.SaveChangesAsync();
+>>>>>>> origin/testing
             }
             catch (Exception ex)
             {
+<<<<<<< HEAD
                 // If profile creation fails after Identity user exists, clean up.
                 if (identityUser != null)
                 {
@@ -284,10 +367,15 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                     ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
                 }
 
+=======
+                // If app user creation fails, delete the Identity account to avoid orphans.
+                await _userManager.DeleteAsync(identityUser);
+                ModelState.AddModelError(string.Empty, "Unable to create profile. Please try again or contact an administrator.");
+>>>>>>> origin/testing
                 return Page();
             }
-        }
 
+<<<<<<< HEAD
         private void ValidateRoleSpecificFields()
         {
             var role = NormalizeRole(Input.Role);
@@ -347,6 +435,11 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                 throw new NotSupportedException("The default UI requires a user store with email support.");
 
             return (IUserEmailStore<ApplicationUser>)_userStore;
+=======
+            // Optionally sign in the user immediately
+            await _signInManager.SignInAsync(identityUser, isPersistent: false);
+            return LocalRedirect(returnUrl);
+>>>>>>> origin/testing
         }
     }
 }

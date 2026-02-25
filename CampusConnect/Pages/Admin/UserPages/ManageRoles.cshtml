@@ -1,0 +1,56 @@
+@page
+@model CampusConnect.Pages.Admin.UserPages.ManageRolesModel
+@{
+    ViewData["Title"] = "Manage Roles";
+}
+
+<h1>Manage Roles</h1>
+
+<h4>User: @Model.AppUser.fName @Model.AppUser.lName (@Model.AppUser.email)</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div class="form-group mb-3">
+                <label class="font-weight-bold">Current Roles:</label>
+                @if (Model.CurrentRoles.Any())
+                {
+                    <ul>
+                        @foreach (var role in Model.CurrentRoles)
+                        {
+                            <li>@role</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">No roles assigned</p>
+                }
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="font-weight-bold">Assign Roles:</label>
+                @foreach (var role in Model.AllRoles)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               name="SelectedRoles" 
+                               value="@role" 
+                               id="role_@role"
+                               @(Model.CurrentRoles.Contains(role) ? "checked" : "") />
+                        <label class="form-check-label" for="role_@role">
+                            @role
+                        </label>
+                    </div>
+                }
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Update Roles" class="btn btn-primary" />
+                <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
