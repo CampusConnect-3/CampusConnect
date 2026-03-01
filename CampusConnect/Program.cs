@@ -77,11 +77,10 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
-// ✅ Db Seeder Registration (async-scope safe)
+// Db Seeder Registration (async-scope safe)
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    // (Optional but recommended) Ensure Identity DB schema is applied before seeding.
-    // Comment out if you manage migrations manually.
+  
     var identityDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await identityDb.Database.MigrateAsync();
 

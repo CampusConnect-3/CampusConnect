@@ -22,7 +22,7 @@ namespace CampusConnect.Migrations.Tables
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CampusConnect.Models.attachments", b =>
+            modelBuilder.Entity("CampusConnect.Models.Attachments", b =>
                 {
                     b.Property<int>("fileID")
                         .ValueGeneratedOnAdd()
@@ -61,10 +61,10 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("requestID");
 
-                    b.ToTable("attachments", (string)null);
+                    b.ToTable("attachments");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.category", b =>
+            modelBuilder.Entity("CampusConnect.Models.Category", b =>
                 {
                     b.Property<int>("categoryID")
                         .ValueGeneratedOnAdd()
@@ -80,10 +80,10 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasKey("categoryID");
 
-                    b.ToTable("category", (string)null);
+                    b.ToTable("category");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.request", b =>
+            modelBuilder.Entity("CampusConnect.Models.Request", b =>
                 {
                     b.Property<int>("requestID")
                         .ValueGeneratedOnAdd()
@@ -158,7 +158,133 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("statusID");
 
-                    b.ToTable("request", (string)null);
+                    b.ToTable("request");
+                });
+
+            modelBuilder.Entity("CampusConnect.Models.RequestStatus", b =>
+                {
+                    b.Property<int>("statusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("statusID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("statusID"));
+
+                    b.Property<string>("statusName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("statusID");
+
+                    b.ToTable("requestStatus");
+                });
+
+            modelBuilder.Entity("CampusConnect.Models.Roles", b =>
+                {
+                    b.Property<int>("roleID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("roleID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("roleID"));
+
+                    b.Property<string>("roleName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("roleID");
+
+                    b.ToTable("roles");
+                });
+
+            modelBuilder.Entity("CampusConnect.Models.Test_Brittany_BL", b =>
+                {
+                    b.Property<int>("testID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("testID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("testID");
+
+                    b.ToTable("Test_Brittany_L");
+                });
+
+            modelBuilder.Entity("CampusConnect.Models.User", b =>
+                {
+                    b.Property<int>("userID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("userID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("userID"));
+
+                    b.Property<string>("IdentityUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("department")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("fName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("lName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("password")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("status")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("username")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("userID");
+
+                    b.HasIndex("IdentityUserId")
+                        .IsUnique()
+                        .HasFilter("[IdentityUserId] IS NOT NULL");
+
+                    b.HasIndex("username")
+                        .IsUnique();
+
+                    b.ToTable("users");
                 });
 
             modelBuilder.Entity("CampusConnect.Models.requestComments", b =>
@@ -191,92 +317,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("requestID");
 
-                    b.ToTable("requestComments", (string)null);
-                });
-
-            modelBuilder.Entity("CampusConnect.Models.requestStatus", b =>
-                {
-                    b.Property<int>("statusID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("statusID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("statusID"));
-
-                    b.Property<string>("statusName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("statusID");
-
-                    b.ToTable("requestStatus", (string)null);
-                });
-
-            modelBuilder.Entity("CampusConnect.Models.roles", b =>
-                {
-                    b.Property<int>("roleID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("roleID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("roleID"));
-
-                    b.Property<string>("roleName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("roleID");
-
-                    b.ToTable("roles", (string)null);
-                });
-
-            modelBuilder.Entity("CampusConnect.Models.user", b =>
-                {
-                    b.Property<int>("userID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("userID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("userID"));
-
-                    b.Property<string>("department")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("fName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("lName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("password")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("status")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("username")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("userID");
-
-                    b.ToTable("users", (string)null);
+                    b.ToTable("requestComments");
                 });
 
             modelBuilder.Entity("CampusConnect.Models.userRoles", b =>
@@ -293,18 +334,18 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("userID");
 
-                    b.ToTable("userRoles", (string)null);
+                    b.ToTable("userRoles");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.attachments", b =>
+            modelBuilder.Entity("CampusConnect.Models.Attachments", b =>
                 {
-                    b.HasOne("CampusConnect.Models.user", "creator")
+                    b.HasOne("CampusConnect.Models.User", "creator")
                         .WithMany("attachments")
                         .HasForeignKey("creatorID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CampusConnect.Models.request", "request")
+                    b.HasOne("CampusConnect.Models.Request", "request")
                         .WithMany("attachments")
                         .HasForeignKey("requestID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -315,26 +356,26 @@ namespace CampusConnect.Migrations.Tables
                     b.Navigation("request");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.request", b =>
+            modelBuilder.Entity("CampusConnect.Models.Request", b =>
                 {
-                    b.HasOne("CampusConnect.Models.user", "assignedTo")
+                    b.HasOne("CampusConnect.Models.User", "assignedTo")
                         .WithMany("requestsAssigned")
                         .HasForeignKey("assigned_to")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("CampusConnect.Models.category", "category")
+                    b.HasOne("CampusConnect.Models.Category", "category")
                         .WithMany("requests")
                         .HasForeignKey("categoryID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CampusConnect.Models.user", "createdBy")
+                    b.HasOne("CampusConnect.Models.User", "createdBy")
                         .WithMany("requestsCreated")
                         .HasForeignKey("created_by")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CampusConnect.Models.requestStatus", "status")
+                    b.HasOne("CampusConnect.Models.RequestStatus", "status")
                         .WithMany("requests")
                         .HasForeignKey("statusID")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -350,13 +391,13 @@ namespace CampusConnect.Migrations.Tables
 
             modelBuilder.Entity("CampusConnect.Models.requestComments", b =>
                 {
-                    b.HasOne("CampusConnect.Models.user", "creator")
+                    b.HasOne("CampusConnect.Models.User", "creator")
                         .WithMany("comments")
                         .HasForeignKey("creatorID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CampusConnect.Models.request", "request")
+                    b.HasOne("CampusConnect.Models.Request", "request")
                         .WithMany("comments")
                         .HasForeignKey("requestID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -369,13 +410,13 @@ namespace CampusConnect.Migrations.Tables
 
             modelBuilder.Entity("CampusConnect.Models.userRoles", b =>
                 {
-                    b.HasOne("CampusConnect.Models.roles", "role")
+                    b.HasOne("CampusConnect.Models.Roles", "role")
                         .WithMany("userRoles")
                         .HasForeignKey("roleID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CampusConnect.Models.user", "user")
+                    b.HasOne("CampusConnect.Models.User", "user")
                         .WithMany("userRoles")
                         .HasForeignKey("userID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -386,29 +427,29 @@ namespace CampusConnect.Migrations.Tables
                     b.Navigation("user");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.category", b =>
+            modelBuilder.Entity("CampusConnect.Models.Category", b =>
                 {
                     b.Navigation("requests");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.request", b =>
+            modelBuilder.Entity("CampusConnect.Models.Request", b =>
                 {
                     b.Navigation("attachments");
 
                     b.Navigation("comments");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.requestStatus", b =>
+            modelBuilder.Entity("CampusConnect.Models.RequestStatus", b =>
                 {
                     b.Navigation("requests");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.roles", b =>
+            modelBuilder.Entity("CampusConnect.Models.Roles", b =>
                 {
                     b.Navigation("userRoles");
                 });
 
-            modelBuilder.Entity("CampusConnect.Models.user", b =>
+            modelBuilder.Entity("CampusConnect.Models.User", b =>
                 {
                     b.Navigation("attachments");
 
