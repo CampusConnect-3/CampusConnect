@@ -1,4 +1,5 @@
 using CampusConnect.Data;
+using CampusConnect.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,11 +15,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddDbContext<TablesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("TablesDbContext") ?? throw new InvalidOperationException("Connection string 'TablesDbContext' not found.")));
 
 // Register the Identity services
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => 
-    options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultUI()
-    .AddDefaultTokenProviders();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultUI()
+.AddDefaultTokenProviders();
 
 var app = builder.Build();
 
@@ -36,9 +39,20 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseUserSync(); // <-- ADD THIS LINE: Auto-create missing app profiles
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+
+app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
+{
+    var endpoints = sources.SelectMany(s => s.Endpoints)
+        .Select(e => e.DisplayName)
+        .Where(n => n != null);
+
+    return string.Join("\n", endpoints!);
+});
 
 //Db Seeder Resgistration
 using (var scope = app.Services.CreateScope())
