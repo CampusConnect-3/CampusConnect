@@ -1,69 +1,152 @@
 @page
-@model CampusConnect.Pages.UserPages.CreateModel
+@model CampusConnect.Pages.Admin.UserPages.CreateModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create User";
 }
 
-<h1>Create</h1>
+<style>
+    .shell {
+        max-width: 900px;
+        margin: 18px auto;
+        padding: 18px;
+    }
 
-<h4>user</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+    .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        padding: 18px;
+    }
+
+    .title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .sub {
+        color: #6b7280;
+        margin-bottom: 16px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .field label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .field input, .field select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+    }
+
+    .row {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #0b5ed7;
+        color: #fff;
+    }
+
+    .btn-light {
+        background: #f3f4f6;
+        color: #111827;
+        border-color: #e5e7eb;
+    }
+
+    .text-danger {
+        color: #dc2626;
+    }
+
+    @@media (max-width: 760px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="shell">
+    <div class="card">
+        <div class="title">Create User</div>
+        <div class="sub">Create an Identity login + (optional) app profile.</div>
+
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="user.fName" class="control-label"></label>
-                <input asp-for="user.fName" class="form-control" aria-required="true"/>
-                <span asp-validation-for="user.fName" class="text-danger"></span>
+
+            <div class="grid">
+                <div class="field">
+                    <label asp-for="Input.Email"></label>
+                    <input asp-for="Input.Email" type="email" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="Input.Role"></label>
+                    <select asp-for="Input.Role" asp-items="Model.RoleOptions"></select>
+                    <span asp-validation-for="Input.Role" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="Input.Password"></label>
+                    <input asp-for="Input.Password" type="password" />
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="Input.ConfirmPassword"></label>
+                    <input asp-for="Input.ConfirmPassword" type="password" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="Input.FirstName"></label>
+                    <input asp-for="Input.FirstName" />
+                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="Input.LastName"></label>
+                    <input asp-for="Input.LastName" />
+                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                </div>
+
+                <div class="field" style="grid-column: 1 / -1;">
+                    <label asp-for="Input.Department"></label>
+                    <input asp-for="Input.Department" />
+                    <span asp-validation-for="Input.Department" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="user.lName" class="control-label"></label>
-                <input asp-for="user.lName" class="form-control" aria-required="true"/>
-                <span asp-validation-for="user.lName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="user.username" class="control-label"></label>
-                <input asp-for="user.username" class="form-control" aria-required="true"/>
-                <span asp-validation-for="user.username" class="text-danger"></span>
-            </div>
-            <!-- Password is handled by Identity. Admin may optionally set an initial password -->
-            <div class="form-group">
-                <label asp-for="Password" class="control-label">Initial password (optional)</label>
-                <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="user.email" class="control-label"></label>
-                <input asp-for="user.email" class="form-control" aria-required="true"/>
-                <span asp-validation-for="user.email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="user.department" class="control-label"></label>
-                <input asp-for="user.department" class="form-control" />
-                <span asp-validation-for="user.department" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="user.status" class="control-label"></label>
-                <input asp-for="user.status" class="form-control" />
-                <span asp-validation-for="user.status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="row">
+                <a class="btn btn-light" asp-page="./Index">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create</button>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-page="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
