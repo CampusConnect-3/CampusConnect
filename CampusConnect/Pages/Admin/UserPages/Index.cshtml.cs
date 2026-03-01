@@ -1,16 +1,15 @@
-﻿using CampusConnect.Data;
-using CampusConnect.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace CampusConnect.Pages.Admin.UserPages
 {
-    [Authorize(Roles = "Admin")]
     public class IndexModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
@@ -35,20 +34,23 @@ namespace CampusConnect.Pages.Admin.UserPages
             Users = new List<UserViewModel>();
             foreach (var u in user)
             {
-                var identityUser = !string.IsNullOrEmpty(u.aspNetUserId)
-                    ? await _userManager.FindByIdAsync(u.aspNetUserId)
+                var identityUser = !string.IsNullOrEmpty(u.identityUserId)
+                    ? await _userManager.FindByIdAsync(u.identityUserId)
                     : null;
 
                 Users.Add(new UserViewModel
                 {
                     UserID = u.userID,
-                    FirstName = u.firstName,
-                    LastName = u.lastName,
+                    AppUserId = u.userID,  // Now nullable
+                    FirstName = u.fName,
+                    LastName = u.lName,
                     Email = u.email,
                     UserName = identityUser?.UserName ?? u.email,
-                    AccountType = u.accountType ?? "Unknown",
-                    IsApproved = u.isApproved,
-                    AspNetUserId = u.aspNetUserId
+                    AccountType = u.department ?? "Unknown",  // Use department as AccountType
+                    IsApproved = u.status?.ToLowerInvariant().Contains("active") ?? false,  // Derive from status
+                    Status = u.status ?? "Unknown",
+                    AspNetUserId = u.identityUserId,
+                    IdentityUserId = u.identityUserId
                 });
             }
         }
@@ -57,13 +59,16 @@ namespace CampusConnect.Pages.Admin.UserPages
         public class UserViewModel
         {
             public int UserID { get; set; }
+            public int? AppUserId { get; set; }  // Made nullable
             public string? FirstName { get; set; }
             public string? LastName { get; set; }
             public string Email { get; set; } = string.Empty;
             public string UserName { get; set; } = string.Empty;
             public string AccountType { get; set; } = string.Empty;
             public bool IsApproved { get; set; }
+            public string Status { get; set; } = string.Empty;
             public string? AspNetUserId { get; set; }
+            public string? IdentityUserId { get; set; }
         }
     }
 }
