@@ -1,35 +1,39 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize]
+    // Request Queue (Admin/Manager/Staff ONLY)
+    [Authorize(Roles = "Admin,Manager,Staff")]
     public class IndexModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
 
-        public IndexModel(CampusConnect.Data.TablesDbContext context)
+        public IndexModel(TablesDbContext context)
         {
             _context = context;
         }
 
-        public IList<request> request { get;set; } = default!;
+        // The Razor page expects this list name
+        public IList<request> request { get; set; } = new List<request>();
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(CancellationToken cancellationToken = default)
         {
             request = await _context.request
+                .AsNoTracking()
                 .Include(r => r.assignedTo)
                 .Include(r => r.category)
                 .Include(r => r.createdBy)
-                .Include(r => r.status).ToListAsync();
+                .Include(r => r.status)
+                .OrderByDescending(r => r.createdAt)
+                .ToListAsync(cancellationToken);
         }
     }
 }

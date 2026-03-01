@@ -2,57 +2,48 @@
 @model CampusConnect.Pages.RequestAttachmentsPages.CreateModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Upload Attachment";
 }
 
-<h1>Create</h1>
-
-<h4>attachments</h4>
+<h1>Upload Attachment</h1>
 <hr />
+
+@if (Model.RequestId == null)
+{
+    <div class="alert alert-danger">Missing requestId.</div>
+    <a asp-page="/RequestPages/Index" class="btn btn-secondary">Back</a>
+    return;
+}
+
 <div class="row">
-    <div class="col-md-4">
-        <form method="post">
+    <div class="col-md-6">
+        <form method="post" enctype="multipart/form-data" asp-route-requestId="@Model.RequestId">
+            <input type="hidden" asp-for="RequestId" />
+
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="attachments.requestID" class="control-label"></label>
-                <select asp-for="attachments.requestID" class ="form-control" asp-items="ViewBag.requestID" ></select>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Request ID</label>
+                <input class="form-control" value="@Model.RequestId" readonly />
             </div>
-            <div class="form-group">
-                <label asp-for="attachments.creatorID" class="control-label"></label>
-                <select asp-for="attachments.creatorID" class ="form-control" asp-items="ViewBag.creatorID" ></select>
+
+            <div class="mb-3">
+                <label asp-for="Upload" class="form-label fw-bold">
+                    Choose file <span class="text-danger">*</span>
+                </label>
+                <input asp-for="Upload" type="file" class="form-control" accept=".png,.jpg,.jpeg,.pdf" />
+                <span asp-validation-for="Upload" class="text-danger"></span>
+                <div class="form-text">Allowed: PNG, JPG, JPEG, PDF. Max: 5MB.</div>
             </div>
-            <div class="form-group">
-                <label asp-for="attachments.fileName" class="control-label"></label>
-                <input asp-for="attachments.fileName" class="form-control" />
-                <span asp-validation-for="attachments.fileName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="attachments.contentType" class="control-label"></label>
-                <input asp-for="attachments.contentType" class="form-control" />
-                <span asp-validation-for="attachments.contentType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="attachments.fileUrl" class="control-label"></label>
-                <input asp-for="attachments.fileUrl" class="form-control" aria-required="true"/>
-                <span asp-validation-for="attachments.fileUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="attachments.uploadedAt" class="control-label"></label>
-                <input asp-for="attachments.uploadedAt" class="form-control" />
-                <span asp-validation-for="attachments.uploadedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Upload</button>
+            <a asp-page="/RequestPages/Details" asp-route-id="@Model.RequestId" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-page="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -43,7 +43,7 @@ namespace CampusConnect.Pages.RequestPages
             }
             else
             {
-                this.request = request;  // ✅ Assign to the property
+                this.request = request;  
             }
             return Page();
         }
@@ -55,16 +55,16 @@ namespace CampusConnect.Pages.RequestPages
                 return NotFound();
             }
 
-            var request = await _context.request.FindAsync(id);
-            if (request != null)
+            var req = await _context.request.FindAsync(id);
+            if (req != null)
             {
-                request = request;
-                _context.request.Remove(request);
+                _context.request.Remove(req);
                 await _context.SaveChangesAsync();
 
                 _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    id,User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier 
+                    id,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
                 );
             }
 

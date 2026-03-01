@@ -1,42 +1,42 @@
 ﻿@page
-@model CampusConnect.Pages.UserRolesPages.IndexModel
+@model CampusConnect.Pages.Admin.UserRolesPages.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "User Roles";
 }
 
-<h1>Index</h1>
+<h1>User Roles</h1>
 
 <p>
-    <a asp-page="Create">Create New</a>
+    <a asp-page="./Create" class="btn btn-primary">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.userRoles[0].user)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.userRoles[0].role)
-            </th>
+            <th>User Email</th>
+            <th>Role</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.userRoles) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.user.email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.role.roleName)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.userRoles)
+        {
+            <tr>
+                <td>@item.user?.email</td>
+                <td>@item.role?.roleName</td>
+                <td>
+                    <a asp-page="./Edit"
+                       asp-route-roleID="@item.roleID"
+                       asp-route-userID="@item.userID">Edit</a> |
+                    <a asp-page="./Details"
+                       asp-route-roleID="@item.roleID"
+                       asp-route-userID="@item.userID">Details</a> |
+                    <a asp-page="./Delete"
+                       asp-route-roleID="@item.roleID"
+                       asp-route-userID="@item.userID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

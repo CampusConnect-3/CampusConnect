@@ -6,14 +6,42 @@
 
 <h1>Manage Roles</h1>
 
-<h4>User: @Model.AppUser.fName @Model.AppUser.lName (@Model.AppUser.email)</h4>
+@if (Model.IdentityUser == null)
+{
+    <div class="alert alert-danger">Identity user not found.</div>
+    <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+    return;
+}
+
+<h4>
+    User: @Model.IdentityUser.Email
+    @if (Model.AppUser != null)
+    {
+        <span> — @Model.AppUser.fName @Model.AppUser.lName</span>
+    }
+    else
+    {
+        <span class="text-muted"> (no app profile)</span>
+    }
+</h4>
 <hr />
 
 <div class="row">
     <div class="col-md-6">
-        <form method="post">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <!-- IMPORTANT: post back with identityUserId -->
+        <form method="post" asp-route-identityUserId="@Model.IdentityUserId">
+            <input type="hidden" asp-for="IdentityUserId" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group mb-3">
-                <label class="font-weight-bold">Current Roles:</label>
+                <label class="fw-bold">Current Roles:</label>
                 @if (Model.CurrentRoles.Any())
                 {
                     <ul>
@@ -30,19 +58,17 @@
             </div>
 
             <div class="form-group mb-3">
-                <label class="font-weight-bold">Assign Roles:</label>
+                <label class="fw-bold">Assign Roles:</label>
                 @foreach (var role in Model.AllRoles)
                 {
                     <div class="form-check">
-                        <input class="form-check-input" 
-                               type="checkbox" 
-                               name="SelectedRoles" 
-                               value="@role" 
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="SelectedRoles"
+                               value="@role"
                                id="role_@role"
                                @(Model.CurrentRoles.Contains(role) ? "checked" : "") />
-                        <label class="form-check-label" for="role_@role">
-                            @role
-                        </label>
+                        <label class="form-check-label" for="role_@role">@role</label>
                     </div>
                 }
             </div>
@@ -52,5 +78,13 @@
                 <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
+
+        @if (Model.AppUser == null)
+        {
+            <div class="alert alert-warning mt-3">
+                This account exists in ASP.NET Identity but does not have a matching row in the app <b>users</b> table.
+                That’s why Student ID may show as N/A on the home page.
+            </div>
+        }
     </div>
 </div>

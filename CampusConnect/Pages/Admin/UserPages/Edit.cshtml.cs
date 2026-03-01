@@ -1,16 +1,14 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.UserPages
+namespace CampusConnect.Pages.Admin.UserPages
 {
     [Authorize(Roles = "Admin")]
     public class EditModel : PageModel
@@ -27,60 +25,52 @@ namespace CampusConnect.Pages.UserPages
         [BindProperty]
         public user user { get; set; } = default!;
 
-        // optional new password to set via Identity (admin action)
+        // Optional: admin can reset Identity password for linked user
         [BindProperty]
         public string? NewPassword { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var u =  await _context.users.FirstOrDefaultAsync(m => m.userID == id);
-            if (u == null)
-            {
+            var dbUser = await _context.users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.userID == id);
+
+            if (dbUser == null)
                 return NotFound();
-            }
-            user = u;
+
+            user = dbUser;
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
-            // Ensure we do not save any plaintext password into the app table
-            // user.password = null;
+            // Load from DB to prevent overposting
+            var dbUser = await _context.users.FirstOrDefaultAsync(u => u.userID == user.userID);
+            if (dbUser == null)
+                return NotFound();
 
-            _context.Attach(user).State = EntityState.Modified;
+            // Update ONLY safe fields (do not touch identityUserId/status here)
+            dbUser.fName = user.fName;
+            dbUser.lName = user.lName;
+            dbUser.username = user.username;
+            dbUser.email = user.email;
+            dbUser.department = user.department;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!userExists(user.userID))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            // Never store a plaintext password in app table
+            dbUser.password = null;
+
+            await _context.SaveChangesAsync();
 
             // If admin provided a new password, reset Identity password for linked identity user
-            if (!string.IsNullOrWhiteSpace(NewPassword) && !string.IsNullOrWhiteSpace(user.identityUserId))
+            if (!string.IsNullOrWhiteSpace(NewPassword) && !string.IsNullOrWhiteSpace(dbUser.identityUserId))
             {
-                var identityUser = await _userManager.FindByIdAsync(user.identityUserId);
+                var identityUser = await _userManager.FindByIdAsync(dbUser.identityUserId);
                 if (identityUser == null)
                 {
                     ModelState.AddModelError(string.Empty, "Linked identity account not found.");
@@ -89,20 +79,17 @@ namespace CampusConnect.Pages.UserPages
 
                 var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
                 var resetResult = await _userManager.ResetPasswordAsync(identityUser, token, NewPassword);
+
                 if (!resetResult.Succeeded)
                 {
                     foreach (var err in resetResult.Errors)
                         ModelState.AddModelError(string.Empty, err.Description);
+
                     return Page();
                 }
             }
 
             return RedirectToPage("./Index");
-        }
-
-        private bool userExists(int id)
-        {
-            return _context.users.Any(e => e.userID == id);
         }
     }
 }

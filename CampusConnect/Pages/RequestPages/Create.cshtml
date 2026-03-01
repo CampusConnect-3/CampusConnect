@@ -42,10 +42,10 @@
         margin-bottom: 16px;
     }
 
-    .form-top .person {
-        font-weight: 600;
-        font-size: 16px;
-    }
+        .form-top .person {
+            font-weight: 600;
+            font-size: 16px;
+        }
 
     .form-grid {
         display: grid;
@@ -57,28 +57,33 @@
         margin-bottom: 14px;
     }
 
-    .field label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 6px;
-    }
+        .field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
 
-    .field input[type="text"],
-    .field input[type="email"],
-    .field input[type="tel"],
-    .field select,
-    .field textarea {
-        width: 100%;
-        padding: 10px;
-        background: #eee;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
+        .field input[type="text"],
+        .field input[type="email"],
+        .field input[type="tel"],
+        .field select,
+        .field textarea {
+            width: 100%;
+            padding: 10px;
+            background: #eee;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
 
-    .field textarea {
-        min-height: 80px;
-        resize: vertical;
-    }
+        .field input[readonly] {
+            opacity: 0.85;
+            cursor: not-allowed;
+        }
+
+        .field textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
 
     .required-asterisk {
         color: #c00;
@@ -89,6 +94,12 @@
         display: flex;
         align-items: center;
         gap: 12px;
+    }
+
+    .help-text {
+        color: #666;
+        font-size: 12px;
+        margin-top: 6px;
     }
 
     .submit-row {
@@ -119,7 +130,9 @@
     </div>
 
     <h1 class="submit-title">Submit New Request</h1>
-    <div class="submit-desc">please fill out the form below to submit a new service request. Provide as much details as possible so we can assist you effectively</div>
+    <div class="submit-desc">
+        Please fill out the form below to submit a new service request. Provide as much detail as possible so we can help you faster.
+    </div>
 
     <div class="form-card">
         <div class="form-top">
@@ -131,6 +144,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-grid">
+                <!-- LEFT COLUMN -->
                 <div>
                     <div class="field">
                         <label asp-for="request.title">Subject <span class="required-asterisk">*</span></label>
@@ -159,11 +173,13 @@
                     <div class="field">
                         <label>Attachments (png, jpg, pdf)</label>
                         <div class="attachments">
-                            <input type="file" name="attachments" accept=".png,.jpg,.jpeg,.pdf" />
+                            <input type="file" name="attachments" accept=".png,.jpg,.jpeg,.pdf" multiple />
                         </div>
+                        <div class="help-text">Optional. Add screenshots or PDFs if needed.</div>
                     </div>
                 </div>
 
+                <!-- RIGHT COLUMN -->
                 <div>
                     <div class="field">
                         <label asp-for="request.priority">Priority <span class="required-asterisk">*</span></label>
@@ -179,20 +195,17 @@
 
                     <div class="field">
                         <label asp-for="request.email">Email Address <span class="required-asterisk">*</span></label>
-                        <input asp-for="request.email" type="email" />
+
+                        <!-- locked + auto-filled from your OnGet() + forced again in OnPost() -->
+                        <input asp-for="request.email" type="email" readonly />
+
                         <span asp-validation-for="request.email" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label asp-for="request.categoryID">Category</label>
-                        <select asp-for="request.categoryID" class="form-control" asp-items="ViewBag.categoryID"></select>
+                        <label asp-for="request.categoryID">Category <span class="required-asterisk">*</span></label>
+                        <select asp-for="request.categoryID" asp-items="ViewBag.categoryID"></select>
                         <span asp-validation-for="request.categoryID" class="text-danger"></span>
-                    </div>
-
-                    <div class="field">
-                        <label asp-for="request.statusID">Status</label>
-                        <select asp-for="request.statusID" asp-items="ViewBag.statusID"></select>
-                        <span asp-validation-for="request.statusID" class="text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -205,5 +218,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

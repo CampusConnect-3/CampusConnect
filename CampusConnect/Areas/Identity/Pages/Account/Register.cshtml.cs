@@ -3,24 +3,16 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using CampusConnect.Constants;
 using CampusConnect.Data;
 using CampusConnect.Models;
-using CampusConnect.Constants;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 
 namespace CampusConnect.Areas.Identity.Pages.Account
 {
@@ -47,7 +39,7 @@ namespace CampusConnect.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public string ReturnUrl { get; set; } = default!;
+        public string ReturnUrl { get; set; } = "/";
 
         public class InputModel
         {
@@ -63,7 +55,7 @@ namespace CampusConnect.Areas.Identity.Pages.Account
             [Required, DataType(DataType.Password)]
             public string Password { get; set; } = string.Empty;
 
-            [DataType(DataType.Password), Compare(nameof(Password))]
+            [Required, DataType(DataType.Password), Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
             public string ConfirmPassword { get; set; } = string.Empty;
 
             [Display(Name = "Department")]
@@ -72,42 +64,54 @@ namespace CampusConnect.Areas.Identity.Pages.Account
 
         public void OnGet(string? returnUrl = null)
         {
-            ReturnUrl = returnUrl ?? Url.Content("~/");
+            ReturnUrl = string.IsNullOrWhiteSpace(returnUrl) ? Url.Content("~/") : returnUrl;
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            returnUrl ??= Url.Content("~/");
+            ReturnUrl = string.IsNullOrWhiteSpace(returnUrl) ? Url.Content("~/") : returnUrl;
+
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
-            var identityUser = new IdentityUser { UserName = Input.Email, Email = Input.Email };
+            var identityUser = new IdentityUser
+            {
+                UserName = Input.Email,
+                Email = Input.Email
+            };
 
+            // 1) Create Identity user
             var createResult = await _userManager.CreateAsync(identityUser, Input.Password);
             if (!createResult.Succeeded)
             {
                 foreach (var err in createResult.Errors)
                     ModelState.AddModelError(string.Empty, err.Description);
+
                 return Page();
             }
 
-            _logger.LogInformation("Identity user created.");
+            _logger.LogInformation("Identity user created. IdentityUserId={IdentityUserId}", identityUser.Id);
 
-            // Assign Pending role by default
-            await _userManager.AddToRoleAsync(identityUser, Roles.Pending.ToString());
+            // 2) Assign Pending role
+            var roleResult = await _userManager.AddToRoleAsync(identityUser, Roles.Pending.ToString());
+            if (!roleResult.Succeeded)
+            {
+                // If role assignment fails, remove Identity user to avoid half-created accounts
+                await _userManager.DeleteAsync(identityUser);
+                ModelState.AddModelError(string.Empty, "Unable to assign role. Please contact an administrator.");
+                return Page();
+            }
 
-            // Now create the application user row and link it via email/username.
+            // 3) Create app user row (linked to AspNetUsers)
             var appUser = new user
             {
                 fName = Input.FirstName,
                 lName = Input.LastName,
                 username = identityUser.UserName ?? Input.Email,
                 email = identityUser.Email ?? Input.Email,
-                department = Input?.Department,
-                status = "Pending", // Mark as Pending until role is assigned
-                identityUserId = identityUser.Id, // important: link to AspNetUsers
+                department = Input.Department,
+                status = Roles.Pending.ToString(), // <-- CHANGED: Use constant instead of hardcoded "Pending"
+                identityUserId = identityUser.Id
             };
 
             try
@@ -115,17 +119,19 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                 _tablesDb.users.Add(appUser);
                 await _tablesDb.SaveChangesAsync();
             }
-            catch
+            catch (Exception ex)
             {
-                // If app user creation fails, delete the Identity account to avoid orphans.
+                // Roll back Identity user if app row fails (prevents orphan Identity accounts)
+                _logger.LogError(ex, "Failed to create app user row. Rolling back Identity user. IdentityUserId={IdentityUserId}", identityUser.Id);
                 await _userManager.DeleteAsync(identityUser);
+
                 ModelState.AddModelError(string.Empty, "Unable to create profile. Please try again or contact an administrator.");
                 return Page();
             }
 
-            // Optionally sign in the user immediately
+            // 4) Sign in and send them to PendingApproval (clean experience)
             await _signInManager.SignInAsync(identityUser, isPersistent: false);
-            return LocalRedirect(returnUrl);
+            return RedirectToPage("/PendingApproval");
         }
     }
 }
