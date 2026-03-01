@@ -61,7 +61,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("requestID");
 
-                    b.ToTable("attachments");
+                    b.ToTable("attachments", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.category", b =>
@@ -80,7 +80,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasKey("categoryID");
 
-                    b.ToTable("category");
+                    b.ToTable("category", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.request", b =>
@@ -158,7 +158,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("statusID");
 
-                    b.ToTable("request");
+                    b.ToTable("request", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.requestComments", b =>
@@ -191,7 +191,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("requestID");
 
-                    b.ToTable("requestComments");
+                    b.ToTable("requestComments", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.requestStatus", b =>
@@ -210,7 +210,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasKey("statusID");
 
-                    b.ToTable("requestStatus");
+                    b.ToTable("requestStatus", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.roles", b =>
@@ -229,7 +229,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasKey("roleID");
 
-                    b.ToTable("roles");
+                    b.ToTable("roles", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.user", b =>
@@ -276,7 +276,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasKey("userID");
 
-                    b.ToTable("users");
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.userRoles", b =>
@@ -293,7 +293,7 @@ namespace CampusConnect.Migrations.Tables
 
                     b.HasIndex("userID");
 
-                    b.ToTable("userRoles");
+                    b.ToTable("userRoles", (string)null);
                 });
 
             modelBuilder.Entity("CampusConnect.Models.attachments", b =>

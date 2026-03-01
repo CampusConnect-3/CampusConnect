@@ -1,5 +1,6 @@
 using CampusConnect.Constants;
 using CampusConnect.Data;
+using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -23,94 +24,109 @@ namespace CampusConnect.Pages.Admin.UserPages
             _userManager = userManager;
         }
 
-        public CampusConnect.Models.user AppUser { get; set; }
-        public IdentityUser IdentityUser { get; set; }
-        public IList<string> CurrentRoles { get; set; }
-        public List<string> AllRoles { get; set; }
+        // Display-only
+        public user? AppUser { get; set; }
+        public IdentityUser? IdentityUser { get; set; }
+        public IList<string> CurrentRoles { get; set; } = new List<string>();
+        public List<string> AllRoles { get; set; } = new List<string>();
+
+        // Route/query parameter (Identity user id)
+        [BindProperty(SupportsGet = true)]
+        public string? IdentityUserId { get; set; }
 
         [BindProperty]
-        public List<string> SelectedRoles { get; set; }
+        public List<string> SelectedRoles { get; set; } = new List<string>();
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        private async Task<bool> LoadPageAsync(string? identityUserId)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (string.IsNullOrWhiteSpace(identityUserId))
+                return false;
 
-            AppUser = await _context.users.FirstOrDefaultAsync(u => u.userID == id);
-            if (AppUser == null || string.IsNullOrEmpty(AppUser.identityUserId))
-            {
-                return NotFound();
-            }
-
-            IdentityUser = await _userManager.FindByIdAsync(AppUser.identityUserId);
+            IdentityUser = await _userManager.FindByIdAsync(identityUserId);
             if (IdentityUser == null)
+                return false;
+
+            // Try to load existing app profile
+            AppUser = await _context.users.FirstOrDefaultAsync(u => u.identityUserId == identityUserId);
+
+            // If missing, auto-create a minimal app profile so Admin can manage it
+            if (AppUser == null)
             {
-                return NotFound();
+                AppUser = new user
+                {
+                    identityUserId = identityUserId,
+                    email = IdentityUser.Email ?? "",
+                    username = IdentityUser.UserName ?? IdentityUser.Email ?? "",
+                    fName = "N/A",
+                    lName = "N/A",
+                    department = null,
+                    status = "Pending"
+                };
+
+                _context.users.Add(AppUser);
+                await _context.SaveChangesAsync();
             }
 
             CurrentRoles = await _userManager.GetRolesAsync(IdentityUser);
+
             AllRoles = new List<string>
             {
                 Roles.Admin.ToString(),
                 Roles.Manager.ToString(),
                 Roles.Staff.ToString(),
-                Roles.User.ToString()
+                Roles.User.ToString(),
+                Roles.Pending.ToString()
             };
+
+            return true;
+        }
+
+        public async Task<IActionResult> OnGetAsync(string? identityUserId)
+        {
+            IdentityUserId = identityUserId;
+
+            var ok = await LoadPageAsync(IdentityUserId);
+            if (!ok) return NotFound();
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(string? identityUserId)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            IdentityUserId = identityUserId;
 
-            AppUser = await _context.users.FirstOrDefaultAsync(u => u.userID == id);
-            if (AppUser == null || string.IsNullOrEmpty(AppUser.identityUserId))
-            {
-                return NotFound();
-            }
+            var ok = await LoadPageAsync(IdentityUserId);
+            if (!ok) return NotFound();
 
-            IdentityUser = await _userManager.FindByIdAsync(AppUser.identityUserId);
-            if (IdentityUser == null)
-            {
-                return NotFound();
-            }
+            var identityUser = IdentityUser!;
+            var appUser = AppUser!;
 
-            var currentRoles = await _userManager.GetRolesAsync(IdentityUser);
-            
-            // Remove all current roles (except we'll handle later)
-            var removeResult = await _userManager.RemoveFromRolesAsync(IdentityUser, currentRoles);
+            var currentRoles = await _userManager.GetRolesAsync(identityUser);
+
+            // Remove current roles
+            var removeResult = await _userManager.RemoveFromRolesAsync(identityUser, currentRoles);
             if (!removeResult.Succeeded)
             {
                 ModelState.AddModelError(string.Empty, "Failed to remove existing roles.");
+                await LoadPageAsync(IdentityUserId);
                 return Page();
             }
 
-            // Add selected roles
-            if (SelectedRoles != null && SelectedRoles.Any())
-            {
-                var addResult = await _userManager.AddToRolesAsync(IdentityUser, SelectedRoles);
-                if (!addResult.Succeeded)
-                {
-                    ModelState.AddModelError(string.Empty, "Failed to add selected roles.");
-                    return Page();
-                }
+            // If nothing selected, default to Pending
+            var rolesToAdd = (SelectedRoles != null && SelectedRoles.Any())
+                ? SelectedRoles
+                : new List<string> { Roles.Pending.ToString() };
 
-                // Update user status to Active since they now have a role
-                AppUser.status = "Active";
-            }
-            else
+            var addResult = await _userManager.AddToRolesAsync(identityUser, rolesToAdd);
+            if (!addResult.Succeeded)
             {
-                // No roles selected, assign Pending
-                await _userManager.AddToRoleAsync(IdentityUser, Roles.Pending.ToString());
-                AppUser.status = "Pending";
+                ModelState.AddModelError(string.Empty, "Failed to add selected roles.");
+                await LoadPageAsync(IdentityUserId);
+                return Page();
             }
 
+            // Update app user status based on roles
+            appUser.status = rolesToAdd.Contains(Roles.Pending.ToString()) ? "Pending" : "Active";
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Roles updated successfully.";

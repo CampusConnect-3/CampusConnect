@@ -4,41 +4,37 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.UserRolesPages
+namespace CampusConnect.Pages.Admin.UserRolesPages
 {
     [Authorize(Roles = "Admin")]
     public class DetailsModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
 
-        public DetailsModel(CampusConnect.Data.TablesDbContext context)
+        public DetailsModel(TablesDbContext context)
         {
             _context = context;
         }
 
         public userRoles userRoles { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? roleID, int? userID)
         {
-            if (id == null)
-            {
+            if (roleID == null || userID == null)
                 return NotFound();
-            }
 
-            var userroles = await _context.userRoles.FirstOrDefaultAsync(m => m.roleID == id);
-            if (userroles == null)
-            {
+            var ur = await _context.userRoles
+                .AsNoTracking()
+                .Include(x => x.role)
+                .Include(x => x.user)
+                .FirstOrDefaultAsync(x => x.roleID == roleID && x.userID == userID);
+
+            if (ur == null)
                 return NotFound();
-            }
-            else
-            {
-                userRoles = userroles;
-            }
+
+            userRoles = ur;
             return Page();
         }
     }

@@ -2,6 +2,7 @@
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Data;
 
 namespace CampusConnect.Data
@@ -11,13 +12,25 @@ namespace CampusConnect.Data
         public static async Task SeedRolesAndAdminAsync(IServiceProvider service)
         {
             //Seed Roles
-            var userManager = service.GetService<UserManager<IdentityUser>>();
-            var roleManager = service.GetService<RoleManager<IdentityRole>>();
-            await roleManager.CreateAsync(new IdentityRole(Roles.Admin.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.User.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.Staff.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.Manager.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.Pending.ToString()));
+            var userManager = service.GetRequiredService<UserManager<IdentityUser>>();
+            var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
+
+            string[] roles =
+            {
+                Roles.Admin.ToString(),
+                Roles.User.ToString(),
+                Roles.Staff.ToString(),
+                Roles.Manager.ToString(),
+                Roles.Pending.ToString()
+            };
+
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
 
             //Create Admin Identity user
             var adminIdentity = new IdentityUser

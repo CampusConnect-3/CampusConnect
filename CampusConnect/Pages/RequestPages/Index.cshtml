@@ -2,107 +2,329 @@
 @model CampusConnect.Pages.RequestPages.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Request Queue";
 }
 
-<h1>Index</h1>
+<style>
+    .queue-shell {
+        max-width: 1200px;
+        margin: 18px auto;
+        padding: 18px;
+    }
 
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].priority)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].createdAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].closedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].buildingName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].roomNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].phoneNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].createdBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].assignedTo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.request[0].status)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.request) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.priority)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.closedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.buildingName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.roomNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.phoneNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.createdBy.email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.assignedTo.email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.category.categoryName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.status.statusName)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.requestID">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.requestID">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.requestID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    .queue-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .queue-title {
+        font-size: 34px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .queue-sub {
+        color: #666;
+        margin-top: 4px;
+        font-size: 14px;
+    }
+
+    .tools {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+        .tools input[type="search"],
+        .tools select {
+            padding: 9px 12px;
+            border: 1px solid #cfcfcf;
+            background: #f5f5f5;
+            border-radius: 6px;
+            min-width: 200px;
+        }
+
+    .card-box {
+        border: 3px solid #111;
+        background: #fff;
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    table.queue-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        table.queue-table thead th {
+            text-align: left;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #444;
+            padding: 10px 10px;
+            border-bottom: 3px solid #111;
+            white-space: nowrap;
+        }
+
+        table.queue-table tbody td {
+            padding: 12px 10px;
+            border-top: 1px solid #ddd;
+            vertical-align: top;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
+        }
+
+    .col-id {
+        width: 80px;
+    }
+
+    .col-title {
+        width: 320px;
+    }
+
+    .col-cat {
+        width: 160px;
+    }
+
+    .col-pri {
+        width: 110px;
+    }
+
+    .col-status {
+        width: 140px;
+    }
+
+    .col-created {
+        width: 120px;
+    }
+
+    .col-by {
+        width: 210px;
+    }
+
+    .col-actions {
+        width: 140px;
+    }
+
+    .muted {
+        color: #777;
+        font-size: 13px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #ccc;
+        background: #eee;
+        white-space: nowrap;
+    }
+
+    .b-closed {
+        background: #e8f7ed;
+        border-color: #bfe8cc;
+        color: #1f7a3b;
+    }
+
+    .b-progress {
+        background: #fff4ea;
+        border-color: #ffd7b3;
+        color: #9a4b00;
+    }
+
+    .b-todo {
+        background: #f1f1f1;
+        border-color: #d9d9d9;
+        color: #666;
+    }
+
+    .p-high {
+        background: #ffecec;
+        border-color: #ffc4c4;
+        color: #b30000;
+    }
+
+    .p-medium {
+        background: #fff4ea;
+        border-color: #ffd7b3;
+        color: #9a4b00;
+    }
+
+    .p-low {
+        background: #e8f7ed;
+        border-color: #bfe8cc;
+        color: #1f7a3b;
+    }
+
+    .action-links a {
+        text-decoration: none;
+        margin-right: 10px;
+        font-weight: 600;
+    }
+
+    .empty {
+        padding: 22px;
+        text-align: center;
+        color: #666;
+    }
+
+    @@media (max-width: 900px) {
+        .col-by
+
+    {
+        display: none;
+    }
+
+    .col-cat {
+        display: none;
+    }
+
+    .col-created {
+        display: none;
+    }
+
+    .col-title {
+        width: auto;
+    }
+
+    }
+</style>
+
+<div class="queue-shell">
+    <div class="queue-header">
+        <div>
+            <h1 class="queue-title">Request Queue</h1>
+            <div class="queue-sub">All submitted tickets (Admin/Manager/Staff view)</div>
+        </div>
+
+        <!-- Optional “fake” filters (UI only). If you want real filtering, tell me and I’ll wire it to the PageModel. -->
+        <div class="tools">
+            <input type="search" placeholder="Search title..." oninput="filterRows(this.value)" />
+            <select onchange="filterStatus(this.value)">
+                <option value="">All Status</option>
+                <option value="to-do">To-Do</option>
+                <option value="in progress">In Progress</option>
+                <option value="closed">Closed</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <table class="queue-table" id="queueTable">
+            <thead>
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th class="col-title">Title</th>
+                    <th class="col-cat">Category</th>
+                    <th class="col-pri">Priority</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-created">Created</th>
+                    <th class="col-by">Created By</th>
+                    <th class="col-actions">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.request == null || !Model.request.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="empty">No requests found.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model.request.OrderByDescending(r => r.createdAt))
+                    {
+                        var statusName = item.status?.statusName ?? "Unknown";
+                        var statusLower = statusName.ToLowerInvariant();
+
+                        var pri = item.priority ?? "Low";
+                        var priLower = pri.ToLowerInvariant();
+
+                        string statusClass =
+                        statusLower.Contains("closed") ? "b-closed"
+                        : statusLower.Contains("progress") ? "b-progress"
+                        : "b-todo";
+
+                        string priClass =
+                        priLower.Contains("high") ? "p-high"
+                        : priLower.Contains("med") ? "p-medium"
+                        : "p-low";
+
+                        <tr data-title="@((item.title ?? "").ToLowerInvariant())"
+                            data-status="@(statusLower)">
+                            <td class="col-id">@item.requestID</td>
+
+                            <td class="col-title">
+                                <div style="font-weight:700;">@item.title</div>
+                                @if (!string.IsNullOrWhiteSpace(item.description))
+                                {
+                                    <div class="muted">@item.description</div>
+                                }
+                            </td>
+
+                            <td class="col-cat">@item.category?.categoryName</td>
+
+                            <td class="col-pri">
+                                <span class="badge @priClass">@pri</span>
+                            </td>
+
+                            <td class="col-status">
+                                <span class="badge @statusClass">@statusName</span>
+                            </td>
+
+                            <td class="col-created">
+                                @item.createdAt.ToString("MM/dd/yyyy")
+                            </td>
+
+                            <td class="col-by">
+                                @item.createdBy?.email
+                            </td>
+
+                            <td class="col-actions action-links">
+                                <a asp-page="./Details" asp-route-id="@item.requestID">View</a>
+
+                                @* Only Admin/Manager should see Edit/Delete in the queue *@
+                                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@item.requestID">Edit</a>
+                                    <a asp-page="./Delete" asp-route-id="@item.requestID">Delete</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filterRows(text) {
+        text = (text || "").toLowerCase();
+        const rows = document.querySelectorAll("#queueTable tbody tr");
+        rows.forEach(r => {
+            const title = r.getAttribute("data-title") || "";
+            r.style.display = title.includes(text) ? "" : "none";
+        });
+    }
+
+    function filterStatus(status) {
+        status = (status || "").toLowerCase();
+        const rows = document.querySelectorAll("#queueTable tbody tr");
+        rows.forEach(r => {
+            if (!status) { r.style.display = ""; return; }
+            const s = r.getAttribute("data-status") || "";
+            r.style.display = s.includes(status) ? "" : "none";
+        });
+    }
+</script>

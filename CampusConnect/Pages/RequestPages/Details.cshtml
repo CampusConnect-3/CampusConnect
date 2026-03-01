@@ -2,96 +2,309 @@
 @model CampusConnect.Pages.RequestPages.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Request Details";
 }
 
-<h1>Details</h1>
+<style>
+    .details-shell {
+        max-width: 1100px;
+        margin: 18px auto;
+        padding: 18px;
+    }
 
-<div>
-    <h4>request</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.priority)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.priority)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.createdAt)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.createdAt)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.closedAt)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.closedAt)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.buildingName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.buildingName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.roomNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.roomNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.phoneNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.phoneNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.email)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.createdBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.createdBy.email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.assignedTo)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.assignedTo.email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.category)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.category.categoryName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.status.statusName)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.request.requestID">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
+    .card-box {
+        border: 4px solid #000;
+        background: #fff;
+        padding: 18px;
+    }
+
+    .breadcrumb {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+        .title-row h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+    .pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border: 2px solid #111;
+        font-weight: 700;
+        font-size: 13px;
+        background: #f4f4f4;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px 28px;
+        margin-top: 10px;
+    }
+
+    .field {
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        background: #fafafa;
+    }
+
+    .label {
+        font-weight: 700;
+        font-size: 12px;
+        color: #333;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+    .value {
+        font-size: 15px;
+        color: #111;
+        word-break: break-word;
+    }
+
+    .section {
+        margin-top: 18px;
+        border-top: 3px solid #111;
+        padding-top: 14px;
+    }
+
+        .section h3 {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+        }
+
+    .attachments-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border: 1px solid #ddd;
+    }
+
+        .attachments-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-top: 1px solid #ddd;
+        }
+
+            .attachments-list li:first-child {
+                border-top: none;
+            }
+
+    .file-name {
+        font-weight: 700;
+    }
+
+    .file-meta {
+        color: #666;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border: 2px solid #111;
+        text-decoration: none;
+        font-weight: 700;
+        background: #fff;
+        color: #111;
+    }
+
+    .btn-primary {
+        background: #0b5ed7;
+        border-color: #0b5ed7;
+        color: #fff;
+    }
+
+    .btn-secondary {
+        background: #eee;
+    }
+
+    .btn-small {
+        padding: 8px 12px;
+        font-size: 13px;
+        border-width: 1px;
+    }
+
+    @@media (max-width: 820px) {
+        .grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+</style>
+
+<div class="details-shell">
+    <div class="breadcrumb">
+        <a asp-page="/Index">Home</a> / Request Details
+    </div>
+
+    <div class="card-box">
+        <div class="title-row">
+            <h1>Request Details</h1>
+
+            @* simple status pill *@
+            <span class="pill">
+                Status:
+                @(Model.request?.status?.statusName ?? "Unknown")
+            </span>
+        </div>
+
+        <div class="grid">
+            <div class="field">
+                <div class="label">Request ID</div>
+                <div class="value">@Model.request.requestID.ToString("D5")</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Priority</div>
+                <div class="value">@Model.request.priority</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Subject</div>
+                <div class="value">@Model.request.title</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Category</div>
+                <div class="value">@Model.request.category?.categoryName</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Building</div>
+                <div class="value">@Model.request.buildingName</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Room</div>
+                <div class="value">@Model.request.roomNumber</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Phone</div>
+                <div class="value">@Model.request.phoneNumber</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Email</div>
+                <div class="value">@Model.request.email</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Created By</div>
+                <div class="value">@Model.request.createdBy?.email</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Assigned To</div>
+                <div class="value">@Model.request.assignedTo?.email</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Created At</div>
+                <div class="value">@Model.request.createdAt</div>
+            </div>
+
+            <div class="field">
+                <div class="label">Closed At</div>
+                <div class="value">@Model.request.closedAt</div>
+            </div>
+
+            <div class="field" style="grid-column: 1 / -1;">
+                <div class="label">Description</div>
+                <div class="value">@Model.request.description</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Attachments</h3>
+
+            @* Only User/Staff/Manager can upload attachments *@
+            @if (User.IsInRole("Manager") || User.IsInRole("Staff") || User.IsInRole("User"))
+            {
+                <div class="btn-row" style="margin-top: 0;">
+                    <a class="btn btn-primary"
+                       asp-page="/RequestAttachmentsPages/Create"
+                       asp-route-requestId="@Model.request.requestID">
+                        + Add Attachment
+                    </a>
+                </div>
+            }
+
+            @if (Model.Attachments != null && Model.Attachments.Any())
+            {
+                <ul class="attachments-list">
+                    @foreach (var file in Model.Attachments)
+                    {
+                        <li>
+                            <div>
+                                <div class="file-name">@file.fileName</div>
+                                <div class="file-meta">
+                                    @file.contentType • uploaded @file.uploadedAt
+                                </div>
+                            </div>
+
+                            <a class="btn btn-small btn-secondary"
+                               href="@file.fileUrl"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                View
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p style="color:#666; margin-top: 10px;">No attachments yet.</p>
+            }
+        </div>
+
+        <div class="btn-row">
+            @* Admin/Manager can edit (optional) *@
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a class="btn"
+                   asp-page="./Edit"
+                   asp-route-id="@Model.request.requestID">
+                    Edit
+                </a>
+            }
+
+            @* Back goes to different page depending on role *@
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a class="btn btn-secondary" asp-page="./Index">Back to Queue</a>
+            }
+            else
+            {
+                <a class="btn btn-secondary" asp-page="/RequestPages/MyRequests">Back to My Requests</a>
+            }
+        </div>
+    </div>
 </div>

@@ -1,87 +1,147 @@
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.UserPages
+namespace CampusConnect.Pages.Admin.UserPages
 {
-    [Authorize(Roles="Admin")]
+    [Authorize(Roles = "Admin")]
     public class CreateModel : PageModel
     {
-        private readonly TablesDbContext _context;
+        private readonly ApplicationDbContext _identityDb;
+        private readonly TablesDbContext _tablesDb;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public CreateModel(TablesDbContext context, UserManager<IdentityUser> userManager)
+        public CreateModel(ApplicationDbContext identityDb, TablesDbContext tablesDb, UserManager<IdentityUser> userManager)
         {
-            _context = context;
+            _identityDb = identityDb;
+            _tablesDb = tablesDb;
             _userManager = userManager;
         }
 
-        public IActionResult OnGet()
+        [BindProperty]
+        public InputModel Input { get; set; } = new();
+
+        public List<SelectListItem> RoleOptions { get; set; } = new();
+
+        public class InputModel
         {
-            return Page();
+            [Required, EmailAddress]
+            public string Email { get; set; } = "";
+
+            [Required, MinLength(6)]
+            public string Password { get; set; } = "";
+
+            [Required, Compare(nameof(Password))]
+            public string ConfirmPassword { get; set; } = "";
+
+            [Required]
+            public string Role { get; set; } = "User";
+
+            // Optional app-profile fields
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
+            public string? Department { get; set; }
         }
 
-        [BindProperty]
-        public user user { get; set; } = default!;
-
-        // optional initial password for Identity account
-        [BindProperty]
-        public string? Password { get; set; }
-
-        // For more information, see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
+        public void OnGet()
         {
+            LoadRoles();
+        }
+
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
+        {
+            LoadRoles();
+
             if (!ModelState.IsValid)
+                return Page();
+
+            // Prevent duplicates in Identity
+            var existingIdentity = await _userManager.FindByEmailAsync(Input.Email);
+            if (existingIdentity != null)
             {
+                ModelState.AddModelError(string.Empty, "That email already exists.");
                 return Page();
             }
 
-            // Create Identity user first (so we can link identityUserId)
-            var identityUser = new IdentityUser { UserName = user.email, Email = user.email };
+            // Check if username (email) already exists in app users table
+            var existingAppUser = await _tablesDb.users
+                .AnyAsync(u => u.username == Input.Email || u.email == Input.Email, cancellationToken);
 
-            IdentityResult createResult;
-            if (!string.IsNullOrWhiteSpace(Password))
+            if (existingAppUser)
             {
-                createResult = await _userManager.CreateAsync(identityUser, Password);
-            }
-            else
-            {
-                // create without password - external or set later
-                createResult = await _userManager.CreateAsync(identityUser);
+                ModelState.AddModelError(string.Empty, "A user with that email/username already exists in the system.");
+                return Page();
             }
 
+            var user = new IdentityUser
+            {
+                UserName = Input.Email,
+                Email = Input.Email,
+                EmailConfirmed = true // lets them login even if RequireConfirmedAccount=true
+            };
+
+            var createResult = await _userManager.CreateAsync(user, Input.Password);
             if (!createResult.Succeeded)
             {
-                foreach (var err in createResult.Errors)
-                    ModelState.AddModelError(string.Empty, err.Description);
+                foreach (var e in createResult.Errors)
+                    ModelState.AddModelError(string.Empty, e.Description);
+
                 return Page();
             }
 
-            // Do not store cleartext password in the app table
-            // user.password = null;
-            user.identityUserId = identityUser.Id;
-            // Ensure username/email align
-            user.username = identityUser.UserName ?? user.email;
-            user.email = identityUser.Email ?? user.email;
+            // Add role (must already exist from your DbSeeder)
+            await _userManager.AddToRoleAsync(user, Input.Role);
+
+            // Create app profile row
+            var appUser = new user
+            {
+                email = Input.Email,
+                username = Input.Email, // <-- FIX: Set username (required, unique index)
+                fName = Input.FirstName ?? "N/A",
+                lName = Input.LastName ?? "N/A",
+                department = Input.Department,
+                status = Input.Role == "Pending" ? "Pending" : "Active",
+                identityUserId = user.Id
+            };
 
             try
             {
-                _context.users.Add(user);
-                await _context.SaveChangesAsync();
+                _tablesDb.users.Add(appUser);
+                await _tablesDb.SaveChangesAsync(cancellationToken);
             }
-            catch
+            catch (DbUpdateException ex)
             {
-                // rollback Identity user to avoid orphan
-                await _userManager.DeleteAsync(identityUser);
-                ModelState.AddModelError(string.Empty, "Unable to create profile. Please try again or contact an administrator.");
+                // Rollback Identity user if app profile fails
+                await _userManager.DeleteAsync(user);
+                ModelState.AddModelError(string.Empty, $"Failed to create user profile: {ex.InnerException?.Message ?? ex.Message}");
                 return Page();
             }
 
+            TempData["Success"] = "User created successfully.";
             return RedirectToPage("./Index");
+        }
+
+        private void LoadRoles()
+        {
+            // Keep this list aligned with what you seed
+            RoleOptions = new List<SelectListItem>
+            {
+                new("User", "User"),
+                new("Staff", "Staff"),
+                new("Manager", "Manager"),
+                new("Admin", "Admin"),
+                new("Pending", "Pending")
+            };
         }
     }
 }
