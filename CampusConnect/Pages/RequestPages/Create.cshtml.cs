@@ -1,37 +1,227 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CampusConnect.Data;
+using CampusConnect.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using CampusConnect.Data;
-using CampusConnect.Models;
-using Microsoft.Extensions.Logging;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager,Staff,User")]
     public class CreateModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
-
+        private readonly TablesDbContext _context;
         private readonly ILogger<CreateModel> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public CreateModel(TablesDbContext context, ILogger<CreateModel> logger)
+        public CreateModel(TablesDbContext context, ILogger<CreateModel> logger, IWebHostEnvironment env)
         {
             _context = context;
             _logger = logger;
+            _env = env;
         }
+
+        [BindProperty]
+        public request request { get; set; } = default!;
+
+        [BindProperty]
+        public List<IFormFile>? Attachments { get; set; }
 
         public IActionResult OnGet()
         {
-            ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
+            PopulateDropdowns();
+            request = new request
+            {
+                email = User.Identity?.Name ?? ""
+            };
+            return Page();
+        }
+
+        public async Task<IActionResult> OnGetAsync(int? id, CancellationToken cancellationToken = default)
+        {
+            if (id == null)
+                return NotFound();
+
+            var request = await _context.request
+                .FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
+
+            if (request == null)
+                return NotFound();
+            
+            this.request = request;
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(int? id, CancellationToken cancellationToken = default)
+        {
+            if (id == null)
+                return NotFound();
+
+            var req = await _context.request.FindAsync(new object[] { id }, cancellationToken);
+            if (req != null)
+            {
+                // Clean up physical files
+                var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "requests", id.ToString());
+                if (Directory.Exists(uploadFolder))
+                {
+                    try
+                    {
+                        Directory.Delete(uploadFolder, recursive: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to delete upload folder for RequestId={RequestId}", id);
+                    }
+                }
+
+                _context.request.Remove(req);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    id,
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    HttpContext.TraceIdentifier
+                );
+            }
+
+            return RedirectToPage("./Index");
+        }
+
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
+        {
+            if (!ModelState.IsValid)
+            {
+                PopulateDropdowns();
+                return Page();
+            }
+
+            // FORCE EMAIL SERVER-SIDE (never trust UI)
+            request.email = User.Identity?.Name ?? request.email;
+
+            // get Identity ID
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(identityUserId))
+                return Forbid();
+
+            var appUser = await _context.users
+                .FirstOrDefaultAsync(u => u.identityUserId == identityUserId, cancellationToken);
+
+            if (appUser == null)
+                return Forbid();
+
+            request.created_by = appUser.userID;
+            request.createdAt = DateTime.UtcNow;
+            request.closedAt = null;
+
+            // Save request first to get the requestID
+            _context.request.Add(request);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Request created. RequestId={RequestId} UserId={UserId}",
+                request.requestID,
+                identityUserId
+            );
+
+            // NOW handle attachments (after we have a requestID)
+            if (Attachments != null && Attachments.Any())
+            {
+                var uploadedCount = await ProcessAttachmentsAsync(request.requestID, appUser.userID, cancellationToken);
+                _logger.LogInformation(
+                    "Uploaded {Count} attachments for RequestId={RequestId}",
+                    uploadedCount,
+                    request.requestID
+                );
+            }
+
+            return RedirectToPage("/Index");
+        }
+
+        private async Task<int> ProcessAttachmentsAsync(int requestId, int creatorUserId, CancellationToken cancellationToken)
+        {
+            if (Attachments == null || !Attachments.Any())
+                return 0;
+
+            var allowedExts = new[] { ".png", ".jpg", ".jpeg", ".pdf", ".doc", ".docx" };
+            const long maxBytes = 10 * 1024 * 1024; // 10MB per file
+
+            var uploadedCount = 0;
+            var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "requests", requestId.ToString());
+            Directory.CreateDirectory(uploadFolder);
+
+            foreach (var file in Attachments)
+            {
+                if (file == null || file.Length == 0)
+                    continue;
+
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExts.Contains(ext))
+                {
+                    _logger.LogWarning("Skipping file {FileName} - invalid extension", file.FileName);
+                    continue;
+                }
+
+                if (file.Length > maxBytes)
+                {
+                    _logger.LogWarning("Skipping file {FileName} - too large ({Size} bytes)", file.FileName, file.Length);
+                    continue;
+                }
+
+                try
+                {
+                    var safeFileName = $"{Guid.NewGuid():N}{ext}";
+                    var fullPath = Path.Combine(uploadFolder, safeFileName);
+
+                    await using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream, cancellationToken);
+                    }
+
+                    var attachment = new attachments
+                    {
+                        requestID = requestId,
+                        creatorID = creatorUserId,
+                        fileName = file.FileName,
+                        contentType = file.ContentType,
+                        fileUrl = $"/uploads/requests/{requestId}/{safeFileName}",
+                        uploadedAt = DateTime.UtcNow
+                    };
+
+                    _context.attachments.Add(attachment);
+                    uploadedCount++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to upload attachment {FileName} for RequestId={RequestId}", 
+                        file.FileName, requestId);
+                }
+            }
+
+            if (uploadedCount > 0)
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            return uploadedCount;
+        }
+
+        private void PopulateDropdowns()
+        {
             ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-            ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-            ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
+
             ViewData["priority"] = new SelectList(new[]
             {
                 new { Value = "Low", Text = "Low" },
@@ -39,90 +229,6 @@ namespace CampusConnect.Pages.RequestPages
                 new { Value = "High", Text = "High" },
                 new { Value = "Critical", Text = "Critical" }
             }, "Value", "Text");
-            return Page();
-        }
-
-        [BindProperty]
-        public request request { get; set; } = default!;
-
-        // For more information, see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                // Repopulate dropdowns when validation fails
-                ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-                ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-                ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-                ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
-                ViewData["priority"] = new SelectList(new[]
-                {
-                    new { Value = "Low", Text = "Low" },
-                    new { Value = "Medium", Text = "Medium" },
-                    new { Value = "High", Text = "High" },
-                    new { Value = "Critical", Text = "Critical" }
-                }, "Value", "Text");
-                return Page();
-            }
-
-            // Resolve the currently authenticated user and assign their userID to created_by.
-            // This prevents missing/invalid created_by values and prevents client tampering.
-            var currentUserName = User?.Identity?.Name;
-            if (string.IsNullOrEmpty(currentUserName))
-            {
-                ModelState.AddModelError(string.Empty, "Unable to determine the current user. Please sign in again.");
-                // Repopulate dropdowns before returning
-                ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-                ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-                ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-                ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
-                ViewData["priority"] = new SelectList(new[]
-                {
-                    new { Value = "Low", Text = "Low" },
-                    new { Value = "Medium", Text = "Medium" },
-                    new { Value = "High", Text = "High" },
-                    new { Value = "Critical", Text = "Critical" }
-                }, "Value", "Text");
-                return Page();
-            }
-
-            // Try to find matching user in the application's users table.
-            // Using email here because typical Identity setups use email as the Name; adjust to username when appropriate.
-            var currentUser = await _context.users.FirstOrDefaultAsync(u => u.email == currentUserName);
-            if (currentUser == null)
-            {
-                ModelState.AddModelError(string.Empty, "Your account is not present in the application's users table. Contact an administrator.");
-                ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-                ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-                ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-                ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
-                ViewData["priority"] = new SelectList(new[]
-                {
-                    new { Value = "Low", Text = "Low" },
-                    new { Value = "Medium", Text = "Medium" },
-                    new { Value = "High", Text = "High" },
-                    new { Value = "Critical", Text = "Critical" }
-                }, "Value", "Text");
-                return Page();
-            }
-
-            // Ensure the FK points to an existing user row
-            request.created_by = currentUser.userID;
-
-            // Set the timestamp when creating the request
-            request.createdAt = DateTime.Now;
-            // closedAt remains null until the request is actually closed
-
-            _context.request.Add(request);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation(
-                "CRITICAL: Request created. UserId={UserId} TraceId={TraceId}",
-                User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                HttpContext.TraceIdentifier
-                );
-
-            return RedirectToPage("./Index");
         }
     }
 }

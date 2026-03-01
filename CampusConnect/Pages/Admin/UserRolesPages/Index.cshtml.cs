@@ -1,33 +1,32 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.UserRolesPages
+namespace CampusConnect.Pages.Admin.UserRolesPages
 {
     [Authorize(Roles = "Admin")]
     public class IndexModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
 
-        public IndexModel(CampusConnect.Data.TablesDbContext context)
+        public IndexModel(TablesDbContext context)
         {
             _context = context;
         }
 
-        public IList<userRoles> userRoles { get;set; } = default!;
+        public IList<userRoles> userRoles { get; set; } = default!;
 
         public async Task OnGetAsync()
         {
             userRoles = await _context.userRoles
+                .AsNoTracking()
                 .Include(u => u.role)
-                .Include(u => u.user).ToListAsync();
+                .Include(u => u.user)
+                .ToListAsync();
         }
     }
 }

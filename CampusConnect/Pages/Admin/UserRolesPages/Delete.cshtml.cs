@@ -4,21 +4,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.UserRolesPages
+namespace CampusConnect.Pages.Admin.UserRolesPages
 {
     [Authorize(Roles = "Admin")]
     public class DeleteModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
-
+        private readonly TablesDbContext _context;
         private readonly ILogger<DeleteModel> _logger;
+
         public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
         {
             _context = context;
@@ -28,48 +25,49 @@ namespace CampusConnect.Pages.UserRolesPages
         [BindProperty]
         public userRoles userRoles { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? roleID, int? userID)
         {
-            if (id == null)
-            {
+            if (roleID == null || userID == null)
                 return NotFound();
-            }
 
-            var userroles = await _context.userRoles.FirstOrDefaultAsync(m => m.roleID == id);
+            var ur = await _context.userRoles
+                .AsNoTracking()
+                .Include(x => x.role)
+                .Include(x => x.user)
+                .FirstOrDefaultAsync(x => x.roleID == roleID && x.userID == userID);
 
-            if (userroles == null)
-            {
+            if (ur == null)
                 return NotFound();
-            }
-            else
-            {
-                userRoles = userroles;
-            }
+
+            userRoles = ur;
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync()
         {
-            if (id == null)
+            // values come from hidden fields in the form
+            var roleID = userRoles.roleID;
+            var userID = userRoles.userID;
+
+            var ur = await _context.userRoles
+                .FirstOrDefaultAsync(x => x.roleID == roleID && x.userID == userID);
+
+            if (ur == null)
             {
-                return NotFound();
+                // already removed or invalid
+                return RedirectToPage("./Index");
             }
 
-            var userroles = await _context.userRoles.FindAsync(id);
-            if (userroles != null)
-            {
-                userRoles = userroles;
-                _context.userRoles.Remove(userRoles);
-                await _context.SaveChangesAsync();
+            _context.userRoles.Remove(ur);
+            await _context.SaveChangesAsync();
 
-                _logger.LogWarning(
-                    "CRITICAL: Role removed. TargetUserId={TargetUserId} RoleId={RoleId} AdminUserId={AdminUserId} TraceId={TraceId}",
-                    userRoles.userID,
-                    userRoles.roleID,
-                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier
-                );
-            }
+            _logger.LogWarning(
+                "CRITICAL: Role removed. TargetUserId={TargetUserId} RoleId={RoleId} AdminUserId={AdminUserId} TraceId={TraceId}",
+                ur.userID,
+                ur.roleID,
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                HttpContext.TraceIdentifier
+            );
 
             return RedirectToPage("./Index");
         }

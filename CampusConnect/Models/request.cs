@@ -20,35 +20,35 @@ namespace CampusConnect.Models
         public int? assigned_to { get; set; }
 
         [Required, MaxLength(256)]
-        public string title { get; set; }
+        public string title { get; set; } = string.Empty;
 
         [Required, MaxLength(1000)]
-        public string description { get; set; }
+        public string description { get; set; } = string.Empty;
 
         [Column("categoryID")]
         public int categoryID { get; set; }
 
         [Required, MaxLength(10)]
-        public string priority { get; set; }
+        public string priority { get; set; } = string.Empty;
 
         [Column("statusID")]
         public int? statusID { get; set; }
 
         public DateTime createdAt { get; set; }
 
-        public DateTime? closedAt { get; set; }  // Changed to nullable
+        public DateTime? closedAt { get; set; }
 
         [Required, MaxLength(256)]
-        public string buildingName { get; set; }
+        public string buildingName { get; set; } = string.Empty;
 
         [Required, MaxLength(256)]
-        public string roomNumber { get; set; }
+        public string roomNumber { get; set; } = string.Empty;
 
         [MaxLength(256)]
         public string? phoneNumber { get; set; }
 
         [Required, MaxLength(256)]
-        public string email { get; set; }
+        public string email { get; set; } = string.Empty;
 
         // Navigation
         [ForeignKey("created_by")]

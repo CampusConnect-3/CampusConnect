@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CampusConnect.Constants;
 using CampusConnect.Data;
@@ -10,10 +11,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager,Staff,User")]
     public class MyRequestsModel : PageModel
     {
         private readonly TablesDbContext _context;
@@ -30,18 +32,18 @@ namespace CampusConnect.Pages.RequestPages
 
         public SelectList? StatusOptions { get; set; }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken = default)
         {
             // Populate status dropdown
             var statuses = await _context.requestStatus
                 .OrderBy(s => s.statusName)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             StatusOptions = new SelectList(statuses, "statusID", "statusName");
 
             // Resolve current user by email (Identity uses email as username)
-            var userEmail = User.Identity?.Name;
-            if (string.IsNullOrEmpty(userEmail))
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(identityUserId))
             {
                 Requests = new List<request>();
                 return Page();
@@ -49,7 +51,7 @@ namespace CampusConnect.Pages.RequestPages
 
             var appUser = await _context.users
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.email == userEmail);
+                .FirstOrDefaultAsync(u => u.identityUserId == identityUserId, cancellationToken);
 
             if (appUser == null)
             {
@@ -78,7 +80,7 @@ namespace CampusConnect.Pages.RequestPages
                 }
             }
 
-            Requests = await q.ToListAsync();
+            Requests = await q.ToListAsync(cancellationToken);
 
             return Page();
         }

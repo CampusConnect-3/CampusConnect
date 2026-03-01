@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using CampusConnect.Models;
+﻿using CampusConnect.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
 
 namespace CampusConnect.Data
 {
@@ -14,7 +15,7 @@ namespace CampusConnect.Data
         public DbSet<requestComments> requestComments { get; set; }
         public DbSet<request> request { get; set; }
         public DbSet<category> category { get; set; }
-        public DbSet<attachments> attachments { get; set; }
+        public DbSet<attachments> attachments { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

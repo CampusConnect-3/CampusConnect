@@ -4,19 +4,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.UserPages
+namespace CampusConnect.Pages.Admin.UserPages
 {
     [Authorize(Roles = "Admin")]
     public class DetailsModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
 
-        public DetailsModel(CampusConnect.Data.TablesDbContext context)
+        public DetailsModel(TablesDbContext context)
         {
             _context = context;
         }
@@ -26,19 +23,16 @@ namespace CampusConnect.Pages.UserPages
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var user = await _context.users.FirstOrDefaultAsync(m => m.userID == id);
-            if (user == null)
-            {
+            var u = await _context.users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.userID == id);
+
+            if (u == null)
                 return NotFound();
-            }
-            else
-            {
-                this.user = user;
-            }
+
+            user = u;
             return Page();
         }
     }

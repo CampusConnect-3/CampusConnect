@@ -9,6 +9,7 @@ namespace CampusConnect.Models
     {
         [Key]
         [Column("fileID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int fileID { get; set; }
 
         [Column("requestID")]
@@ -24,7 +25,7 @@ namespace CampusConnect.Models
         public string? contentType { get; set; }
 
         [Required, MaxLength(256)]
-        public string fileUrl { get; set; }
+        public string fileUrl { get; set; } = string.Empty;
 
         public DateTime uploadedAt { get; set; }
 

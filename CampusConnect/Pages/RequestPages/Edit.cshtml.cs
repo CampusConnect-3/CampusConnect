@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -9,12 +11,11 @@ using Microsoft.EntityFrameworkCore;
 using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize(Roles= "Admin,Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public class EditModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
@@ -29,40 +30,55 @@ namespace CampusConnect.Pages.RequestPages
         [BindProperty]
         public request request { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var request =  await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
-            if (request == null)
-            {
-                return NotFound();
-            }
-            request = request;
-           ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-           ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-           ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-           ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
+            var req = await _context.request.FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
+            if (req == null) return NotFound();
+
+            this.request = req;
+
+            ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
+            ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
+            ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
+            ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
             return Page();
         }
 
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more information, see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
             {
+                // Repopulate dropdowns if validation fails
+                ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
+                ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
+                ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
+                ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
                 return Page();
             }
 
-            _context.Attach(request).State = EntityState.Modified;
+            // SECURITY: Prevent created_by from being tampered with in the form post
+            // Load the existing record and preserve created_by (and createdAt) from the database
+            var existing = await _context.request.AsNoTracking()
+                .FirstOrDefaultAsync(r => r.requestID == request.requestID, cancellationToken);
+
+            if (existing == null)
+                return NotFound();
+
+            request.created_by = existing.created_by;
+            request.createdAt = existing.createdAt;
+
+            _context.Entry(request).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation("CRITICAL: Request edited. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
                     request.requestID,
                     User.FindFirst(ClaimTypes.NameIdentifier)?.Value,

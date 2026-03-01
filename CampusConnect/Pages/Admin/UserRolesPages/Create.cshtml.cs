@@ -4,22 +4,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 
-namespace CampusConnect.Pages.UserRolesPages
+namespace CampusConnect.Pages.Admin.UserRolesPages
 {
     [Authorize(Roles = "Admin")]
     public class CreateModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
-
+        private readonly TablesDbContext _context;
         private readonly ILogger<CreateModel> _logger;
+
         public CreateModel(TablesDbContext context, ILogger<CreateModel> logger)
         {
             _context = context;
@@ -28,19 +26,32 @@ namespace CampusConnect.Pages.UserRolesPages
 
         public IActionResult OnGet()
         {
-        ViewData["roleID"] = new SelectList(_context.roles, "roleID", "roleName");
-        ViewData["userID"] = new SelectList(_context.users, "userID", "email");
+            ViewData["roleID"] = new SelectList(_context.roles, "roleID", "roleName");
+            ViewData["userID"] = new SelectList(_context.users, "userID", "email");
             return Page();
         }
 
         [BindProperty]
-        public userRoles userRoles { get; set; } = default!;
+        public userRoles userRoles { get; set; } = new userRoles();
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
+                ViewData["roleID"] = new SelectList(_context.roles, "roleID", "roleName");
+                ViewData["userID"] = new SelectList(_context.users, "userID", "email");
+                return Page();
+            }
+
+            // Prevent duplicates (composite PK roleID + userID)
+            var exists = await _context.userRoles.AnyAsync(ur =>
+                ur.userID == userRoles.userID && ur.roleID == userRoles.roleID);
+
+            if (exists)
+            {
+                ModelState.AddModelError(string.Empty, "That user already has this role.");
+                ViewData["roleID"] = new SelectList(_context.roles, "roleID", "roleName");
+                ViewData["userID"] = new SelectList(_context.users, "userID", "email");
                 return Page();
             }
 

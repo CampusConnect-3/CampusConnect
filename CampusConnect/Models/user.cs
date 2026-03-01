@@ -13,20 +13,20 @@ namespace CampusConnect.Models
         public int userID { get; set; }
 
         [Required, MaxLength(256)]
-        public string fName { get; set; }
+        public string fName { get; set; } = "";
 
         [Required, MaxLength(256)]
-        public string lName { get; set; }
+        public string lName { get; set; } = "";
 
         [Required, MaxLength(256)]
-        public string username { get; set; }
+        public string username { get; set; } = "";
 
-        // Remove [Required] and make nullable (or delete this property if you will drop the column)
+        // Optional legacy column
         [MaxLength(256)]
         public string? password { get; set; }
 
         [Required, MaxLength(256)]
-        public string email { get; set; }
+        public string email { get; set; } = "";
 
         [MaxLength(256)]
         public string? department { get; set; }

@@ -1,56 +1,89 @@
+﻿using CampusConnect.Constants;
+using CampusConnect.Data;
+using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.Home
+namespace CampusConnect.Pages
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager,Staff,User")]
     public class IndexModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        public string DisplayName { get; private set; } = "User";
-        public string StudentId { get; private set; } = "";
-        public int OpenCount { get; private set; } = 0;
-        public int InProgressCount { get; private set; } = 0;
-        public int ClosedCount { get; private set; } = 0;
-        public bool IsAdmin { get; private set; } = false;
+        private readonly TablesDbContext _context;
 
-        public List<(string Id, string Title, string Status, DateTime LastUpdated)> RecentRequests { get; private set; }
-            = new();
-
-        public IndexModel(UserManager<IdentityUser> userManager)
+        public IndexModel(TablesDbContext context)
         {
-            _userManager = userManager;
+            _context = context;
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        // Dashboard display info
+        public string DisplayName { get; set; } = "";
+        public string StudentId { get; set; } = "N/A";
+
+        public int OpenCount { get; set; }
+        public int InProgressCount { get; set; }
+        public int ClosedCount { get; set; }
+
+        // Used for "View All" logic
+        public int TotalMyRequests { get; set; }
+
+        // Recent requests
+        public List<request> RecentRequests { get; set; } = new();
+
+        public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken = default)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+            // Role-based landing page
+            // Admin should never see the student dashboard
+            if (User.IsInRole("Admin"))
+                return RedirectToPage("/Admin/Dashboard");
 
-            // Check if admin (for displaying admin-specific UI elements)
-            IsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            // Optional: for now, send Manager/Staff to Admin dashboard too
+            // Change these later when you create a dedicated Manager queue page
+            if (User.IsInRole("Manager") || User.IsInRole("Staff"))
+                return RedirectToPage("/Admin/Dashboard");
 
-            if (IsAdmin)
-            {
-                return RedirectToPage("/Admin/UserPages/Index"); // Changed from /Admin/Index
-            }
+            // Student/User dashboard logic
+            DisplayName = User.Identity?.Name ?? "User";
+            StudentId = User.FindFirst("student_id")?.Value ?? "N/A";
 
-            DisplayName = user.UserName ?? user.Email ?? "User";
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(identityUserId))
+                return Page();
 
-            // StudentId and counts / recent list: populate from your existing CRUD/data stores.
-            // Here we populate some safe defaults for immediate compile/run.
-            StudentId = User.FindFirst("StudentId")?.Value ?? "N/A";
+            var appUser = await _context.users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.identityUserId == identityUserId, cancellationToken);
 
-            // Replace with real queries against your data context:
-            OpenCount = 2;
-            InProgressCount = 1;
-            ClosedCount = 4;
+            // If user isn't linked to app profile yet, show dashboard but empty
+            if (appUser == null)
+                return Page();
 
-            RecentRequests.Add(("12345", "Plumbing", "Closed", new DateTime(2026, 1, 14)));
-            RecentRequests.Add(("67890", "Wi-Fi", "In Progress", new DateTime(2026, 1, 20)));
-            RecentRequests.Add(("38657", "Heater", "To-Do", new DateTime(2026, 1, 16)));
+            var myRequestsQuery = _context.request
+                .AsNoTracking()
+                .Include(r => r.status)
+                .Where(r => r.created_by == appUser.userID);
+
+            // total count (needed for "View All" logic)
+            TotalMyRequests = await myRequestsQuery.CountAsync(cancellationToken);
+
+            // Load all requests once
+            var allMyRequests = await myRequestsQuery.ToListAsync(cancellationToken);
+
+            OpenCount = allMyRequests.Count(r => r.status?.statusName == RequestStatuses.ToDo);
+            InProgressCount = allMyRequests.Count(r => r.status?.statusName == RequestStatuses.InProgress);
+            ClosedCount = allMyRequests.Count(r => r.status?.statusName == RequestStatuses.Closed);
+
+            RecentRequests = allMyRequests
+                .OrderByDescending(r => r.createdAt)
+                .Take(3)
+                .ToList();
 
             return Page();
         }
