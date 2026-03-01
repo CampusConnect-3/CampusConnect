@@ -1,0 +1,62 @@
+﻿@page
+@model CampusConnect.Pages.Admin.DashboardModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h1>Admin Dashboard</h1>
+
+<hr />
+
+<div class="row mb-4">
+    <div class="col">
+        <h4>Open</h4>
+        <h2>@Model.OpenCount</h2>
+    </div>
+    <div class="col">
+        <h4>In Progress</h4>
+        <h2>@Model.InProgressCount</h2>
+    </div>
+    <div class="col">
+        <h4>Closed</h4>
+        <h2>@Model.ClosedCount</h2>
+    </div>
+</div>
+
+<hr />
+
+<h4>Recent Requests</h4>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Created By</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.RecentRequests)
+        {
+            <tr>
+                <td>@r.requestID</td>
+                <td>@r.title</td>
+                <td>@r.createdBy?.email</td>
+                <td>@r.status?.statusName</td>
+                <td>
+                    <a asp-page="/RequestPages/Details" asp-route-id="@r.requestID">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<div>
+    <a asp-page="/RequestPages/Index" class="btn btn-primary">View Request Queue</a>
+    <a asp-page="/Admin/UserPages/Index" class="btn btn-secondary">Manage Users</a>
+</div>
