@@ -15,7 +15,7 @@ using System.Security.Claims;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize(Roles = "Admin,Manager,Staff,User")]
+    [Authorize(Roles = "User")]
     public class MyRequestsModel : PageModel
     {
         private readonly TablesDbContext _context;
