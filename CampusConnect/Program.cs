@@ -17,7 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 // Register the TablesDbContext for legacy tables
 builder.Services.AddDbContext<TablesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("TablesDbContext") ?? throw new InvalidOperationException("Connection string 'TablesDbContext' not found.")));
 
-// Register the Identity services
+// Register the Identity services - STICK WITH IdentityUser
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -55,21 +55,13 @@ else
     app.UseHsts();
 }
 
-// Configure the HTTP request pipeline.
-/*if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}*/
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseUserSync(); // <-- ADD THIS LINE: Auto-create missing app profiles
+app.UseUserSync(); // Auto-create missing app profiles
 app.UseAuthorization();
 
 app.MapRazorPages();
