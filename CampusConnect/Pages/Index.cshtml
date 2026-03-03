@@ -88,12 +88,11 @@
         background: #fff;
     }
 
-    i
-
     .recent-header {
         padding: 18px 22px;
         font-size: 22px;
         border-bottom: 3px solid #111;
+        text-align: center;
     }
 
     .recent-inner {
@@ -111,6 +110,10 @@
             font-size: 18px;
             border-bottom: 4px solid transparent;
         }
+
+            table.recent-table thead th.th-center {
+                text-align: center;
+            }
 
         table.recent-table td {
             padding: 18px 8px;
@@ -143,7 +146,7 @@
                     <thead>
                         <tr>
                             <th>Request ID</th>
-                            <th>Title</th>
+                            <th class="th-center">Title</th>
                             <th>Status</th>
                             <th>Last Updated</th>
                         </tr>
@@ -154,7 +157,11 @@
                             foreach (var r in Model.RecentRequests)
                             {
                                 <tr>
-                                    <td>@r.requestID</td>
+                                    <td>
+                                        <a asp-page="/RequestPages/Details" asp-route-id="@r.requestID">
+                                            @r.requestID
+                                        </a>
+                                    </td>
                                     <td>@r.title</td>
                                     <td>@(r.status?.statusName ?? "N/A")</td>
                                     <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
