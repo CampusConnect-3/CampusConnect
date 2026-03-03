@@ -7,314 +7,195 @@
 
 <style>
     .queue-shell {
-        max-width: 1400px;
-        margin: 24px auto;
-        padding: 20px;
+        max-width: 1200px;
+        margin: 18px auto;
+        padding: 18px;
     }
 
     .queue-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 2px solid #e5e5e5;
+        align-items: flex-end;
+        gap: 12px;
+        margin-bottom: 14px;
     }
 
     .queue-title {
-        font-size: 28px;
+        font-size: 34px;
         font-weight: 700;
         margin: 0;
-        color: #1a1a1a;
     }
 
     .queue-sub {
         color: #666;
         margin-top: 4px;
         font-size: 14px;
-        font-weight: 400;
     }
 
     .tools {
         display: flex;
-        gap: 12px;
+        gap: 10px;
         align-items: center;
+        flex-wrap: wrap;
     }
 
-        .tools input[type="search"] {
-            padding: 10px 14px;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            border-radius: 8px;
-            min-width: 250px;
-            font-size: 14px;
-            transition: border-color 0.2s ease;
-        }
-
-            .tools input[type="search"]:focus {
-                outline: none;
-                border-color: #3b82f6;
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            }
-
+        .tools input[type="search"],
         .tools select {
-            padding: 10px 14px;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            border-radius: 8px;
-            min-width: 160px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: border-color 0.2s ease;
+            padding: 9px 12px;
+            border: 1px solid #cfcfcf;
+            background: #f5f5f5;
+            border-radius: 6px;
+            min-width: 200px;
         }
-
-            .tools select:focus {
-                outline: none;
-                border-color: #3b82f6;
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            }
 
     .card-box {
+        border: 3px solid #111;
         background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-        overflow: hidden;
+        padding: 12px;
+        border-radius: 10px;
     }
 
     table.queue-table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
     }
 
         table.queue-table thead th {
             text-align: left;
-            font-size: 11px;
+            font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #6b7280;
-            font-weight: 600;
-            padding: 14px 16px;
-            background: #f9fafb;
-            border-bottom: 2px solid #e5e7eb;
+            letter-spacing: .04em;
+            color: #444;
+            padding: 10px 10px;
+            border-bottom: 3px solid #111;
             white-space: nowrap;
         }
 
-        table.queue-table tbody tr {
-            border-bottom: 1px solid #f3f4f6;
-            transition: background-color 0.15s ease;
-        }
-
-            table.queue-table tbody tr:hover {
-                background: #f9fafb;
-            }
-
         table.queue-table tbody td {
-            padding: 16px;
-            vertical-align: middle;
-            font-size: 14px;
-            color: #374151;
+            padding: 12px 10px;
+            border-top: 1px solid #ddd;
+            vertical-align: top;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
         }
 
     .col-id {
-        width: 70px;
-        font-weight: 600;
-        color: #6b7280;
+        width: 80px;
     }
 
     .col-title {
-        min-width: 280px;
-    }
-
-    .request-title {
-        font-weight: 600;
-        font-size: 15px;
-        color: #111827;
-        margin-bottom: 4px;
-        line-height: 1.4;
-    }
-
-    .request-desc {
-        color: #6b7280;
-        font-size: 13px;
-        line-height: 1.5;
-        margin-top: 4px;
-        max-width: 400px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        width: 320px;
     }
 
     .col-cat {
-        width: 140px;
+        width: 160px;
     }
 
     .col-pri {
-        width: 100px;
+        width: 110px;
     }
 
     .col-status {
-        width: 120px;
+        width: 140px;
     }
 
     .col-created {
-        width: 110px;
-        color: #6b7280;
-        font-size: 13px;
+        width: 120px;
     }
 
     .col-by {
-        width: 200px;
-        color: #6b7280;
-        font-size: 13px;
+        width: 210px;
     }
 
     .col-actions {
-        width: 130px;
+        width: 140px;
+    }
+
+    .muted {
+        color: #777;
+        font-size: 13px;
     }
 
     .badge {
         display: inline-block;
         padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: .03em;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #ccc;
+        background: #eee;
         white-space: nowrap;
     }
 
     .b-closed {
-        background: #d1fae5;
-        color: #065f46;
+        background: #e8f7ed;
+        border-color: #bfe8cc;
+        color: #1f7a3b;
     }
 
     .b-progress {
-        background: #fef3c7;
-        color: #92400e;
+        background: #fff4ea;
+        border-color: #ffd7b3;
+        color: #9a4b00;
     }
 
     .b-todo {
-        background: #e5e7eb;
-        color: #374151;
+        background: #f1f1f1;
+        border-color: #d9d9d9;
+        color: #666;
     }
 
     .p-high {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #ffecec;
+        border-color: #ffc4c4;
+        color: #b30000;
     }
 
     .p-medium {
-        background: #fed7aa;
-        color: #9a3412;
+        background: #fff4ea;
+        border-color: #ffd7b3;
+        color: #9a4b00;
     }
 
     .p-low {
-        background: #d1fae5;
-        color: #065f46;
+        background: #e8f7ed;
+        border-color: #bfe8cc;
+        color: #1f7a3b;
     }
 
-    .action-links {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+    .action-links a {
+        text-decoration: none;
+        margin-right: 10px;
+        font-weight: 600;
     }
-
-        .action-links a {
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
-            padding: 6px 12px;
-            border-radius: 6px;
-            text-align: center;
-            display: inline-block;
-            transition: all 0.15s ease;
-            white-space: nowrap;
-        }
-
-        .action-links .btn-view {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-            .action-links .btn-view:hover {
-                background: #bfdbfe;
-                transform: translateY(-1px);
-            }
-
-        .action-links .btn-edit {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-            .action-links .btn-edit:hover {
-                background: #fde68a;
-                transform: translateY(-1px);
-            }
-
-        .action-links .btn-delete {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-            .action-links .btn-delete:hover {
-                background: #fecaca;
-                transform: translateY(-1px);
-            }
 
     .empty {
-        padding: 48px 24px;
+        padding: 22px;
         text-align: center;
-        color: #9ca3af;
-        font-size: 15px;
-    }
-
-    .category-text {
-        font-size: 13px;
-        color: #4b5563;
-        font-weight: 500;
-    }
-
-    @@media (max-width: 1200px) {
-        .col-by {
-            display: none;
-        }
-
-        .col-created {
-            display: none;
-        }
+        color: #666;
     }
 
     @@media (max-width: 900px) {
-        .col-cat {
-            display: none;
-        }
+        .col-by
 
-        .queue-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-        }
+    {
+        display: none;
+    }
 
-        .tools {
-            width: 100%;
-            flex-direction: column;
-        }
+    .col-cat {
+        display: none;
+    }
 
-            .tools input[type="search"],
-            .tools select {
-                width: 100%;
-            }
+    .col-created {
+        display: none;
+    }
 
-        .action-links {
-            flex-direction: column;
-            gap: 4px;
-        }
+    .col-title {
+        width: auto;
+    }
 
-            .action-links a {
-                width: 100%;
-            }
     }
 </style>
 
@@ -325,8 +206,9 @@
             <div class="queue-sub">All submitted tickets (Admin/Manager/Staff view)</div>
         </div>
 
+        <!-- Optional “fake” filters (UI only). If you want real filtering, tell me and I’ll wire it to the PageModel. -->
         <div class="tools">
-            <input type="search" placeholder="Search by title..." oninput="filterRows(this.value)" />
+            <input type="search" placeholder="Search title..." oninput="filterRows(this.value)" />
             <select onchange="filterStatus(this.value)">
                 <option value="">All Status</option>
                 <option value="to-do">To-Do</option>
@@ -341,12 +223,12 @@
             <thead>
                 <tr>
                     <th class="col-id">ID</th>
-                    <th class="col-title">Request</th>
+                    <th class="col-title">Title</th>
                     <th class="col-cat">Category</th>
                     <th class="col-pri">Priority</th>
                     <th class="col-status">Status</th>
                     <th class="col-created">Created</th>
-                    <th class="col-by">Submitted By</th>
+                    <th class="col-by">Created By</th>
                     <th class="col-actions">Actions</th>
                 </tr>
             </thead>
@@ -380,19 +262,17 @@
 
                         <tr data-title="@((item.title ?? "").ToLowerInvariant())"
                             data-status="@(statusLower)">
-                            <td class="col-id">#@item.requestID</td>
+                            <td class="col-id">@item.requestID</td>
 
                             <td class="col-title">
-                                <div class="request-title">@item.title</div>
+                                <div style="font-weight:700;">@item.title</div>
                                 @if (!string.IsNullOrWhiteSpace(item.description))
                                 {
-                                    <div class="request-desc">@item.description</div>
+                                    <div class="muted">@item.description</div>
                                 }
                             </td>
 
-                            <td class="col-cat">
-                                <span class="category-text">@item.category?.categoryName</span>
-                            </td>
+                            <td class="col-cat">@item.category?.categoryName</td>
 
                             <td class="col-pri">
                                 <span class="badge @priClass">@pri</span>
@@ -403,22 +283,22 @@
                             </td>
 
                             <td class="col-created">
-                                @item.createdAt.ToString("MMM dd, yyyy")
+                                @item.createdAt.ToString("MM/dd/yyyy")
                             </td>
 
                             <td class="col-by">
                                 @item.createdBy?.email
                             </td>
 
-                            <td class="col-actions">
-                                <div class="action-links">
-                                    <a asp-page="./Details" asp-route-id="@item.requestID" class="btn-view">View</a>
-                                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                                    {
-                                        <a asp-page="./Edit" asp-route-id="@item.requestID" class="btn-edit">Edit</a>
-                                        <a asp-page="./Delete" asp-route-id="@item.requestID" class="btn-delete">Delete</a>
-                                    }
-                                </div>
+                            <td class="col-actions action-links">
+                                <a asp-page="./Details" asp-route-id="@item.requestID">View</a>
+
+                                @* Only Admin/Manager should see Edit/Delete in the queue *@
+                                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@item.requestID">Edit</a>
+                                    <a asp-page="./Delete" asp-route-id="@item.requestID">Delete</a>
+                                }
                             </td>
                         </tr>
                     }
