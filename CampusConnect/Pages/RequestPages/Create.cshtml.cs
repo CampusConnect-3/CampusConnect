@@ -48,56 +48,6 @@ namespace CampusConnect.Pages.RequestPages
             return Page();
         }
 
-        public async Task<IActionResult> OnGetAsync(int? id, CancellationToken cancellationToken = default)
-        {
-            if (id == null)
-                return NotFound();
-
-            var request = await _context.request
-                .FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
-
-            if (request == null)
-                return NotFound();
-            
-            this.request = request;
-            return Page();
-        }
-
-        public async Task<IActionResult> OnPostAsync(int? id, CancellationToken cancellationToken = default)
-        {
-            if (id == null)
-                return NotFound();
-
-            var req = await _context.request.FindAsync(new object[] { id }, cancellationToken);
-            if (req != null)
-            {
-                // Clean up physical files
-                var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "requests", id.ToString());
-                if (Directory.Exists(uploadFolder))
-                {
-                    try
-                    {
-                        Directory.Delete(uploadFolder, recursive: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to delete upload folder for RequestId={RequestId}", id);
-                    }
-                }
-
-                _context.request.Remove(req);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    id,
-                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier
-                );
-            }
-
-            return RedirectToPage("./Index");
-        }
-
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
