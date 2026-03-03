@@ -1,8 +1,7 @@
-using CampusConnect.Data;
+﻿using CampusConnect.Data;
 using CampusConnect.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
@@ -11,11 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// DbContext Registeration
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
+// DbContext Registration
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ApplicationDbContext")
+        ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")
+    )
+);
 
 // Register the TablesDbContext for legacy tables
-builder.Services.AddDbContext<TablesDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("TablesDbContext") ?? throw new InvalidOperationException("Connection string 'TablesDbContext' not found.")));
+builder.Services.AddDbContext<TablesDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("TablesDbContext")
+        ?? throw new InvalidOperationException("Connection string 'TablesDbContext' not found.")
+    )
+);
 
 // Register the Identity services - STICK WITH IdentityUser
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -41,19 +50,23 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
-
 var app = builder.Build();
 
-// Global exception handling (logs + routes to custom error page)
+// Global exception handling + custom error pages
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); // detailed errors (dev only)
+    // detailed errors (dev only)
+    app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseExceptionHandler("/Error"); // Razor Page at /Pages/Error.cshtml
+    // routes unhandled exceptions to Razor Page at /Pages/Error.cshtml
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+// Re-execute for non-success HTTP status codes (404/403/etc.) using /Error/{code}
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -66,7 +79,6 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
-
 app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
 {
     var endpoints = sources.SelectMany(s => s.Endpoints)
@@ -76,7 +88,7 @@ app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
     return string.Join("\n", endpoints!);
 });
 
-//Db Seeder Resgistration
+// Db Seeder Registration
 using (var scope = app.Services.CreateScope())
 {
     await DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);

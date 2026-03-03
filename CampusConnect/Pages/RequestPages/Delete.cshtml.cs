@@ -4,21 +4,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
     [Authorize(Roles = "Admin,Manager")]
     public class DeleteModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
-
+        private readonly TablesDbContext _context;
         private readonly ILogger<DeleteModel> _logger;
+
         public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
         {
             _context = context;
@@ -28,47 +28,79 @@ namespace CampusConnect.Pages.RequestPages
         [BindProperty]
         public request request { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var request = await _context.request.FirstOrDefaultAsync(m => m.requestID == id);
+            try
+            {
+                var req = await _context.request
+                    .AsNoTracking()
+                    .Include(r => r.category)
+                    .Include(r => r.status)
+                    .FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
 
-            if (request == null)
-            {
-                return NotFound();
+                if (req == null)
+                {
+                    _logger.LogWarning("DELETE GET NOT FOUND. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                        id,
+                        User.FindFirstValue(ClaimTypes.NameIdentifier),
+                        HttpContext.TraceIdentifier);
+                    return NotFound();
+                }
+
+                request = req;
+                return Page();
             }
-            else
+            catch (Exception ex)
             {
-                this.request = request;  
+                _logger.LogError(ex, "DELETE GET FAILED. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    id,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    HttpContext.TraceIdentifier);
+                throw; // let global exception handler render /Error
             }
-            return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(int? id, CancellationToken cancellationToken = default)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var req = await _context.request.FindAsync(id);
-            if (req != null)
+            try
             {
+                var req = await _context.request
+                    .FirstOrDefaultAsync(r => r.requestID == id, cancellationToken);
+
+                if (req == null)
+                {
+                    _logger.LogWarning("DELETE POST NOT FOUND. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                        id,
+                        User.FindFirstValue(ClaimTypes.NameIdentifier),
+                        HttpContext.TraceIdentifier);
+                    return NotFound();
+                }
+
                 _context.request.Remove(req);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
-                _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                // ✅ Critical operation log
+                _logger.LogWarning("CRITICAL OPERATION: REQUEST DELETED. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
                     id,
-                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier
-                );
-            }
+                    User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    HttpContext.TraceIdentifier);
 
-            return RedirectToPage("./Index");
+                return RedirectToPage("./Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DELETE POST FAILED. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                    id,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    HttpContext.TraceIdentifier);
+                throw; // let global exception handler render /Error
+            }
         }
     }
 }

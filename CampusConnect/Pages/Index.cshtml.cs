@@ -44,10 +44,12 @@ namespace CampusConnect.Pages
                 return RedirectToPage("/Admin/Dashboard");
 
             // Student/User dashboard logic
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Defaults (fallbacks)
             DisplayName = User.Identity?.Name ?? "User";
             StudentId = User.FindFirst("student_id")?.Value ?? "N/A";
 
-            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(identityUserId))
                 return Page();
 
@@ -59,7 +61,16 @@ namespace CampusConnect.Pages
             if (appUser == null)
                 return Page();
 
-            // Prefer app profile username as School ID (since that's how you store it)
+            // ✅ Use First + Last name for the welcome header (fallback to email/username if missing)
+            var fullName = $"{appUser.fName} {appUser.lName}".Trim();
+            if (!string.IsNullOrWhiteSpace(fullName))
+                DisplayName = fullName;
+            else if (!string.IsNullOrWhiteSpace(appUser.username))
+                DisplayName = appUser.username;
+            else if (!string.IsNullOrWhiteSpace(appUser.email))
+                DisplayName = appUser.email;
+
+            // Keep your existing Student ID behavior
             StudentId = string.IsNullOrWhiteSpace(appUser.username) ? StudentId : appUser.username;
 
             var myRequestsQuery = _context.request

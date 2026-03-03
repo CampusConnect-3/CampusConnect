@@ -149,12 +149,9 @@
     }
 
     @@media (max-width: 820px) {
-        .grid
-
-    {
-        grid-template-columns: 1fr;
-    }
-
+        .grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -293,6 +290,16 @@
                    asp-page="./Edit"
                    asp-route-id="@Model.request.requestID">
                     Edit
+                </a>
+            }
+
+            @* Admin/Manager can delete *@
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a class="btn btn-secondary"
+                   asp-page="./Delete"
+                   asp-route-id="@Model.request.requestID">
+                    Delete
                 </a>
             }
 
