@@ -1,6 +1,5 @@
 ﻿@page
 @model CampusConnect.Pages.IndexModel
-@using Microsoft.AspNetCore.Identity
 
 <style>
     /* Page shell */
@@ -89,6 +88,8 @@
         background: #fff;
     }
 
+    i
+
     .recent-header {
         padding: 18px 22px;
         font-size: 22px;
@@ -110,41 +111,11 @@
             font-size: 18px;
             border-bottom: 4px solid transparent;
         }
-            /* purple underline like design */
-            table.recent-table thead th.status-underline {
-                border-bottom: 4px solid #6a3fae;
-            }
 
         table.recent-table td {
             padding: 18px 8px;
             font-size: 18px;
             border-top: 4px solid #111;
-        }
-
-    .status-closed {
-        color: #2f9b54;
-        font-weight: 500;
-    }
-
-    .status-progress {
-        color: #f39f5f;
-        font-weight: 500;
-    }
-
-    .status-todo {
-        color: #9b9b9b;
-        font-weight: 500;
-    }
-
-    .view-all {
-        text-align: center;
-        padding: 12px 0 20px 0;
-    }
-
-        .view-all a {
-            color: #2b67b8;
-            text-decoration: none;
-            font-size: 16px;
         }
 </style>
 
@@ -154,56 +125,59 @@
         <div class="student-id">Student ID: @Model.StudentId</div>
 
         <div class="hero-actions">
-            <!-- fixed page route to the RequestPages Create page -->
             <a class="btn-hero btn-hero-primary" asp-page="/RequestPages/Create">+ Submit New Request</a>
             <a class="btn-hero btn-hero-outline" asp-page="/RequestPages/MyRequests">View My Requests</a>
         </div>
 
         <div class="counts">
-            <div class="pill pill-blue">@Model.OpenCount Open Request</div>
+            <div class="pill pill-blue">@Model.OpenCount Open Request@(Model.OpenCount == 1 ? "" : "s")</div>
             <div class="pill pill-orange">@Model.InProgressCount In Progress</div>
-            <div class="pill pill-green">@Model.ClosedCount Closed Request</div>
+            <div class="pill pill-green">@Model.ClosedCount Closed Request@(Model.ClosedCount == 1 ? "" : "s")</div>
         </div>
 
         <div class="recent-card">
-            <div class="recent-title">Recent Request</div>
+            <div class="recent-header">Recent Requests</div>
 
-            <table class="recent-table">
-                <thead>
-                    <tr>
-                        <th>Request ID</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Last Updated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.RecentRequests != null && Model.RecentRequests.Any())
-                    {
-                        foreach (var r in Model.RecentRequests)
+            <div class="recent-inner">
+                <table class="recent-table">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentRequests != null && Model.RecentRequests.Any())
+                        {
+                            foreach (var r in Model.RecentRequests)
+                            {
+                                <tr>
+                                    <td>@r.requestID</td>
+                                    <td>@r.title</td>
+                                    <td>@(r.status?.statusName ?? "N/A")</td>
+                                    <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>@r.requestID</td>
-                                <td>@r.title</td>
-                                <td>@(r.status?.statusName ?? "N/A")</td>
-                                <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
+                                <td colspan="4" style="text-align:center;">No requests yet.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="4" style="text-align:center;">No requests yet.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
 
-            @* only show View All if more than 3 *@
-            @if (Model.TotalMyRequests > 3)
-            {
-                <div class="recent-footer">
-                    <a asp-page="/RequestPages/MyRequests" class="view-all-link">View All</a>
-                </div>
-            }
+                @* only show View All if more than 3 *@
+                @if (Model.TotalMyRequests > 3)
+                {
+                    <div class="view-all">
+                        <a asp-page="/RequestPages/MyRequests">View All</a>
+                    </div>
+                }
+            </div>
         </div>
+    </div>
+</div>
