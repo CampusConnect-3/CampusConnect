@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize(Roles = "Admin,Manager,Staff,User")]
+    [Authorize(Roles = "User")]
     public class CreateModel : PageModel
     {
         private readonly TablesDbContext _context;
