@@ -1,0 +1,44 @@
+/* Add to existing site.css */
+
+/* Staff Dashboard Styles */
+.request-card {
+    cursor: move !important;
+    transition: all 0.2s ease;
+    user-select: none;
+    background: white;
+    border: 1px solid #dee2e6;
+}
+
+.request-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.request-card.dragging {
+    opacity: 0.4;
+    transform: rotate(5deg);
+}
+
+.drop-zone {
+    transition: all 0.3s ease;
+    border: 2px dashed transparent;
+}
+
+.drop-zone.drag-over {
+    background-color: #e3f2fd !important;
+    border-color: #2196f3 !important;
+    border-style: dashed;
+}
+
+.view-details-btn {
+    cursor: pointer !important;
+}
+
+.comments-list .card {
+    border-left: 3px solid #007bff;
+}
+
+.modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}

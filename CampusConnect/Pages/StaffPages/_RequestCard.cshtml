@@ -1,0 +1,33 @@
+@model CampusConnect.Models.request
+
+<div class="card mb-2 request-card" 
+     draggable="true" 
+     data-request-id="@Model.requestID">
+    <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0" style="font-size: 0.9rem;">@Model.title</h6>
+            <span class="badge bg-@(Model.priority == "High" ? "danger" : Model.priority == "Medium" ? "warning" : "secondary") ms-2">
+                @Model.priority
+            </span>
+        </div>
+        <p class="card-text text-muted mb-2" style="font-size: 0.75rem;">
+            @Model.buildingName - Room @Model.roomNumber
+        </p>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <small class="text-muted">
+                @if (Model.assignedTo != null)
+                {
+                    <i class="bi bi-person"></i> @Model.assignedTo.fName @Model.assignedTo.lName
+                }
+                else
+                {
+                    <i class="bi bi-person-x"></i> <span class="text-danger">Unassigned</span>
+                }
+            </small>
+            <small class="text-muted">@Model.createdAt.ToString("MMM dd")</small>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary w-100 view-details-btn" data-request-id="@Model.requestID">
+            <i class="bi bi-eye"></i> View Details
+        </button>
+    </div>
+</div>
