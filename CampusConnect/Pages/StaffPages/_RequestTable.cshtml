@@ -1,0 +1,60 @@
+@model List<CampusConnect.Models.request>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No requests found.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Title</th>
+                    <th>Location</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr style="cursor: pointer;" onclick="showRequestDetail(@item.requestID)">
+                        <td>@item.requestID</td>
+                        <td>@item.title</td>
+                        <td>@item.buildingName - @item.roomNumber</td>
+                        <td>
+                            <span class="badge bg-@(item.priority == "High" ? "danger" : item.priority == "Medium" ? "warning" : "secondary")">
+                                @item.priority
+                            </span>
+                        </td>
+                        <td>@item.status?.statusName</td>
+                        <td>
+                            @if (item.assignedTo != null)
+                            {
+                                @item.assignedTo.fName @item.assignedTo.lName
+                            }
+                            else
+                            {
+                                <span class="text-danger">Unassigned</span>
+                            }
+                        </td>
+                        <td>@item.createdAt.ToString("MMM dd, yyyy")</td>
+                        <td onclick="event.stopPropagation();">
+                            @if (item.assigned_to == null)
+                            {
+                                <form method="post" asp-page-handler="AssignToMe" asp-route-requestId="@item.requestID" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-primary">Assign to Me</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

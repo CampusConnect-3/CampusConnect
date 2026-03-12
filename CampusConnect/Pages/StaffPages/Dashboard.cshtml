@@ -1,0 +1,94 @@
+@page
+@model CampusConnect.Pages.StaffPages.DashboardModel
+@{
+    ViewData["Title"] = "Staff Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>@Model.CurrentUser?.department Request Dashboard</h2>
+            <p class="text-muted">Drag and drop requests to update their status</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- To Do Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">To Do</h5>
+                    <span class="badge bg-light text-dark">@Model.ToDoRequests.Count</span>
+                </div>
+                <div class="card-body p-2 drop-zone" id="todo-column" 
+                     ondrop="drop(event)" ondragover="allowDrop(event)" 
+                     data-status="To-Do" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
+                    @foreach (var request in Model.ToDoRequests)
+                    {
+                        <partial name="_RequestCard" model="request" />
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">In Progress</h5>
+                    <span class="badge bg-light text-dark">@Model.InProgressRequests.Count</span>
+                </div>
+                <div class="card-body p-2 drop-zone" id="inprogress-column" 
+                     ondrop="drop(event)" ondragover="allowDrop(event)" 
+                     data-status="In Progress" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
+                    @foreach (var request in Model.InProgressRequests)
+                    {
+                        <partial name="_RequestCard" model="request" />
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Complete Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Complete</h5>
+                    <span class="badge bg-light text-dark">@Model.CompleteRequests.Count</span>
+                </div>
+                <div class="card-body p-2 drop-zone" id="complete-column" 
+                     ondrop="drop(event)" ondragover="allowDrop(event)" 
+                     data-status="Closed" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
+                    @foreach (var request in Model.CompleteRequests)
+                    {
+                        <partial name="_RequestCard" model="request" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Request Detail Modal -->
+<div class="modal fade" id="requestDetailModal" tabindex="-1" aria-labelledby="requestDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestDetailModalLabel">Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <!-- Content loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for antiforgery token -->
+<form id="antiforgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script src="~/js/staff-dashboard.js" asp-append-version="true"></script>
+}

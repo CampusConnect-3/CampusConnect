@@ -40,7 +40,10 @@ namespace CampusConnect.Pages
         public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken = default)
         {
             // Role-based landing page
-            if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Staff"))
+            if (User.IsInRole("Staff"))
+                return RedirectToPage("/StaffPages/Dashboard");
+            
+            if (User.IsInRole("Admin") || User.IsInRole("Manager"))
                 return RedirectToPage("/Admin/Dashboard");
 
             // Student/User dashboard logic
