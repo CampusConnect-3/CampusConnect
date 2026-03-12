@@ -1,15 +1,16 @@
-﻿@page
+﻿@page "{id:int}"
 @model CampusConnect.Pages.RequestPages.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Request";
 }
 
-<h1>Delete</h1>
+<h1>Delete Request</h1>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>Are you sure you want to delete this request?</h3>
+
 <div>
-    <h4>request</h4>
+    <h4>Request</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
@@ -18,72 +19,70 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.title)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.description)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.description)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.priority)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.priority)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.createdAt)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.createdAt)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.closedAt)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.closedAt)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.buildingName)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.buildingName)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.roomNumber)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.roomNumber)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.phoneNumber)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.phoneNumber)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.email)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.email)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.createdBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.createdBy.email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.request.assignedTo)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.request.assignedTo.email)
-        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.category)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.request.category.categoryName)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.request.status)
         </dt>
@@ -91,8 +90,9 @@
             @Html.DisplayFor(model => model.request.status.statusName)
         </dd>
     </dl>
-    
+
     <form method="post">
+        @* route has id, but we keep hidden field too *@
         <input type="hidden" asp-for="request.requestID" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         <a asp-page="./Index">Back to List</a>

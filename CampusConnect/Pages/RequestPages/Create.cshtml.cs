@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.RequestPages
 {
-    [Authorize(Roles = "Admin,Manager,Staff,User")]
+    [Authorize(Roles = "User")]
     public class CreateModel : PageModel
     {
         private readonly TablesDbContext _context;
@@ -41,61 +41,14 @@ namespace CampusConnect.Pages.RequestPages
         public IActionResult OnGet()
         {
             PopulateDropdowns();
+
             request = new request
             {
+                // prefill (still enforced server-side on post)
                 email = User.Identity?.Name ?? ""
             };
+
             return Page();
-        }
-
-        public async Task<IActionResult> OnGetAsync(int? id, CancellationToken cancellationToken = default)
-        {
-            if (id == null)
-                return NotFound();
-
-            var request = await _context.request
-                .FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
-
-            if (request == null)
-                return NotFound();
-            
-            this.request = request;
-            return Page();
-        }
-
-        public async Task<IActionResult> OnPostAsync(int? id, CancellationToken cancellationToken = default)
-        {
-            if (id == null)
-                return NotFound();
-
-            var req = await _context.request.FindAsync(new object[] { id }, cancellationToken);
-            if (req != null)
-            {
-                // Clean up physical files
-                var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "requests", id.ToString());
-                if (Directory.Exists(uploadFolder))
-                {
-                    try
-                    {
-                        Directory.Delete(uploadFolder, recursive: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to delete upload folder for RequestId={RequestId}", id);
-                    }
-                }
-
-                _context.request.Remove(req);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                _logger.LogWarning("CRITICAL: Request deleted. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    id,
-                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier
-                );
-            }
-
-            return RedirectToPage("./Index");
         }
 
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
@@ -111,7 +64,6 @@ namespace CampusConnect.Pages.RequestPages
 
             // get Identity ID
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             if (string.IsNullOrEmpty(identityUserId))
                 return Forbid();
 
@@ -167,7 +119,7 @@ namespace CampusConnect.Pages.RequestPages
                     continue;
 
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                
+
                 if (!allowedExts.Contains(ext))
                 {
                     _logger.LogWarning("Skipping file {FileName} - invalid extension", file.FileName);
@@ -205,7 +157,7 @@ namespace CampusConnect.Pages.RequestPages
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to upload attachment {FileName} for RequestId={RequestId}", 
+                    _logger.LogError(ex, "Failed to upload attachment {FileName} for RequestId={RequestId}",
                         file.FileName, requestId);
                 }
             }

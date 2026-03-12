@@ -2,90 +2,60 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 namespace CampusConnect.Areas.Identity.Pages.Account
 {
+    [AllowAnonymous]
     public class LoginModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
-        private string? ClientIp => HttpContext.Connection.RemoteIpAddress?.ToString();
-        private string TraceId => HttpContext.TraceIdentifier;
+
+        private string? ClientIp => HttpContext?.Connection?.RemoteIpAddress?.ToString();
+        private string TraceId => HttpContext?.TraceIdentifier ?? "";
+
         public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
             _logger = logger;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = new();
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public IList<AuthenticationScheme> ExternalLogins { get; set; }
+        public IList<AuthenticationScheme> ExternalLogins { get; set; } = new List<AuthenticationScheme>();
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public string ReturnUrl { get; set; }
+        public string ReturnUrl { get; set; } = "~/";
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [TempData]
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = "";
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [EmailAddress]
-            public string Email { get; set; }
+            public string Email { get; set; } = "";
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; }
+            public string Password { get; set; } = "";
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Display(Name = "Remember me?")]
             public bool RememberMe { get; set; }
         }
 
-        public async Task OnGetAsync(string returnUrl = null)
+        public async Task OnGetAsync(string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
@@ -98,58 +68,57 @@ namespace CampusConnect.Areas.Identity.Pages.Account
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
             ReturnUrl = returnUrl;
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            ReturnUrl = returnUrl;
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
-                if (ModelState.IsValid)
-                {
-                    if (result.Succeeded)
-                    {
-                        _logger.LogInformation("LOGIN SUCCESS. Email={Email} IP={IP} TraceId={TraceId}",
-                            Input.Email, ClientIp, TraceId);
-                        return LocalRedirect(returnUrl);
-                    }
-
-                    if (result.RequiresTwoFactor)
-                    {
-                        _logger.LogInformation("LOGIN REQUIRES 2FA. Email={Email} IP={IP} TraceId={TraceId}",
-                            Input.Email, ClientIp, TraceId);
-                        return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
-                    }
-
-                    if (result.IsLockedOut)
-                    {
-                        _logger.LogWarning("LOGIN LOCKED OUT. Email={Email} IP={IP} TraceId={TraceId}",
-                            Input.Email, ClientIp, TraceId);
-                        return RedirectToPage("./Lockout");
-                    }
-
-                    _logger.LogWarning("LOGIN FAILED. Email={Email} IP={IP} TraceId={TraceId}",
-                        Input.Email, ClientIp, TraceId);
-
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
-                }
-
-                _logger.LogWarning("LOGIN POST INVALID MODELSTATE. IP={IP} TraceId={TraceId}", ClientIp, TraceId);
+                _logger.LogWarning("LOGIN POST INVALID MODELSTATE. Email={Email} IP={IP} TraceId={TraceId}",
+                    Input?.Email, ClientIp, TraceId);
                 return Page();
-
-
             }
 
-            // If we got this far, something failed, redisplay form
+            // lockoutOnFailure: true ensures repeated failures can lock the account (if configured)
+            var result = await _signInManager.PasswordSignInAsync(
+                Input.Email,
+                Input.Password,
+                Input.RememberMe,
+                lockoutOnFailure: true
+            );
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("LOGIN SUCCESS. Email={Email} IP={IP} TraceId={TraceId}",
+                    Input.Email, ClientIp, TraceId);
+                return LocalRedirect(returnUrl);
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                _logger.LogInformation("LOGIN REQUIRES 2FA. Email={Email} IP={IP} TraceId={TraceId}",
+                    Input.Email, ClientIp, TraceId);
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
+            }
+
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("LOGIN LOCKED OUT. Email={Email} IP={IP} TraceId={TraceId}",
+                    Input.Email, ClientIp, TraceId);
+                return RedirectToPage("./Lockout");
+            }
+
+            // Generic failed login (wrong password, unknown user, etc.)
+            _logger.LogWarning("LOGIN FAILED. Email={Email} IP={IP} TraceId={TraceId}",
+                Input.Email, ClientIp, TraceId);
+
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return Page();
         }
     }
