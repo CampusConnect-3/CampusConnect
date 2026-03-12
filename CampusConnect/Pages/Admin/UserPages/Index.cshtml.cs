@@ -7,9 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusConnect.Pages.Admin.UserPages
 {
+    [Authorize(Roles="Admin")]
     public class IndexModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;

@@ -4,50 +4,349 @@
     ViewData["Title"] = "Register";
 }
 
-<h1>Create an account</h1>
+<style>
+    .cc-logo {
+        max-width: 150px;  /* Reduced from whatever it was */
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
 
-<form method="post" asp-route-returnUrl="@Model.ReturnUrl">
-    <div asp-validation-summary="All" class="text-danger"></div>
+    .cc-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
 
-    <div class="form-group">
-        <label asp-for="Input.FirstName"></label>
-        <input asp-for="Input.FirstName" class="form-control" />
-        <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+    .cc-tagline {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+
+    .cc-page {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .cc-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+
+    .cc-title {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .cc-subtitle {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .cc-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 1.5rem 0;
+    }
+
+    .cc-section-title {
+        font-size: 1.25rem;
+        color: #444;
+        margin-bottom: 1.5rem;
+    }
+
+    .cc-row {
+        margin-bottom: 1.25rem;
+    }
+
+    .cc-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .cc-required {
+        color: #dc3545;
+    }
+
+    .cc-input, .cc-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .cc-input:focus, .cc-select:focus {
+        outline: none;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .cc-terms {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .cc-terms input[type="checkbox"] {
+        margin-top: 0.25rem;
+    }
+
+    .cc-terms label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .cc-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .cc-btn:hover {
+        background: #0056b3;
+    }
+
+    .cc-footer-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .cc-back {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .cc-back:hover {
+        text-decoration: underline;
+    }
+
+    #classYearRow, #departmentRow {
+        display: none;
+    }
+</style>
+
+<div class="cc-page">
+    <!-- HEADER -->
+    <div class="cc-header">
+        <img class="cc-logo"
+             src="~/images/campus-connect-logo.png"
+             asp-append-version="true"
+             alt="Campus Connect Logo" />
+
+        <p class="cc-tagline">Smart Request for a Smarter Campus</p>
     </div>
 
-    <div class="form-group">
-        <label asp-for="Input.LastName"></label>
-        <input asp-for="Input.LastName" class="form-control" />
-        <span asp-validation-for="Input.LastName" class="text-danger"></span>
-    </div>
+    <!-- CARD -->
+    <div class="cc-card">
+        <div class="cc-card-inner">
 
-    <div class="form-group">
-        <label asp-for="Input.Email"></label>
-        <input asp-for="Input.Email" class="form-control" />
-        <span asp-validation-for="Input.Email" class="text-danger"></span>
-    </div>
+            <h1 class="cc-title">Create Your Account</h1>
+            <p class="cc-subtitle">Please fill out the form to register.</p>
 
-    <div class="form-group">
-        <label asp-for="Input.Department"></label>
-        <input asp-for="Input.Department" class="form-control" />
-        <span asp-validation-for="Input.Department" class="text-danger"></span>
-    </div>
+            <div class="cc-divider"></div>
+            <h2 class="cc-section-title">Registration Form</h2>
 
-    <div class="form-group">
-        <label asp-for="Input.Password"></label>
-        <input asp-for="Input.Password" class="form-control" type="password" />
-        <span asp-validation-for="Input.Password" class="text-danger"></span>
-    </div>
+            <form id="registerForm"
+                  asp-route-returnUrl="@Model.ReturnUrl"
+                  method="post">
 
-    <div class="form-group">
-        <label asp-for="Input.ConfirmPassword"></label>
-        <input asp-for="Input.ConfirmPassword" class="form-control" type="password" />
-        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-    </div>
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger"
+                     role="alert"></div>
 
-    <button type="submit" class="btn btn-primary">Register</button>
-</form>
+                <!-- FIRST NAME -->
+                <div class="cc-row">
+                    <label asp-for="Input.FirstName" class="cc-label">
+                        First Name: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.FirstName"
+                           class="cc-input"
+                           placeholder="Enter your first name"
+                           autocomplete="given-name" />
+                    <span asp-validation-for="Input.FirstName"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- LAST NAME -->
+                <div class="cc-row">
+                    <label asp-for="Input.LastName" class="cc-label">
+                        Last Name: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.LastName"
+                           class="cc-input"
+                           placeholder="Enter your last name"
+                           autocomplete="family-name" />
+                    <span asp-validation-for="Input.LastName"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- ID NUMBER -->
+                <div class="cc-row">
+                    <label asp-for="Input.SchoolId" class="cc-label">
+                        ID Number: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.SchoolId"
+                           class="cc-input"
+                           placeholder="Enter your school ID number"
+                           autocomplete="off" />
+                    <span asp-validation-for="Input.SchoolId"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- ROLE -->
+                <div class="cc-row">
+                    <label asp-for="Input.Role" class="cc-label">
+                        Role: <span class="cc-required">*</span>
+                    </label>
+
+                    <select asp-for="Input.Role"
+                            class="cc-select"
+                            autocomplete="off">
+                        <option value="">Select Role</option>
+                        <option value="Student">Student</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+
+                    <span asp-validation-for="Input.Role" class="text-danger"></span>
+                </div>
+
+                <!-- CLASS YEAR -->
+                <div class="cc-row" id="classYearRow">
+                    <label asp-for="Input.ClassYear" class="cc-label">Class Year:</label>
+
+                    <select asp-for="Input.ClassYear"
+                            class="cc-select"
+                            autocomplete="off">
+                        <option value="">Select Class</option>
+                        <option>Freshman</option>
+                        <option>Sophomore</option>
+                        <option>Junior</option>
+                        <option>Senior</option>
+                    </select>
+
+                    <span asp-validation-for="Input.ClassYear" class="text-danger"></span>
+                </div>
+
+                <!-- DEPARTMENT -->
+                <div class="cc-row" id="departmentRow">
+                    <label asp-for="Input.Department" class="cc-label">Department:</label>
+                    <input asp-for="Input.Department"
+                           class="cc-input"
+                           placeholder="Enter your department"
+                           autocomplete="organization" />
+                    <span asp-validation-for="Input.Department" class="text-danger"></span>
+                </div>
+
+                <!-- EMAIL -->
+                <div class="cc-row">
+                    <label asp-for="Input.Email" class="cc-label">
+                        Email Address: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.Email"
+                           class="cc-input"
+                           placeholder="Enter your email address"
+                           autocomplete="email" />
+                    <span asp-validation-for="Input.Email"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="cc-row">
+                    <label asp-for="Input.Password" class="cc-label">
+                        Create Password: <span class="cc-required">*</span>
+                    </label>
+                    <input asp-for="Input.Password"
+                           class="cc-input"
+                           placeholder="Create a password"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="Input.Password"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- CONFIRM PASSWORD -->
+                <div class="cc-row">
+                    <label asp-for="Input.ConfirmPassword" class="cc-label">Confirm Password:</label>
+                    <input asp-for="Input.ConfirmPassword"
+                           class="cc-input"
+                           placeholder="Confirm your password"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <!-- PHONE -->
+                <div class="cc-row">
+                    <label asp-for="Input.PhoneNumber" class="cc-label">Phone Number:</label>
+                    <input asp-for="Input.PhoneNumber"
+                           class="cc-input"
+                           placeholder="+1 (555) 123-4567"
+                           autocomplete="tel" />
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <!-- TERMS -->
+                <div class="cc-terms">
+                    <input type="checkbox" id="termsCheck" name="termsCheck" required />
+                    <label for="termsCheck">
+                        I agree to the
+                        <a href="#">Terms and Conditions</a>
+                        &
+                        <a href="#">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- SUBMIT -->
+                <button id="registerSubmit"
+                        type="submit"
+                        class="cc-btn">
+                    REGISTER ACCOUNT
+                </button>
+
+                <div class="cc-footer-links">
+                    <a asp-page="./Login" class="cc-back">
+                        ‹ Back to Login
+                    </a>
+                    <span>© @DateTime.Now.Year Campus Connect</span>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const role = document.getElementById("Input_Role");
+        const classRow = document.getElementById("classYearRow");
+        const deptRow = document.getElementById("departmentRow");
+
+        function updateRoleFields() {
+            classRow.style.display = role.value === "Student" ? "grid" : "none";
+            deptRow.style.display = role.value === "Staff" ? "grid" : "none";
+        }
+
+        updateRoleFields();
+        role.addEventListener("change", updateRoleFields);
+    </script>
 }

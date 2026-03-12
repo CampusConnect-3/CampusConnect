@@ -24,36 +24,32 @@ namespace CampusConnect.Pages
         }
 
         // Dashboard display info
-        public string DisplayName { get; set; } = "";
-        public string StudentId { get; set; } = "N/A";
+        public string DisplayName { get; private set; } = "User";
+        public string StudentId { get; private set; } = "N/A";
 
-        public int OpenCount { get; set; }
-        public int InProgressCount { get; set; }
-        public int ClosedCount { get; set; }
+        public int OpenCount { get; private set; }
+        public int InProgressCount { get; private set; }
+        public int ClosedCount { get; private set; }
 
         // Used for "View All" logic
-        public int TotalMyRequests { get; set; }
+        public int TotalMyRequests { get; private set; }
 
-        // Recent requests
-        public List<request> RecentRequests { get; set; } = new();
+        // Recent requests (your Index.cshtml expects List<request>)
+        public List<request> RecentRequests { get; private set; } = new();
 
         public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken = default)
         {
             // Role-based landing page
-            // Admin should never see the student dashboard
-            if (User.IsInRole("Admin"))
-                return RedirectToPage("/Admin/Dashboard");
-
-            // Optional: for now, send Manager/Staff to Admin dashboard too
-            // Change these later when you create a dedicated Manager queue page
-            if (User.IsInRole("Manager") || User.IsInRole("Staff"))
+            if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Staff"))
                 return RedirectToPage("/Admin/Dashboard");
 
             // Student/User dashboard logic
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Defaults (fallbacks)
             DisplayName = User.Identity?.Name ?? "User";
             StudentId = User.FindFirst("student_id")?.Value ?? "N/A";
 
-            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(identityUserId))
                 return Page();
 
@@ -65,15 +61,25 @@ namespace CampusConnect.Pages
             if (appUser == null)
                 return Page();
 
+            // ✅ Use First + Last name for the welcome header (fallback to email/username if missing)
+            var fullName = $"{appUser.fName} {appUser.lName}".Trim();
+            if (!string.IsNullOrWhiteSpace(fullName))
+                DisplayName = fullName;
+            else if (!string.IsNullOrWhiteSpace(appUser.username))
+                DisplayName = appUser.username;
+            else if (!string.IsNullOrWhiteSpace(appUser.email))
+                DisplayName = appUser.email;
+
+            // Keep your existing Student ID behavior
+            StudentId = string.IsNullOrWhiteSpace(appUser.username) ? StudentId : appUser.username;
+
             var myRequestsQuery = _context.request
                 .AsNoTracking()
                 .Include(r => r.status)
                 .Where(r => r.created_by == appUser.userID);
 
-            // total count (needed for "View All" logic)
             TotalMyRequests = await myRequestsQuery.CountAsync(cancellationToken);
 
-            // Load all requests once
             var allMyRequests = await myRequestsQuery.ToListAsync(cancellationToken);
 
             OpenCount = allMyRequests.Count(r => r.status?.statusName == RequestStatuses.ToDo);
