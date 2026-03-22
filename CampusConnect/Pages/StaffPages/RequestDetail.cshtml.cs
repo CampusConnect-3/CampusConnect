@@ -24,11 +24,11 @@ namespace CampusConnect.Pages.StaffPages
             _userManager = userManager;
         }
 
-        public request Request { get; set; } = default!;
+        public request RequestItem { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int requestId)
         {
-            Request = await _context.request
+            RequestItem = await _context.request
                 .Include(r => r.category)
                 .Include(r => r.status)
                 .Include(r => r.createdBy)
@@ -39,12 +39,12 @@ namespace CampusConnect.Pages.StaffPages
                     .ThenInclude(a => a.creator)
                 .FirstOrDefaultAsync(r => r.requestID == requestId);
 
-            if (Request == null)
+            if (RequestItem == null)
             {
                 return NotFound();
             }
 
-            return Partial("_RequestDetail", Request);
+            return Partial("_RequestDetail", RequestItem);
         }
 
         public async Task<IActionResult> OnPostAddCommentAsync(int requestId, string commentText)

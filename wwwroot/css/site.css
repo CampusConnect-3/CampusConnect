@@ -3,10 +3,16 @@
 /* Staff Dashboard Styles */
 .request-card {
     cursor: move !important;
+    cursor: grab !important;
     transition: all 0.2s ease;
     user-select: none;
     background: white;
     border: 1px solid #dee2e6;
+    pointer-events: auto !important;
+}
+
+.request-card:active {
+    cursor: grabbing !important;
 }
 
 .request-card:hover {
@@ -17,6 +23,7 @@
 .request-card.dragging {
     opacity: 0.4;
     transform: rotate(5deg);
+    cursor: grabbing !important;
 }
 
 .drop-zone {
@@ -32,6 +39,8 @@
 
 .view-details-btn {
     cursor: pointer !important;
+    pointer-events: auto !important;
+    z-index: 10;
 }
 
 .comments-list .card {

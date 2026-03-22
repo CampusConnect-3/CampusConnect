@@ -20,7 +20,7 @@ namespace CampusConnect.Pages
         public bool ShowRequestId => !string.IsNullOrWhiteSpace(RequestId);
 
         // Used for status-code pages (/Error/404 etc.)
-        public int? StatusCode { get; private set; }
+        public new int? StatusCode { get; private set; }
 
         public void OnGet(int? statusCode = null)
         {

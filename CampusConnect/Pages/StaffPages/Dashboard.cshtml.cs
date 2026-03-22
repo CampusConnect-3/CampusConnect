@@ -44,7 +44,8 @@ namespace CampusConnect.Pages.StaffPages
             if (CurrentUser?.department == null)
             {
                 TempData["Error"] = "Your user profile does not have a department assigned. Please contact an administrator.";
-                return RedirectToPage("/Index");
+                // Show empty dashboard instead of redirecting (prevents loop)
+                return Page(); 
             }
 
             // Get only requests assigned to THIS staff member
