@@ -1,0 +1,96 @@
+﻿@page
+@model CampusConnect.Pages.Manager.ArchiveModel
+
+@{
+    ViewData["Title"] = "Archive";
+}
+
+<h1>Archived Requests</h1>
+
+<p>All completed (closed) requests.</p>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label asp-for="SearchTerm" class="form-label">Search</label>
+        <input asp-for="SearchTerm" class="form-control" placeholder="Search title, creator, assigned user, category..." />
+    </div>
+
+    <div class="col-md-2">
+        <label asp-for="PriorityFilter" class="form-label">Priority</label>
+        <select asp-for="PriorityFilter" class="form-control">
+            <option value="">All</option>
+            @foreach (var priority in Model.PriorityOptions)
+            {
+                <option value="@priority">@priority</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label asp-for="DateFrom" class="form-label">Closed From</label>
+        <input asp-for="DateFrom" type="date" class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label asp-for="DateTo" class="form-label">Closed To</label>
+        <input asp-for="DateTo" type="date" class="form-control" />
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a asp-page="./Archive" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
+<div class="mb-3">
+    <a asp-page="./Archive"
+       asp-page-handler="ExportCsv"
+       asp-route-SearchTerm="@Model.SearchTerm"
+       asp-route-PriorityFilter="@Model.PriorityFilter"
+       asp-route-DateFrom="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+       asp-route-DateTo="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+       class="btn btn-success">
+        Export CSV
+    </a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Created By</th>
+            <th>Assigned To</th>
+            <th>Priority</th>
+            <th>Closed Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.ClosedRequests.Any())
+        {
+            @foreach (var item in Model.ClosedRequests)
+            {
+                <tr>
+                    <td>@item.requestID</td>
+                    <td>@item.title</td>
+                    <td>@item.createdBy?.email</td>
+                    <td>@item.assignedTo?.email</td>
+                    <td>@item.priority</td>
+                    <td>@item.closedAt?.ToString("MM/dd/yyyy")</td>
+                    <td>
+                        <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No archived requests found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

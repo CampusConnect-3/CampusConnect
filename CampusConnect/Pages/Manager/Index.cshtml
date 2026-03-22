@@ -1,11 +1,11 @@
 ﻿@page
-@model CampusConnect.Pages.Admin.DashboardModel
+@model CampusConnect.Pages.Manager.IndexModel
 
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "Manager Dashboard";
 }
 
-<h1>Admin Dashboard</h1>
+<h1>Manager Dashboard</h1>
 
 <hr />
 
@@ -57,6 +57,7 @@
 <hr />
 
 <div>
-    <a asp-page="/RequestPages/Index" class="btn btn-primary">View Request Queue</a>
-    <a asp-page="/Admin/UserPages/Index" class="btn btn-secondary">Manage Users</a>
+    <a asp-page="/Manager/Queue" class="btn btn-primary">View Request Queue</a>
+    <a asp-page="/Manager/ReviewRequests" class="btn btn-warning">Review Requests</a>
+    <a asp-page="/Manager/Archive" class="btn btn-dark">View Archive</a>
 </div>

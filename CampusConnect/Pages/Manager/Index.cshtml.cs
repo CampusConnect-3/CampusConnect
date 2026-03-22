@@ -9,14 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CampusConnect.Pages.Admin
+namespace CampusConnect.Pages.Manager
 {
-    [Authorize(Roles = "Admin")]
-    public class DashboardModel : PageModel
+    [Authorize(Roles = "Manager")]
+    public class IndexModel : PageModel
     {
         private readonly TablesDbContext _context;
 
-        public DashboardModel(TablesDbContext context)
+        public IndexModel(TablesDbContext context)
         {
             _context = context;
         }
@@ -29,22 +29,27 @@ namespace CampusConnect.Pages.Admin
 
         public async Task OnGetAsync(CancellationToken cancellationToken = default)
         {
-            // Load all requests with their status/navigation once
             var allRequests = await _context.request
                 .AsNoTracking()
                 .Include(r => r.status)
                 .Include(r => r.createdBy)
                 .Include(r => r.assignedTo)
+                .OrderByDescending(r => r.createdAt)
                 .ToListAsync(cancellationToken);
 
-            // Calculate counts in-memory (single DB query)
-            OpenCount = allRequests.Count(r => r.status?.statusName == RequestStatuses.ToDo);
-            InProgressCount = allRequests.Count(r => r.status?.statusName == RequestStatuses.InProgress);
-            ClosedCount = allRequests.Count(r => r.status?.statusName == RequestStatuses.Closed);
+            OpenCount = allRequests.Count(r =>
+                r.status != null &&
+                r.status.statusName == RequestStatuses.ToDo);
 
-            // Get recent requests from the already-loaded collection
+            InProgressCount = allRequests.Count(r =>
+                r.status != null &&
+                r.status.statusName == RequestStatuses.InProgress);
+
+            ClosedCount = allRequests.Count(r =>
+                r.status != null &&
+                r.status.statusName == RequestStatuses.Closed);
+
             RecentRequests = allRequests
-                .OrderByDescending(r => r.createdAt)
                 .Take(5)
                 .ToList();
         }

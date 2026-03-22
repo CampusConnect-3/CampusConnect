@@ -1,0 +1,120 @@
+﻿@page
+@model CampusConnect.Pages.Manager.QueueModel
+
+@{
+    ViewData["Title"] = "Request Queue";
+    var priorities = new List<string> { "Low", "Medium", "High", "Critical" };
+}
+
+<h1>Request Queue</h1>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-5">
+        <label asp-for="SearchTerm" class="form-label">Search</label>
+        <input asp-for="SearchTerm" class="form-control" placeholder="Search by ID, title, creator, assigned user..." />
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="StatusFilter" class="form-label">Status</label>
+        <select asp-for="StatusFilter" class="form-control">
+            <option value="">All</option>
+            @foreach (var status in Model.StatusOptions)
+            {
+                <option value="@status.Text">@status.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a asp-page="./Queue" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Created By</th>
+            <th>Assigned To</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Update</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Requests)
+        {
+            <tr>
+                <td>@item.requestID</td>
+                <td>@item.title</td>
+                <td>@item.createdBy?.email</td>
+                <td>@item.assignedTo?.email</td>
+                <td>@item.priority</td>
+                <td>@item.status?.statusName</td>
+                <td>@item.createdAt.ToString("MM/dd/yyyy")</td>
+                <td>
+                    <form method="post" asp-page-handler="Update">
+                        <input type="hidden" name="RequestId" value="@item.requestID" />
+                        <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+                        <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
+
+                        <div class="mb-1">
+                            <select name="AssignedTo" class="form-control">
+                                <option value="">-- Unassigned --</option>
+                                @foreach (var staff in Model.StaffOptions)
+                                {
+                                    if (staff.Value == item.assigned_to?.ToString())
+                                    {
+                                        <option value="@staff.Value" selected>@staff.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@staff.Value">@staff.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-1">
+                            <select name="Priority" class="form-control">
+                                @foreach (var p in priorities)
+                                {
+                                    if (p == item.priority)
+                                    {
+                                        <option value="@p" selected>@p</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@p">@p</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-1">
+                            <select name="StatusId" class="form-control">
+                                @foreach (var status in Model.StatusOptions)
+                                {
+                                    if (status.Value == item.statusID?.ToString())
+                                    {
+                                        <option value="@status.Value" selected>@status.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@status.Value">@status.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                        <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">View</a>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

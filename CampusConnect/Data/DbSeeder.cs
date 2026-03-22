@@ -75,7 +75,7 @@ namespace CampusConnect.Data
                         fName = "System",
                         lName = "Admin",
                         username = adminIdentity.UserName ?? "admin",
-                        email = adminIdentity.Email ?? "admin@example.com",
+                        email = adminIdentity.Email ?? "admin@gmail.com",
                         status = "Active",
                         password = null // do NOT store plaintext password
                     };
