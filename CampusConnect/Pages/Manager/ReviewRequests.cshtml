@@ -1,0 +1,58 @@
+﻿@page
+@model CampusConnect.Pages.Manager.ReviewRequestsModel
+
+@{
+    ViewData["Title"] = "Review Requests";
+}
+
+<h1>Review Requests</h1>
+
+<p>Manager review page for requests currently in progress.</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Created By</th>
+            <th>Assigned To</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Review</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Requests.Any())
+        {
+            @foreach (var item in Model.Requests)
+            {
+                <tr>
+                    <td>@item.requestID</td>
+                    <td>@item.title</td>
+                    <td>@item.createdBy?.email</td>
+                    <td>@item.assignedTo?.email</td>
+                    <td>@item.priority</td>
+                    <td>@item.status?.statusName</td>
+                    <td>@item.createdAt.ToString("MM/dd/yyyy")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Close" style="display:inline;">
+                            <input type="hidden" name="RequestId" value="@item.requestID" />
+                            <button type="submit" class="btn btn-sm btn-success">Approve Close</button>
+                        </form>
+
+                        <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="8" class="text-center">No in-progress requests found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
