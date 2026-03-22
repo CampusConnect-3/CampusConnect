@@ -32,14 +32,17 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
                 return NotFound();
             }
 
-            var attachments =  await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
-            if (attachments == null)
+            var foundAttachment = await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
+            
+            if (foundAttachment == null)
             {
                 return NotFound();
             }
-            attachments = attachments;
-           ViewData["creatorID"] = new SelectList(_context.users, "userID", "email");
-           ViewData["requestID"] = new SelectList(_context.request, "requestID", "buildingName");
+            
+            attachments = foundAttachment;
+            
+            ViewData["creatorID"] = new SelectList(_context.users, "userID", "email");
+            ViewData["requestID"] = new SelectList(_context.request, "requestID", "buildingName");
             return Page();
         }
 

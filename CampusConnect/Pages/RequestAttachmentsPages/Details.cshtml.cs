@@ -30,15 +30,15 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
                 return NotFound();
             }
 
-            var attachments = await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
-            if (attachments == null)
+            var foundAttachment = await _context.attachments.FirstOrDefaultAsync(m => m.fileID == id);
+            
+            if (foundAttachment == null)
             {
                 return NotFound();
             }
-            else
-            {
-                attachments = attachments;
-            }
+            
+            attachments = foundAttachment;
+            
             return Page();
         }
     }

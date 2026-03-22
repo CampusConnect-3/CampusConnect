@@ -101,6 +101,18 @@ namespace CampusConnect.Pages.Admin.UserPages
             var identityUser = IdentityUser!;
             var appUser = AppUser!;
 
+            // If assigning Staff role, require department
+            if (SelectedRoles != null && SelectedRoles.Contains(Roles.Staff.ToString()))
+            {
+                if (string.IsNullOrWhiteSpace(appUser.department))
+                {
+                    ModelState.AddModelError(string.Empty, 
+                        "Staff users must have a department assigned. Please edit the user profile first.");
+                    await LoadPageAsync(IdentityUserId);
+                    return Page();
+                }
+            }
+
             var currentRoles = await _userManager.GetRolesAsync(identityUser);
 
             // Remove current roles

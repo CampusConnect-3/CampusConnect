@@ -2,18 +2,19 @@
 
 <div class="card mb-2 request-card" 
      draggable="true" 
-     data-request-id="@Model.requestID">
+     data-request-id="@Model.requestID"
+     style="cursor: grab;">
     <div class="card-body p-2">
         <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="card-title mb-0" style="font-size: 0.9rem;">@Model.title</h6>
-            <span class="badge bg-@(Model.priority == "High" ? "danger" : Model.priority == "Medium" ? "warning" : "secondary") ms-2">
+            <h6 class="card-title mb-0" style="font-size: 0.9rem; pointer-events: none;">@Model.title</h6>
+            <span class="badge bg-@(Model.priority == "High" ? "danger" : Model.priority == "Medium" ? "warning" : "secondary") ms-2" style="pointer-events: none;">
                 @Model.priority
             </span>
         </div>
-        <p class="card-text text-muted mb-2" style="font-size: 0.75rem;">
+        <p class="card-text text-muted mb-2" style="font-size: 0.75rem; pointer-events: none;">
             @Model.buildingName - Room @Model.roomNumber
         </p>
-        <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2" style="pointer-events: none;">
             <small class="text-muted">
                 @if (Model.assignedTo != null)
                 {
@@ -26,7 +27,9 @@
             </small>
             <small class="text-muted">@Model.createdAt.ToString("MMM dd")</small>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary w-100 view-details-btn" data-request-id="@Model.requestID">
+        <button type="button" class="btn btn-sm btn-outline-primary w-100 view-details-btn" 
+                data-request-id="@Model.requestID"
+                style="pointer-events: auto; position: relative; z-index: 10;">
             <i class="bi bi-eye"></i> View Details
         </button>
     </div>

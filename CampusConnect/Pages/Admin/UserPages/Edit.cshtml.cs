@@ -1,5 +1,6 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Constants;  // ✅ ADD THIS LINE
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -50,10 +51,25 @@ namespace CampusConnect.Pages.Admin.UserPages
             if (!ModelState.IsValid)
                 return Page();
 
-            // Load from DB to prevent overposting
             var dbUser = await _context.users.FirstOrDefaultAsync(u => u.userID == user.userID);
             if (dbUser == null)
                 return NotFound();
+
+            // Check if this user has Staff role
+            if (!string.IsNullOrWhiteSpace(dbUser.identityUserId))
+            {
+                var identityUser = await _userManager.FindByIdAsync(dbUser.identityUserId);
+                if (identityUser != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(identityUser);
+                    if (roles.Contains(Roles.Staff.ToString()) && string.IsNullOrWhiteSpace(user.department))
+                    {
+                        ModelState.AddModelError(nameof(user.department), 
+                            "Department is required for Staff users.");
+                        return Page();
+                    }
+                }
+            }
 
             // Update ONLY safe fields (do not touch identityUserId/status here)
             dbUser.fName = user.fName;

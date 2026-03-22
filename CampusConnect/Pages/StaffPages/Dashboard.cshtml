@@ -21,7 +21,6 @@
                     <span class="badge bg-light text-dark">@Model.ToDoRequests.Count</span>
                 </div>
                 <div class="card-body p-2 drop-zone" id="todo-column" 
-                     ondrop="drop(event)" ondragover="allowDrop(event)" 
                      data-status="To-Do" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
                     @foreach (var request in Model.ToDoRequests)
                     {
@@ -39,7 +38,6 @@
                     <span class="badge bg-light text-dark">@Model.InProgressRequests.Count</span>
                 </div>
                 <div class="card-body p-2 drop-zone" id="inprogress-column" 
-                     ondrop="drop(event)" ondragover="allowDrop(event)" 
                      data-status="In Progress" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
                     @foreach (var request in Model.InProgressRequests)
                     {
@@ -57,7 +55,6 @@
                     <span class="badge bg-light text-dark">@Model.CompleteRequests.Count</span>
                 </div>
                 <div class="card-body p-2 drop-zone" id="complete-column" 
-                     ondrop="drop(event)" ondragover="allowDrop(event)" 
                      data-status="Closed" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
                     @foreach (var request in Model.CompleteRequests)
                     {
