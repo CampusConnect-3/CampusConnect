@@ -47,7 +47,9 @@
 
             <div class="form-group">
                 <label asp-for="user.department" class="control-label"></label>
-                <input asp-for="user.department" class="form-control" />
+                <select asp-for="user.department" class="form-control" asp-items="ViewBag.Departments">
+                    <option value="">-- Select Department --</option>
+                </select>
                 <span asp-validation-for="user.department" class="text-danger"></span>
             </div>
 

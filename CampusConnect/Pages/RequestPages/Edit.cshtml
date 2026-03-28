@@ -2,26 +2,36 @@
 @model CampusConnect.Pages.RequestPages.EditModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Request";
 }
 
-<h1>Edit</h1>
+<h1>Edit Request</h1>
 
-<h4>request</h4>
+<h4>Request Details</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="request.requestID" />
-
-            <!-- created_by should NOT be editable -->
             <input type="hidden" asp-for="request.created_by" />
 
             <div class="form-group">
-                <label asp-for="request.assigned_to" class="control-label"></label>
-                <select asp-for="request.assigned_to" class="form-control" asp-items="ViewBag.assigned_to"></select>
+                <label asp-for="request.categoryID" class="control-label">Category / Department</label>
+                <select asp-for="request.categoryID" class="form-control" asp-items="ViewBag.categoryID" id="categorySelect"></select>
+                <span asp-validation-for="request.categoryID" class="text-danger"></span>
+                <small class="form-text text-muted">Changing the category will filter available staff by department.</small>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="request.assigned_to" class="control-label">Assign To Staff</label>
+                <select asp-for="request.assigned_to" class="form-control" asp-items="ViewBag.assigned_to" id="staffSelect">
+                    <option value="">-- Select Staff --</option>
+                </select>
                 <span asp-validation-for="request.assigned_to" class="text-danger"></span>
+                <small class="form-text text-muted" id="staffFilterHint">
+                    Only staff from the selected category's department are shown.
+                </small>
             </div>
 
             <div class="form-group">
@@ -34,20 +44,20 @@
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="request.description" class="control-label"></label>
-                <input asp-for="request.description" class="form-control" aria-required="true" />
+                <textarea asp-for="request.description" class="form-control" rows="4" aria-required="true"></textarea>
                 <span asp-validation-for="request.description" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="request.categoryID" class="control-label"></label>
-                <select asp-for="request.categoryID" class="form-control" asp-items="ViewBag.categoryID"></select>
-                <span asp-validation-for="request.categoryID" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="request.priority" class="control-label"></label>
-                <input asp-for="request.priority" class="form-control" aria-required="true" />
+                <select asp-for="request.priority" class="form-control" aria-required="true">
+                    <option value="">-- Select Priority --</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                </select>
                 <span asp-validation-for="request.priority" class="text-danger"></span>
             </div>
 
@@ -97,7 +107,7 @@
             </div>
 
             <div class="form-group mt-3">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Save Changes" class="btn btn-primary" />
                 <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
@@ -108,4 +118,67 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.getElementById('categorySelect');
+            const staffSelect = document.getElementById('staffSelect');
+            const staffFilterHint = document.getElementById('staffFilterHint');
+            const currentAssignedTo = @Html.Raw(Model.request?.assigned_to?.ToString() ?? "null");
+
+            // Event listener for category change
+            categorySelect.addEventListener('change', async function() {
+                const categoryId = this.value;
+                
+                if (!categoryId) {
+                    staffSelect.innerHTML = '<option value="">-- Select Staff --</option>';
+                    staffFilterHint.textContent = 'Please select a category first.';
+                    return;
+                }
+
+                // Show loading state
+                staffSelect.disabled = true;
+                staffSelect.innerHTML = '<option value="">Loading staff...</option>';
+
+                try {
+                    const response = await fetch(`?handler=FilteredStaff&categoryId=${categoryId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to load staff');
+                    }
+
+                    const staff = await response.json();
+
+                    // Clear and repopulate staff dropdown
+                    staffSelect.innerHTML = '<option value="">-- Select Staff --</option>';
+                    
+                    if (staff.length === 0) {
+                        staffSelect.innerHTML += '<option value="" disabled>No staff available for this department</option>';
+                        staffFilterHint.innerHTML = '<span class="text-warning">⚠️ No staff members found for this category\'s department.</span>';
+                    } else {
+                        staff.forEach(function(s) {
+                            const option = document.createElement('option');
+                            option.value = s.userID;
+                            option.textContent = `${s.fName} ${s.lName} (${s.email}) - ${s.department || 'N/A'}`;
+                            staffSelect.appendChild(option);
+                        });
+
+                        staffFilterHint.innerHTML = `<span class="text-success">✓ Showing ${staff.length} staff member(s) from this department.</span>`;
+
+                        // Try to restore previous selection if still valid
+                        if (currentAssignedTo && staffSelect.querySelector(`option[value="${currentAssignedTo}"]`)) {
+                            staffSelect.value = currentAssignedTo;
+                        }
+                    }
+
+                    staffSelect.disabled = false;
+
+                } catch (error) {
+                    console.error('Error loading filtered staff:', error);
+                    staffSelect.innerHTML = '<option value="">-- Error loading staff --</option>';
+                    staffFilterHint.innerHTML = '<span class="text-danger">❌ Failed to load staff. Please try again.</span>';
+                    staffSelect.disabled = false;
+                }
+            });
+        });
+    </script>
 }
