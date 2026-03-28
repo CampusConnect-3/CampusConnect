@@ -7,13 +7,13 @@
 
 <h1>Review Requests</h1>
 
-<p>Manager review page for requests currently in progress.</p>
+<p>Requests currently in progress and ready for manager review.</p>
 
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Title</th>
+            <th>Ticket ID</th>
+            <th>Title of Request</th>
             <th>Created By</th>
             <th>Assigned To</th>
             <th>Priority</th>
@@ -27,18 +27,26 @@
         {
             @foreach (var item in Model.Requests)
             {
+                var createdByName = item.createdBy != null
+                ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
+                : "Unknown";
+
+                var assignedToName = item.assignedTo != null
+                ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
+                : "Unassigned";
+
                 <tr>
                     <td>@item.requestID</td>
                     <td>@item.title</td>
-                    <td>@item.createdBy?.email</td>
-                    <td>@item.assignedTo?.email</td>
+                    <td>@createdByName</td>
+                    <td>@assignedToName</td>
                     <td>@item.priority</td>
                     <td>@item.status?.statusName</td>
                     <td>@item.createdAt.ToString("MM/dd/yyyy")</td>
                     <td>
                         <form method="post" asp-page-handler="Close" style="display:inline;">
                             <input type="hidden" name="RequestId" value="@item.requestID" />
-                            <button type="submit" class="btn btn-sm btn-success">Approve Close</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Mark as Closed</button>
                         </form>
 
                         <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">

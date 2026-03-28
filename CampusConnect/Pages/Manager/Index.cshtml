@@ -6,17 +6,19 @@
 }
 
 <h1>Manager Dashboard</h1>
-
-<hr />
-
+<br />
 <div class="row mb-4">
     <div class="col">
-        <h4>Open</h4>
-        <h2>@Model.OpenCount</h2>
+        <h4>Unassigned</h4>
+        <h2>@Model.UnassignedCount</h2>
     </div>
     <div class="col">
         <h4>In Progress</h4>
         <h2>@Model.InProgressCount</h2>
+    </div>
+    <div class="col">
+        <h4>High / Critical</h4>
+        <h2>@Model.HighPriorityCount</h2>
     </div>
     <div class="col">
         <h4>Closed</h4>
@@ -26,38 +28,53 @@
 
 <hr />
 
-<h4>Recent Requests</h4>
-
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Title</th>
+            <th>Ticket ID</th>
+            <th>Title of Request</th>
             <th>Created By</th>
+            <th>Assigned To</th>
+            <th>Priority</th>
             <th>Status</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var r in Model.RecentRequests)
+        @if (Model.RecentRequests.Any())
+        {
+            @foreach (var r in Model.RecentRequests)
+            {
+                var createdByName = r.createdBy != null
+                ? $"{r.createdBy.fName} {r.createdBy.lName}".Trim()
+                : "Unknown";
+
+                var assignedToName = r.assignedTo != null
+                ? $"{r.assignedTo.fName} {r.assignedTo.lName}".Trim()
+                : "Unassigned";
+
+                <tr>
+                    <td>@r.requestID</td>
+                    <td>@r.title</td>
+                    <td>@createdByName</td>
+                    <td>@assignedToName</td>
+                    <td>@r.priority</td>
+                    <td>@r.status?.statusName</td>
+                    <td>
+                        <a asp-page="/Manager/ManageRequest" asp-route-id="@r.requestID" class="btn btn-sm btn-primary">
+                            Manage
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@r.requestID</td>
-                <td>@r.title</td>
-                <td>@r.createdBy?.email</td>
-                <td>@r.status?.statusName</td>
-                <td>
-                    <a asp-page="/RequestPages/Details" asp-route-id="@r.requestID">View</a>
-                </td>
+                <td colspan="7" class="text-center">No active requests found.</td>
             </tr>
         }
     </tbody>
 </table>
 
 <hr />
-
-<div>
-    <a asp-page="/Manager/Queue" class="btn btn-primary">View Request Queue</a>
-    <a asp-page="/Manager/ReviewRequests" class="btn btn-warning">Review Requests</a>
-    <a asp-page="/Manager/Archive" class="btn btn-dark">View Archive</a>
-</div>

@@ -44,8 +44,13 @@ namespace CampusConnect.Pages.Manager
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? StatusFilter { get; set; }
+        public List<string> PriorityOptions { get; set; } = new()
+        {
+            "Low",
+            "Medium",
+            "High",
+            "Critical"
+        };
 
         private async Task LoadPageAsync()
         {
@@ -55,6 +60,7 @@ namespace CampusConnect.Pages.Manager
                 .Include(r => r.assignedTo)
                 .Include(r => r.status)
                 .Include(r => r.category)
+                .Where(r => r.status == null || r.status.statusName != "Closed")
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
@@ -64,13 +70,10 @@ namespace CampusConnect.Pages.Manager
                 query = query.Where(r =>
                     r.title.Contains(term) ||
                     r.requestID.ToString().Contains(term) ||
-                    (r.createdBy != null && r.createdBy.email.Contains(term)) ||
-                    (r.assignedTo != null && r.assignedTo.email.Contains(term)));
-            }
-
-            if (!string.IsNullOrWhiteSpace(StatusFilter))
-            {
-                query = query.Where(r => r.status != null && r.status.statusName == StatusFilter);
+                    (r.createdBy != null && (
+                        r.createdBy.email.Contains(term) ||
+                        (r.createdBy.fName + " " + r.createdBy.lName).Contains(term)
+                    )));
             }
 
             Requests = await query
@@ -95,37 +98,24 @@ namespace CampusConnect.Pages.Manager
                 }
             }
 
+            var staffDisplay = staffUsers.Select(u => new
+            {
+                u.userID,
+                FullName = $"{u.fName} {u.lName}".Trim()
+            }).ToList();
+
             var statuses = await _context.requestStatus
                 .AsNoTracking()
                 .OrderBy(s => s.statusName)
                 .ToListAsync();
 
-            StaffOptions = new SelectList(staffUsers, "userID", "email");
+            StaffOptions = new SelectList(staffDisplay, "userID", "FullName");
             StatusOptions = new SelectList(statuses, "statusID", "statusName");
         }
 
         public async Task OnGetAsync()
         {
             await LoadPageAsync();
-        }
-
-        public async Task<IActionResult> OnPostUpdateAsync()
-        {
-            var req = await _context.request.FirstOrDefaultAsync(r => r.requestID == RequestId);
-            if (req == null)
-                return NotFound();
-
-            req.assigned_to = AssignedTo;
-            req.priority = Priority ?? req.priority;
-            req.statusID = StatusId;
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage(new
-            {
-                SearchTerm,
-                StatusFilter
-            });
         }
     }
 }

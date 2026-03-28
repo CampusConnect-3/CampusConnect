@@ -306,7 +306,7 @@
             @* Back goes to different page depending on role *@
             @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
             {
-                <a class="btn btn-secondary" asp-page="./Index">Back to Queue</a>
+                <a class="btn btn-secondary" asp-page="/Manager/Queue">Back to Queue</a>
             }
             else
             {

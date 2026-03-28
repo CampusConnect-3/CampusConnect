@@ -21,8 +21,9 @@ namespace CampusConnect.Pages.Manager
             _context = context;
         }
 
-        public int OpenCount { get; set; }
+        public int UnassignedCount { get; set; }
         public int InProgressCount { get; set; }
+        public int HighPriorityCount { get; set; }
         public int ClosedCount { get; set; }
 
         public List<request> RecentRequests { get; set; } = new();
@@ -37,19 +38,26 @@ namespace CampusConnect.Pages.Manager
                 .OrderByDescending(r => r.createdAt)
                 .ToListAsync(cancellationToken);
 
-            OpenCount = allRequests.Count(r =>
+            UnassignedCount = allRequests.Count(r =>
+                r.assigned_to == null &&
                 r.status != null &&
-                r.status.statusName == RequestStatuses.ToDo);
+                r.status.statusName != RequestStatuses.Closed);
 
             InProgressCount = allRequests.Count(r =>
                 r.status != null &&
                 r.status.statusName == RequestStatuses.InProgress);
+
+            HighPriorityCount = allRequests.Count(r =>
+                (r.priority == "High" || r.priority == "Critical") &&
+                r.status != null &&
+                r.status.statusName != RequestStatuses.Closed);
 
             ClosedCount = allRequests.Count(r =>
                 r.status != null &&
                 r.status.statusName == RequestStatuses.Closed);
 
             RecentRequests = allRequests
+                .Where(r => r.status == null || r.status.statusName != RequestStatuses.Closed)
                 .Take(5)
                 .ToList();
         }
