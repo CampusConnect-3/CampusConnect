@@ -2,30 +2,44 @@
 @model CampusConnect.Pages.Manager.QueueModel
 
 @{
-    ViewData["Title"] = "Request Queue";
-    var priorities = new List<string> { "Low", "Medium", "High", "Critical" };
+    ViewData["Title"] = "Active Request Queue";
 }
 
-<h1>Request Queue</h1>
+<style>
+    .info-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 3px solid #1d4ed8;
+        background: #fff;
+        color: #1d4ed8;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .info-btn:hover {
+            background: #eff6ff;
+            text-decoration: none;
+            color: #1d4ed8;
+        }
+</style>
+
+<h1>Active Request Queue</h1>
+<p>All active requests that need assignment or ongoing management.</p>
 
 <form method="get" class="row g-3 mb-4">
-    <div class="col-md-5">
+    <div class="col-md-6">
         <label asp-for="SearchTerm" class="form-label">Search</label>
-        <input asp-for="SearchTerm" class="form-control" placeholder="Search by ID, title, creator, assigned user..." />
+        <input asp-for="SearchTerm" class="form-control" placeholder="Search by ID, title, creator..." />
     </div>
 
-    <div class="col-md-3">
-        <label asp-for="StatusFilter" class="form-label">Status</label>
-        <select asp-for="StatusFilter" class="form-control">
-            <option value="">All</option>
-            @foreach (var status in Model.StatusOptions)
-            {
-                <option value="@status.Text">@status.Text</option>
-            }
-        </select>
-    </div>
-
-    <div class="col-md-4 d-flex align-items-end gap-2">
+    <div class="col-md-6 d-flex align-items-end gap-2">
         <button type="submit" class="btn btn-primary">Apply</button>
         <a asp-page="./Queue" class="btn btn-secondary">Reset</a>
     </div>
@@ -34,86 +48,40 @@
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Title</th>
+            <th>Ticket ID</th>
+            <th>Title of Request</th>
             <th>Created By</th>
-            <th>Assigned To</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Update</th>
+            <th>Info</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.Requests)
+        @if (Model.Requests.Any())
+        {
+            @foreach (var item in Model.Requests)
+            {
+                var createdByName = item.createdBy != null
+                ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
+                : "Unknown";
+
+                <tr>
+                    <td>@item.requestID</td>
+                    <td>@item.title</td>
+                    <td>@createdByName</td>
+                    <td>
+                        <a asp-page="/Manager/ManageRequest"
+                           asp-route-id="@item.requestID"
+                           class="info-btn"
+                           title="Request Info">
+                            i
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@item.requestID</td>
-                <td>@item.title</td>
-                <td>@item.createdBy?.email</td>
-                <td>@item.assignedTo?.email</td>
-                <td>@item.priority</td>
-                <td>@item.status?.statusName</td>
-                <td>@item.createdAt.ToString("MM/dd/yyyy")</td>
-                <td>
-                    <form method="post" asp-page-handler="Update">
-                        <input type="hidden" name="RequestId" value="@item.requestID" />
-                        <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
-                        <input type="hidden" name="StatusFilter" value="@Model.StatusFilter" />
-
-                        <div class="mb-1">
-                            <select name="AssignedTo" class="form-control">
-                                <option value="">-- Unassigned --</option>
-                                @foreach (var staff in Model.StaffOptions)
-                                {
-                                    if (staff.Value == item.assigned_to?.ToString())
-                                    {
-                                        <option value="@staff.Value" selected>@staff.Text</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@staff.Value">@staff.Text</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-
-                        <div class="mb-1">
-                            <select name="Priority" class="form-control">
-                                @foreach (var p in priorities)
-                                {
-                                    if (p == item.priority)
-                                    {
-                                        <option value="@p" selected>@p</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@p">@p</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-
-                        <div class="mb-1">
-                            <select name="StatusId" class="form-control">
-                                @foreach (var status in Model.StatusOptions)
-                                {
-                                    if (status.Value == item.statusID?.ToString())
-                                    {
-                                        <option value="@status.Value" selected>@status.Text</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@status.Value">@status.Text</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
-                        <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">View</a>
-                    </form>
-                </td>
+                <td colspan="4" class="text-center">No active requests found.</td>
             </tr>
         }
     </tbody>

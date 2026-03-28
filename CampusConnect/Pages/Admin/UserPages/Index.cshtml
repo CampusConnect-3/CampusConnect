@@ -2,12 +2,12 @@
 @model CampusConnect.Pages.Admin.UserPages.IndexModel
 
 @{
-    ViewData["Title"] = "All Users";
+    ViewData["Title"] = "User Management";
 }
 
 <style>
     .page-shell {
-        max-width: 1100px;
+        max-width: 1200px;
         margin: 18px auto;
         padding: 18px;
     }
@@ -17,11 +17,12 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
     }
 
     .page-title {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 700;
         margin: 0;
     }
@@ -37,10 +38,39 @@
         font-weight: 600;
     }
 
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .summary-card {
+        border: 2px solid #111;
+        background: #fff;
+        padding: 14px;
+    }
+
+    .summary-label {
+        font-size: 13px;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .summary-value {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
     .card-box {
         border: 2px solid #111;
         background: #fff;
         padding: 14px;
+    }
+
+    .search-row {
+        margin-bottom: 14px;
     }
 
     table.user-table {
@@ -86,49 +116,99 @@
         color: #111;
     }
 
-    .badge-noprofile {
-        background: #198754;
+    .badge-other {
+        background: #6c757d;
         color: #fff;
     }
-    /* matches your screenshot vibe */
 
-    .actions a {
-        text-decoration: none;
-        margin-right: 10px;
+    .role-text {
         font-weight: 600;
     }
+
+    .info-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 3px solid #1d4ed8;
+        background: #fff;
+        color: #1d4ed8;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .info-btn:hover {
+            background: #eff6ff;
+            text-decoration: none;
+            color: #1d4ed8;
+        }
 </style>
 
 <div class="page-shell">
     <div class="topbar">
-        <h1 class="page-title">All Users</h1>
-
+        <h1 class="page-title">User Management</h1>
         <a class="btn-simple" asp-page="./Create">+ Create User</a>
     </div>
 
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">Total Users</div>
+            <div class="summary-value">@Model.TotalUsers</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Active Users</div>
+            <div class="summary-value">@Model.ActiveUsers</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Pending Users</div>
+            <div class="summary-value">@Model.PendingUsers</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Staff / Managers</div>
+            <div class="summary-value">@Model.StaffAndManagers</div>
+        </div>
+    </div>
+
     <div class="card-box">
+        <form method="get" class="search-row">
+            <div class="row g-2">
+                <div class="col-md-5">
+                    <input asp-for="SearchTerm"
+                           class="form-control"
+                           placeholder="Search by name, username, email, role, or status..." />
+                </div>
+                <div class="col-md-auto d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a asp-page="./Index" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </form>
+
         <div class="muted" style="margin-bottom:10px;">
-            Showing @Model.Users?.Count() users
+            Showing @Model.Users.Count users
         </div>
 
         <table class="user-table">
             <thead>
                 <tr>
-                    <th style="width:14%;">First</th>
-                    <th style="width:14%;">Last</th>
-                    <th style="width:18%;">Username</th>
-                    <th style="width:22%;">Account Type</th>
-                    <th style="width:18%;">Email</th>
-                    <th style="width:14%;">Status</th>
-                    <th style="width:18%;">Actions</th>
+                    <th style="width:20%;">Full Name</th>
+                    <th style="width:16%;">Username</th>
+                    <th style="width:26%;">Email</th>
+                    <th style="width:16%;">Role</th>
+                    <th style="width:12%;">Status</th>
+                    <th style="width:10%;">Info</th>
                 </tr>
             </thead>
-
             <tbody>
                 @if (Model.Users == null || !Model.Users.Any())
                 {
                     <tr>
-                        <td colspan="7" class="muted" style="padding:20px; text-align:center;">
+                        <td colspan="6" class="muted" style="padding:20px; text-align:center;">
                             No users found.
                         </td>
                     </tr>
@@ -138,13 +218,11 @@
                     foreach (var u in Model.Users)
                     {
                         <tr>
-                            <td>@(u.FirstName ?? "(no profile)")</td>
-                            <td>@(u.LastName ?? "")</td>
-                            <td>@(u.UserName ?? u.Email)</td>
-                            <td>@u.AccountType</td>
+                            <td>@(string.IsNullOrWhiteSpace(u.FullName) ? "(no profile)" : u.FullName)</td>
+                            <td>@u.UserName</td>
                             <td>@u.Email</td>
+                            <td class="role-text">@u.RoleName</td>
                             <td>
-                                @* Badge rules *@
                                 @if (u.Status?.ToLowerInvariant().Contains("pending") == true)
                                 {
                                     <span class="badge badge-pending">Pending</span>
@@ -155,18 +233,18 @@
                                 }
                                 else
                                 {
-                                    <span class="badge badge-noprofile">@u.Status</span>
+                                    <span class="badge badge-other">@u.Status</span>
                                 }
                             </td>
-                            <td class="actions">
-                                <a asp-page="./ManageRoles" asp-route-identityUserId="@u.IdentityUserId">Manage Roles</a>
-
-                                @* Only show profile actions if app profile exists *@
+                            <td>
                                 @if (u.AppUserId.HasValue)
                                 {
-                                    <a asp-page="./Details" asp-route-id="@u.AppUserId">Details</a>
-                                    <a asp-page="./Edit" asp-route-id="@u.AppUserId">Edit</a>
-                                    <a asp-page="./Delete" asp-route-id="@u.AppUserId">Delete</a>
+                                    <a asp-page="./Details"
+                                       asp-route-id="@u.AppUserId"
+                                       class="info-btn"
+                                       title="User Info">
+                                        i
+                                    </a>
                                 }
                             </td>
                         </tr>

@@ -5,25 +5,41 @@
     ViewData["Title"] = "Archive";
 }
 
+<style>
+    .info-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 3px solid #1d4ed8;
+        background: #fff;
+        color: #1d4ed8;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .info-btn:hover {
+            background: #eff6ff;
+            text-decoration: none;
+            color: #1d4ed8;
+        }
+</style>
+
 <h1>Archived Requests</h1>
 
 <p>All completed (closed) requests.</p>
 
 <form method="get" class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-5">
         <label asp-for="SearchTerm" class="form-label">Search</label>
-        <input asp-for="SearchTerm" class="form-control" placeholder="Search title, creator, assigned user, category..." />
-    </div>
-
-    <div class="col-md-2">
-        <label asp-for="PriorityFilter" class="form-label">Priority</label>
-        <select asp-for="PriorityFilter" class="form-control">
-            <option value="">All</option>
-            @foreach (var priority in Model.PriorityOptions)
-            {
-                <option value="@priority">@priority</option>
-            }
-        </select>
+        <input asp-for="SearchTerm"
+               class="form-control"
+               placeholder="Search title, creator, assigned user, category..." />
     </div>
 
     <div class="col-md-2">
@@ -36,34 +52,22 @@
         <input asp-for="DateTo" type="date" class="form-control" />
     </div>
 
-    <div class="col-md-2 d-flex align-items-end gap-2">
-        <button type="submit" class="btn btn-primary">Apply</button>
-        <a asp-page="./Archive" class="btn btn-secondary">Reset</a>
+    <div class="col-md-1 d-flex align-items-end">
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <a asp-page="./Archive" class="btn btn-secondary">Reset</a>
+        </div>
     </div>
 </form>
-
-<div class="mb-3">
-    <a asp-page="./Archive"
-       asp-page-handler="ExportCsv"
-       asp-route-SearchTerm="@Model.SearchTerm"
-       asp-route-PriorityFilter="@Model.PriorityFilter"
-       asp-route-DateFrom="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
-       asp-route-DateTo="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
-       class="btn btn-success">
-        Export CSV
-    </a>
-</div>
 
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Title</th>
+            <th>Ticket ID</th>
+            <th>Title of Request</th>
             <th>Created By</th>
             <th>Assigned To</th>
-            <th>Priority</th>
-            <th>Closed Date</th>
-            <th></th>
+            <th>Info</th>
         </tr>
     </thead>
     <tbody>
@@ -71,16 +75,25 @@
         {
             @foreach (var item in Model.ClosedRequests)
             {
+                var createdByName = item.createdBy != null
+                ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
+                : "Unknown";
+
+                var assignedToName = item.assignedTo != null
+                ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
+                : "Unassigned";
+
                 <tr>
                     <td>@item.requestID</td>
                     <td>@item.title</td>
-                    <td>@item.createdBy?.email</td>
-                    <td>@item.assignedTo?.email</td>
-                    <td>@item.priority</td>
-                    <td>@item.closedAt?.ToString("MM/dd/yyyy")</td>
+                    <td>@createdByName</td>
+                    <td>@assignedToName</td>
                     <td>
-                        <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">
-                            View
+                        <a asp-page="/Manager/ArchiveExport"
+                           asp-route-id="@item.requestID"
+                           class="info-btn"
+                           title="Archived Request Info">
+                            i
                         </a>
                     </td>
                 </tr>
@@ -89,8 +102,19 @@
         else
         {
             <tr>
-                <td colspan="7" class="text-center">No archived requests found.</td>
+                <td colspan="5" class="text-center">No archived requests found.</td>
             </tr>
         }
     </tbody>
 </table>
+
+<div class="mt-4">
+    <a asp-page="./Archive"
+       asp-page-handler="ExportCsv"
+       asp-route-SearchTerm="@Model.SearchTerm"
+       asp-route-DateFrom="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+       asp-route-DateTo="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+       class="btn btn-primary">
+        Export All to CSV
+    </a>
+</div>
