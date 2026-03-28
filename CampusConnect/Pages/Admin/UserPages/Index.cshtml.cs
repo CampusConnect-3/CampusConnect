@@ -29,6 +29,9 @@ namespace CampusConnect.Pages.Admin.UserPages
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? RoleFilter { get; set; }
+
         public int TotalUsers { get; set; }
         public int ActiveUsers { get; set; }
         public int PendingUsers { get; set; }
@@ -85,6 +88,14 @@ namespace CampusConnect.Pages.Admin.UserPages
                         (!string.IsNullOrWhiteSpace(u.Email) && u.Email.ToLowerInvariant().Contains(term)) ||
                         (!string.IsNullOrWhiteSpace(u.RoleName) && u.RoleName.ToLowerInvariant().Contains(term)) ||
                         (!string.IsNullOrWhiteSpace(u.Status) && u.Status.ToLowerInvariant().Contains(term)))
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(RoleFilter))
+            {
+                mappedUsers = mappedUsers
+                    .Where(u => !string.IsNullOrWhiteSpace(u.RoleName) &&
+                                u.RoleName.Contains(RoleFilter))
                     .ToList();
             }
 
