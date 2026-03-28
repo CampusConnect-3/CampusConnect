@@ -176,12 +176,24 @@
 
     <div class="card-box">
         <form method="get" class="search-row">
-            <div class="row g-2">
+            <div class="row g-2 align-items-center">
                 <div class="col-md-5">
                     <input asp-for="SearchTerm"
                            class="form-control"
                            placeholder="Search by name, username, email, role, or status..." />
                 </div>
+
+                <div class="col-md-2">
+                    <select asp-for="RoleFilter" class="form-select">
+                        <option value="">All Roles</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Staff">Staff</option>
+                        <option value="User">User</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+
                 <div class="col-md-auto d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Search</button>
                     <a asp-page="./Index" class="btn btn-secondary">Reset</a>
