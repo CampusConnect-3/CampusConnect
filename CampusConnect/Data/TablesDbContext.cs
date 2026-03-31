@@ -13,6 +13,7 @@ namespace CampusConnect.Data
         public DbSet<roles> roles { get; set; }
         public DbSet<requestStatus> requestStatus { get; set; }
         public DbSet<requestComments> requestComments { get; set; }
+        public DbSet<notification> notifications { get; set; }
         public DbSet<request> request { get; set; }
         public DbSet<category> category { get; set; }
         public DbSet<attachments> attachments { get; set; } = default!;
@@ -72,6 +73,12 @@ namespace CampusConnect.Data
                 .WithMany(u => u.attachments)
                 .HasForeignKey(a => a.creatorID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<notification>()
+                .HasOne(n => n.request)
+                .WithMany(r => r.notifications)
+                .HasForeignKey(n => n.requestId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

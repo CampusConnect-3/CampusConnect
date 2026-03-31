@@ -65,5 +65,6 @@ namespace CampusConnect.Models
 
         public virtual ICollection<requestComments> comments { get; set; } = new List<requestComments>();
         public virtual ICollection<attachments> attachments { get; set; } = new List<attachments>();
+        public virtual ICollection<notification> notifications { get; set; } = new List<notification>();
     }
 }
