@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace CampusConnect.Pages.Admin.UserPages
 {
@@ -12,13 +12,16 @@ namespace CampusConnect.Pages.Admin.UserPages
     public class DetailsModel : PageModel
     {
         private readonly TablesDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public DetailsModel(TablesDbContext context)
+        public DetailsModel(TablesDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public user user { get; set; } = default!;
+        public string RoleName { get; set; } = "No Role";
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -33,6 +36,17 @@ namespace CampusConnect.Pages.Admin.UserPages
                 return NotFound();
 
             user = u;
+
+            if (!string.IsNullOrEmpty(user.identityUserId))
+            {
+                var identityUser = await _userManager.FindByIdAsync(user.identityUserId);
+                if (identityUser != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(identityUser);
+                    RoleName = roles.Any() ? string.Join(", ", roles) : "No Role";
+                }
+            }
+
             return Page();
         }
     }

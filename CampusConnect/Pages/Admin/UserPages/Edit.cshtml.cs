@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,13 +44,17 @@ namespace CampusConnect.Pages.Admin.UserPages
                 return NotFound();
 
             user = dbUser;
+            await PopulateDepartmentsDropdown();
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
+            {
+                await PopulateDepartmentsDropdown();
                 return Page();
+            }
 
             var dbUser = await _context.users.FirstOrDefaultAsync(u => u.userID == user.userID);
             if (dbUser == null)
@@ -90,6 +95,7 @@ namespace CampusConnect.Pages.Admin.UserPages
                 if (identityUser == null)
                 {
                     ModelState.AddModelError(string.Empty, "Linked identity account not found.");
+                    await PopulateDepartmentsDropdown();
                     return Page();
                 }
 
@@ -101,11 +107,21 @@ namespace CampusConnect.Pages.Admin.UserPages
                     foreach (var err in resetResult.Errors)
                         ModelState.AddModelError(string.Empty, err.Description);
 
+                    await PopulateDepartmentsDropdown();
                     return Page();
                 }
             }
 
             return RedirectToPage("./Index");
+        }
+
+        private async Task PopulateDepartmentsDropdown()
+        {
+            var categories = await _context.category
+                .OrderBy(c => c.categoryName)
+                .ToListAsync();
+            
+            ViewData["Departments"] = new SelectList(categories, "categoryName", "categoryName");
         }
     }
 }
