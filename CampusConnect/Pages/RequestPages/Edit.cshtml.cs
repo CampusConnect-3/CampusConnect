@@ -19,8 +19,8 @@ namespace CampusConnect.Pages.RequestPages
     public class EditModel : PageModel
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
-
         private readonly ILogger<EditModel> _logger;
+
         public EditModel(TablesDbContext context, ILogger<EditModel> logger)
         {
             _context = context;
@@ -37,34 +37,28 @@ namespace CampusConnect.Pages.RequestPages
                 return NotFound();
             }
 
-            var req = await _context.request.FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
+            var req = await _context.request
+                .Include(r => r.category)
+                .FirstOrDefaultAsync(m => m.requestID == id, cancellationToken);
+            
             if (req == null) return NotFound();
 
             this.request = req;
 
-            ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-            ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-            ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-            ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
+            await PopulateDropdownsAsync(req.categoryID, cancellationToken);
+            
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
             {
-                // Repopulate dropdowns if validation fails
-                ViewData["assigned_to"] = new SelectList(_context.users, "userID", "email");
-                ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-                ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-                ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
+                await PopulateDropdownsAsync(request.categoryID, cancellationToken);
                 return Page();
             }
 
-            // SECURITY: Prevent created_by from being tampered with in the form post
-            // Load the existing record and preserve created_by (and createdAt) from the database
+            // SECURITY: Prevent created_by from being tampered with
             var existing = await _context.request.AsNoTracking()
                 .FirstOrDefaultAsync(r => r.requestID == request.requestID, cancellationToken);
 
@@ -101,6 +95,89 @@ namespace CampusConnect.Pages.RequestPages
             }
 
             return RedirectToPage("./Index");
+        }
+
+        // AJAX handler for dynamic staff filtering when category changes
+        public async Task<JsonResult> OnGetFilteredStaffAsync(int categoryId, CancellationToken cancellationToken = default)
+        {
+            var category = await _context.category
+                .FirstOrDefaultAsync(c => c.categoryID == categoryId, cancellationToken);
+
+            if (category == null)
+            {
+                return new JsonResult(new List<object>());
+            }
+
+            var categoryName = category.categoryName?.Trim();
+
+            // Filter users where department matches the category name (case-insensitive)
+            var filteredStaff = await _context.users
+                .Where(u => u.department != null && u.department.Trim().ToLower() == categoryName.ToLower())
+                .Select(u => new
+                {
+                    u.userID,
+                    u.email,
+                    u.fName,
+                    u.lName,
+                    u.department
+                })
+                .OrderBy(u => u.fName)
+                .ThenBy(u => u.lName)
+                .ToListAsync(cancellationToken);
+
+            _logger.LogInformation("Filtered {Count} staff members for category '{CategoryName}'", 
+                filteredStaff.Count, categoryName);
+
+            return new JsonResult(filteredStaff);
+        }
+
+        private async Task PopulateDropdownsAsync(int categoryID, CancellationToken cancellationToken = default)
+        {
+            // Get the category to filter staff by matching department
+            var selectedCategory = await _context.category
+                .FirstOrDefaultAsync(c => c.categoryID == categoryID, cancellationToken);
+
+            // Filter staff by department matching category name (case-insensitive, trimmed)
+            var staffQuery = _context.users.AsQueryable();
+            
+            if (selectedCategory != null)
+            {
+                var categoryName = selectedCategory.categoryName?.Trim();
+                
+                // Match user.department with category.categoryName (case-insensitive)
+                staffQuery = staffQuery.Where(u => 
+                    u.department != null && 
+                    u.department.Trim().ToLower() == categoryName.ToLower()
+                );
+
+                // Log for debugging
+                _logger.LogInformation("Filtering staff by category: {CategoryName}", categoryName);
+            }
+
+            var filteredStaff = await staffQuery
+                .OrderBy(u => u.fName)
+                .ThenBy(u => u.lName)
+                .Select(u => new
+                {
+                    u.userID,
+                    DisplayText = $"{u.fName} {u.lName} ({u.email}) - {u.department}"
+                })
+                .ToListAsync(cancellationToken);
+
+            // Log the count for debugging
+            _logger.LogInformation("Found {Count} staff members for category {CategoryId}", 
+                filteredStaff.Count, categoryID);
+
+            ViewData["assigned_to"] = new SelectList(
+                filteredStaff,
+                "userID",
+                "DisplayText",
+                request?.assigned_to
+            );
+
+            ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
+            ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
+            ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
         }
 
         private bool requestExists(int id)

@@ -1,0 +1,177 @@
+﻿@page "{id:int}"
+@model CampusConnect.Pages.Manager.ManageRequestModel
+
+@{
+    ViewData["Title"] = "Manage Request";
+
+    var createdByName = Model.RequestItem.createdBy != null
+        ? $"{Model.RequestItem.createdBy.fName} {Model.RequestItem.createdBy.lName}".Trim()
+        : "Unknown";
+}
+
+<h1>Manage Request #@Model.RequestItem.requestID</h1>
+<hr />
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5>Request Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Title:</dt>
+                    <dd class="col-sm-8">@Model.RequestItem.title</dd>
+
+                    <dt class="col-sm-4">Description:</dt>
+                    <dd class="col-sm-8">@Model.RequestItem.description</dd>
+
+                    <dt class="col-sm-4">Created By:</dt>
+                    <dd class="col-sm-8">@createdByName</dd>
+
+                    <dt class="col-sm-4">Location:</dt>
+                    <dd class="col-sm-8">@Model.RequestItem.buildingName - Room @Model.RequestItem.roomNumber</dd>
+
+                    <dt class="col-sm-4">Contact:</dt>
+                    <dd class="col-sm-8">
+                        @Model.RequestItem.email
+                        @if (!string.IsNullOrEmpty(Model.RequestItem.phoneNumber))
+                        {
+                            <br />@Model.RequestItem.phoneNumber
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5>Manage Assignment</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="CategoryID" class="form-label">Category / Department</label>
+                        <select asp-for="CategoryID" class="form-control" asp-items="Model.CategoryOptions" id="categorySelect"></select>
+                        <span asp-validation-for="CategoryID" class="text-danger"></span>
+                        <small class="form-text text-muted">
+                            Changing category will filter available staff by department.
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AssignedTo" class="form-label">Assign Technician</label>
+                        <select asp-for="AssignedTo" class="form-control" asp-items="Model.StaffOptions" id="staffSelect">
+                            <option value="">-- Unassigned --</option>
+                        </select>
+                        <span asp-validation-for="AssignedTo" class="text-danger"></span>
+                        <small class="form-text text-muted" id="staffFilterHint">
+                            Only staff from the selected department are shown.
+                        </small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Priority" class="form-label">Priority</label>
+                            <select asp-for="Priority" class="form-control">
+                                @foreach (var p in Model.PriorityOptions)
+                                {
+                                    <option value="@p" selected="@(p == Model.Priority)">
+                                        @p
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="StatusId" class="form-label">Status</label>
+                            <select asp-for="StatusId" class="form-control" asp-items="Model.StatusOptions"></select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AssignedDate" class="form-label">Assignment Date</label>
+                        <input asp-for="AssignedDate" type="date" class="form-control" />
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                        <a asp-page="/Manager/Queue" class="btn btn-secondary">Back to Queue</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categorySelect = document.getElementById('categorySelect');
+            const staffSelect = document.getElementById('staffSelect');
+            const staffFilterHint = document.getElementById('staffFilterHint');
+            const currentAssignedTo = @Html.Raw(Model.AssignedTo?.ToString() ?? "null");
+
+            categorySelect.addEventListener('change', async function () {
+                const categoryId = this.value;
+
+                if (!categoryId) {
+                    staffSelect.innerHTML = '<option value="">-- Unassigned --</option>';
+                    staffFilterHint.textContent = 'Please select a category first.';
+                    return;
+                }
+
+                // Show loading state
+                staffSelect.disabled = true;
+                staffSelect.innerHTML = '<option value="">Loading staff...</option>';
+
+                try {
+                    const response = await fetch(`?handler=FilteredStaff&categoryId=${categoryId}`);
+
+                    if (!response.ok) {
+                        throw new Error('Failed to load staff');
+                    }
+
+                    const staff = await response.json();
+
+                    // Clear and repopulate staff dropdown
+                    staffSelect.innerHTML = '<option value="">-- Unassigned --</option>';
+
+                    if (staff.length === 0) {
+                        staffSelect.innerHTML += '<option value="" disabled>No staff available for this department</option>';
+                        staffFilterHint.innerHTML = '<span class="text-warning">⚠️ No staff members found for this category\'s department.</span>';
+                    } else {
+                        staff.forEach(function (s) {
+                            const option = document.createElement('option');
+                            option.value = s.userID;
+                            option.textContent = `${s.fName} ${s.lName} (${s.department || 'N/A'})`;
+                            staffSelect.appendChild(option);
+                        });
+
+                        staffFilterHint.innerHTML = `<span class="text-success">✓ Showing ${staff.length} staff member(s) from this department.</span>`;
+
+                        // Try to restore previous selection if still valid
+                        if (currentAssignedTo && staffSelect.querySelector(`option[value="${currentAssignedTo}"]`)) {
+                            staffSelect.value = currentAssignedTo;
+                        }
+                    }
+
+                    staffSelect.disabled = false;
+
+                } catch (error) {
+                    console.error('Error loading filtered staff:', error);
+                    staffSelect.innerHTML = '<option value="">-- Error loading staff --</option>';
+                    staffFilterHint.innerHTML = '<span class="text-danger">❌ Failed to load staff. Please try again.</span>';
+                    staffSelect.disabled = false;
+                }
+            });
+        });
+    </script>
+}

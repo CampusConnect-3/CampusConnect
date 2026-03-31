@@ -1,0 +1,88 @@
+﻿@page
+@model CampusConnect.Pages.Manager.QueueModel
+
+@{
+    ViewData["Title"] = "Active Request Queue";
+}
+
+<style>
+    .info-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 3px solid #1d4ed8;
+        background: #fff;
+        color: #1d4ed8;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .info-btn:hover {
+            background: #eff6ff;
+            text-decoration: none;
+            color: #1d4ed8;
+        }
+</style>
+
+<h1>Active Request Queue</h1>
+<p>All active requests that need assignment or ongoing management.</p>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-6">
+        <label asp-for="SearchTerm" class="form-label">Search</label>
+        <input asp-for="SearchTerm" class="form-control" placeholder="Search by ID, title, creator..." />
+    </div>
+
+    <div class="col-md-6 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a asp-page="./Queue" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Ticket ID</th>
+            <th>Title of Request</th>
+            <th>Created By</th>
+            <th>Info</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Requests.Any())
+        {
+            @foreach (var item in Model.Requests)
+            {
+                var createdByName = item.createdBy != null
+                ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
+                : "Unknown";
+
+                <tr>
+                    <td>@item.requestID</td>
+                    <td>@item.title</td>
+                    <td>@createdByName</td>
+                    <td>
+                        <a asp-page="/Manager/ManageRequest"
+                           asp-route-id="@item.requestID"
+                           class="info-btn"
+                           title="Request Info">
+                            i
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center">No active requests found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

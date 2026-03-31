@@ -1,53 +1,73 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString();
+
+    bool isHome = currentPage == "/Index" || currentPage == "/" || currentPage == "/Manager/Index";
+    bool isPrivacy = currentPage == "/Privacy";
+    bool isSubmitRequest = currentPage == "/RequestPages/Create";
+    bool isMyRequests = currentPage == "/RequestPages/MyRequests";
+    bool isQueue = currentPage == "/Manager/Queue";
+    bool isReviewRequests = currentPage == "/Manager/ReviewRequests";
+    bool isArchive = currentPage == "/Manager/Archive";
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - CampusConnect</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CampusConnect.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
+
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <!-- Brand: logo links to Index. Text is fallback if image fails -->
+
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-page="/Index">
                     <img src="~/images/campus-connect-logo.png"
                          alt="CampusConnect"
-                         class="d-inline-block align-text-top"
                          style="height:32px;width:auto;" />
-                  
                 </a>
 
-                <!-- Toggler targets the #mainNavbarCollapse id -->
                 <button class="navbar-toggler" type="button"
                         data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
-                        aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                        aria-controls="mainNavbarCollapse"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Collapse area -->
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between" id="mainNavbarCollapse">
+                <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between" id="mainNavbarCollapse">
+
                     <ul class="navbar-nav flex-grow-1">
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link @(isHome ? "active fw-bold text-primary" : "text-dark")"
+                               asp-area="" asp-page="/Index">Home</a>
                         </li>
 
-                        @* Only show these links to users with the "User" role *@
+                        <li class="nav-item">
+                            <a class="nav-link @(isPrivacy ? "active fw-bold text-primary" : "text-dark")"
+                               asp-area="" asp-page="/Privacy">Privacy</a>
+                        </li>
+
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("User"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/RequestPages/Create">Submit Request</a>
+                                <a class="nav-link @(isSubmitRequest ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/RequestPages/Create">Submit Request</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/RequestPages/MyRequests">My Requests</a>
+                                <a class="nav-link @(isMyRequests ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/RequestPages/MyRequests">My Requests</a>
                             </li>
                         }
 
-                        @* Staff links *@
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Staff"))
                         {
                             <li class="nav-item">
@@ -57,10 +77,21 @@
                                 <a class="nav-link text-dark" asp-area="" asp-page="/StaffPages/Queue">Request Queue</a>
                             </li>
                         }
-
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
+                        @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(isQueue ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Manager/Queue">Queue</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(isReviewRequests ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Manager/ReviewRequests">Review Requests</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(isArchive ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Manager/Archive">Archive</a>
+                            </li>
+                        }
                     </ul>
 
                     <partial name="_LoginPartial" />
@@ -77,7 +108,8 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - CampusConnect - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2026 - CampusConnect -
+            <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 

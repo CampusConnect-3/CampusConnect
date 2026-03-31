@@ -40,11 +40,14 @@ namespace CampusConnect.Pages
         public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken = default)
         {
             // Role-based landing page
+            if (User.IsInRole("Admin"))
+                return RedirectToPage("/Admin/UserPages/Index");
+
+            if (User.IsInRole("Manager"))
+                return RedirectToPage("/Manager/Index");
+
             if (User.IsInRole("Staff"))
                 return RedirectToPage("/StaffPages/Dashboard");
-            
-            if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                return RedirectToPage("/Admin/Dashboard");
 
             // Student/User dashboard logic
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -64,7 +67,7 @@ namespace CampusConnect.Pages
             if (appUser == null)
                 return Page();
 
-            // ✅ Use First + Last name for the welcome header (fallback to email/username if missing)
+            // Use First + Last name for the welcome header
             var fullName = $"{appUser.fName} {appUser.lName}".Trim();
             if (!string.IsNullOrWhiteSpace(fullName))
                 DisplayName = fullName;
@@ -73,7 +76,7 @@ namespace CampusConnect.Pages
             else if (!string.IsNullOrWhiteSpace(appUser.email))
                 DisplayName = appUser.email;
 
-            // Keep your existing Student ID behavior
+            // Keep existing Student ID behavior
             StudentId = string.IsNullOrWhiteSpace(appUser.username) ? StudentId : appUser.username;
 
             var myRequestsQuery = _context.request
