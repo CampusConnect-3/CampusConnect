@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 
@@ -20,11 +21,13 @@ namespace CampusConnect.Pages.RequestPages
     {
         private readonly CampusConnect.Data.TablesDbContext _context;
         private readonly ILogger<EditModel> _logger;
+        private readonly INotificationService _notifications;
 
-        public EditModel(TablesDbContext context, ILogger<EditModel> logger)
+        public EditModel(TablesDbContext context, ILogger<EditModel> logger, INotificationService notifications)
         {
             _context = context;
             _logger = logger;
+            _notifications = notifications;
         }
 
         [BindProperty]
@@ -68,11 +71,62 @@ namespace CampusConnect.Pages.RequestPages
             request.created_by = existing.created_by;
             request.createdAt = existing.createdAt;
 
+            var statusChanged = existing.statusID != request.statusID;
+            var assigneeChanged = existing.assigned_to != request.assigned_to;
+
+            var recipientIdentityUserId = await _context.users
+                .AsNoTracking()
+                .Where(u => u.userID == request.created_by)
+                .Select(u => u.identityUserId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var assigneeIdentityUserId = request.assigned_to.HasValue
+                ? await _context.users
+                    .AsNoTracking()
+                    .Where(u => u.userID == request.assigned_to.Value)
+                    .Select(u => u.identityUserId)
+                    .FirstOrDefaultAsync(cancellationToken)
+                : null;
+
+            var requesterName = await _context.users
+                .AsNoTracking()
+                .Where(u => u.userID == request.created_by)
+                .Select(u => ((u.fName + " " + u.lName).Trim()) == "" ? u.email : (u.fName + " " + u.lName).Trim())
+                .FirstOrDefaultAsync(cancellationToken) ?? "A student";
+
             _context.Entry(request).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync(cancellationToken);
+
+                if (statusChanged && !string.IsNullOrEmpty(recipientIdentityUserId))
+                {
+                    await _notifications.CreateStatusChangedNotificationAsync(
+                        request.requestID,
+                        recipientIdentityUserId,
+                        request.statusID,
+                        cancellationToken);
+                }
+
+                if (assigneeChanged && request.assigned_to.HasValue && !string.IsNullOrEmpty(recipientIdentityUserId))
+                {
+                    await _notifications.CreateStudentAssignmentNotificationAsync(
+                        request.requestID,
+                        recipientIdentityUserId,
+                        request.assigned_to.Value,
+                        cancellationToken);
+                }
+
+                if (assigneeChanged && request.assigned_to.HasValue && !string.IsNullOrEmpty(assigneeIdentityUserId))
+                {
+                    await _notifications.CreateStaffAssignmentNotificationAsync(
+                        request.requestID,
+                        assigneeIdentityUserId,
+                        requesterName,
+                        cancellationToken);
+                }
+
                 _logger.LogInformation("CRITICAL: Request edited. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
                     request.requestID,
                     User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
