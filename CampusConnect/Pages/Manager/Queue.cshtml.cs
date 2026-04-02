@@ -24,22 +24,14 @@ namespace CampusConnect.Pages.Manager
             _userManager = userManager;
         }
 
-        public IList<request> Requests { get; set; } = new List<request>();
+        // OPTION 2: Separate lists by priority
+        public IList<request> CriticalRequests { get; set; } = new List<request>();
+        public IList<request> HighPriorityRequests { get; set; } = new List<request>();
+        public IList<request> MediumPriorityRequests { get; set; } = new List<request>();
+        public IList<request> LowPriorityRequests { get; set; } = new List<request>();
 
         public SelectList StaffOptions { get; set; } = default!;
         public SelectList StatusOptions { get; set; } = default!;
-
-        [BindProperty]
-        public int RequestId { get; set; }
-
-        [BindProperty]
-        public int? AssignedTo { get; set; }
-
-        [BindProperty]
-        public string? Priority { get; set; }
-
-        [BindProperty]
-        public int? StatusId { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
@@ -76,9 +68,29 @@ namespace CampusConnect.Pages.Manager
                     )));
             }
 
-            Requests = await query
+            var allRequests = await query.ToListAsync();
+
+            // PRIORITY QUEUE IMPLEMENTATION - OPTION 2
+            // Split into separate lists by priority, each sorted by date
+            CriticalRequests = allRequests
+                .Where(r => r.priority.Equals("Critical", StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(r => r.createdAt)
-                .ToListAsync();
+                .ToList();
+
+            HighPriorityRequests = allRequests
+                .Where(r => r.priority.Equals("High", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(r => r.createdAt)
+                .ToList();
+
+            MediumPriorityRequests = allRequests
+                .Where(r => r.priority.Equals("Medium", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(r => r.createdAt)
+                .ToList();
+
+            LowPriorityRequests = allRequests
+                .Where(r => r.priority.Equals("Low", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(r => r.createdAt)
+                .ToList();
 
             var activeUsers = await _context.users
                 .AsNoTracking()

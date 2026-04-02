@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.StaffPages
 {
@@ -43,23 +46,41 @@ namespace CampusConnect.Pages.StaffPages
             }
 
             // Get all requests for this department
-            AllDepartmentRequests = await _context.request
+            var departmentRequests = await _context.request
                 .Include(r => r.category)
                 .Include(r => r.status)
                 .Include(r => r.createdBy)
                 .Include(r => r.assignedTo)
                 .Where(r => r.category!.categoryName == CurrentUser.department)
-                .OrderByDescending(r => r.createdAt)
                 .ToListAsync();
 
-            // Filter assigned to current user
-            AssignedRequests = AllDepartmentRequests
-                .Where(r => r.assigned_to == CurrentUser.userID)
+            // Define priority order for sorting
+            var priorityOrder = new Dictionary<string, int>
+            {
+                { "Critical", 1 },
+                { "High", 2 },
+                { "Medium", 3 },
+                { "Low", 4 }
+            };
+
+            // Sort all lists by priority first, then by date
+            AllDepartmentRequests = departmentRequests
+                .OrderBy(r => priorityOrder.GetValueOrDefault(r.priority, 999))
+                .ThenByDescending(r => r.createdAt)
                 .ToList();
 
-            // Filter unassigned
-            UnassignedRequests = AllDepartmentRequests
+            // Filter assigned to current user (still priority sorted)
+            AssignedRequests = departmentRequests
+                .Where(r => r.assigned_to == CurrentUser.userID)
+                .OrderBy(r => priorityOrder.GetValueOrDefault(r.priority, 999))
+                .ThenByDescending(r => r.createdAt)
+                .ToList();
+
+            // Filter unassigned (still priority sorted)
+            UnassignedRequests = departmentRequests
                 .Where(r => r.assigned_to == null)
+                .OrderBy(r => priorityOrder.GetValueOrDefault(r.priority, 999))
+                .ThenByDescending(r => r.createdAt)
                 .ToList();
 
             return Page();
