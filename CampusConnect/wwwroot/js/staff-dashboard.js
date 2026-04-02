@@ -260,6 +260,9 @@ function showRequestDetail(requestId) {
         .then(html => {
             console.log('📄 Detail HTML received, length:', html.length);
             modalContent.innerHTML = html;
+            
+            // Initialize form handlers after content is loaded
+            initializeModalFormHandlers(requestId);
         })
         .catch(error => {
             console.error('❌ Error loading details:', error);
@@ -271,6 +274,102 @@ function showRequestDetail(requestId) {
                 </div>
             `;
         });
+}
+
+function initializeModalFormHandlers(requestId) {
+    const modalContent = document.getElementById('modalContent');
+    if (!modalContent) return;
+
+    // Get the antiforgery token from the main form
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    // Handle attachment upload form
+    const attachmentForm = modalContent.querySelector('form[asp-page-handler="AddAttachment"], form[action*="AddAttachment"]');
+    if (attachmentForm) {
+        attachmentForm.onsubmit = function (e) {
+            e.preventDefault();
+            console.log('📎 Attachment form submitted');
+
+            const formData = new FormData(this);
+            
+            // Add the antiforgery token if not already in form
+            if (token && !formData.has('__RequestVerificationToken')) {
+                formData.append('__RequestVerificationToken', token);
+            }
+
+            fetch('/StaffPages/RequestDetail?handler=AddAttachment', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    console.log('✅ Attachment uploaded successfully');
+                    // Update modal content with refreshed data
+                    modalContent.innerHTML = html;
+                    // Re-initialize handlers for the new content
+                    initializeModalFormHandlers(requestId);
+                    showNotification('Attachment uploaded successfully!', 'success');
+                })
+                .catch(error => {
+                    console.error('❌ Error uploading attachment:', error);
+                    alert('Error uploading attachment. Please try again.');
+                });
+
+            return false;
+        };
+    }
+
+    // Handle comment form
+    const commentForm = modalContent.querySelector('form[asp-page-handler="AddComment"], form[action*="AddComment"]');
+    if (commentForm) {
+        commentForm.onsubmit = function (e) {
+            e.preventDefault();
+            console.log('💬 Comment form submitted');
+
+            const formData = new FormData(this);
+            
+            // Add the antiforgery token if not already in form
+            if (token && !formData.has('__RequestVerificationToken')) {
+                formData.append('__RequestVerificationToken', token);
+            }
+
+            fetch('/StaffPages/RequestDetail?handler=AddComment', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    console.log('✅ Comment added successfully');
+                    // Update modal content with refreshed data
+                    modalContent.innerHTML = html;
+                    // Re-initialize handlers for the new content
+                    initializeModalFormHandlers(requestId);
+                    showNotification('Comment added successfully!', 'success');
+                })
+                .catch(error => {
+                    console.error('❌ Error adding comment:', error);
+                    alert('Error adding comment. Please try again.');
+                });
+
+            return false;
+        };
+    }
 }
 
 function showNotification(message, type = 'info') {

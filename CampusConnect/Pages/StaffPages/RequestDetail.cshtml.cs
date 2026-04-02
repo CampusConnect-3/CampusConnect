@@ -1,4 +1,3 @@
-using CampusConnect.Constants;
 using CampusConnect.Data;
 using CampusConnect.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CampusConnect.Pages.StaffPages
 {
-    [Authorize(Roles = nameof(Roles.Staff))]
+    [Authorize(Roles = "Staff")]
     public class RequestDetailModel : PageModel
     {
         private readonly TablesDbContext _context;
@@ -71,7 +70,19 @@ namespace CampusConnect.Pages.StaffPages
 
             // TODO: Trigger notification to request creator
 
-            return RedirectToPage(new { requestId });
+            // Reload the request with updated data and return partial view
+            RequestItem = await _context.request
+                .Include(r => r.category)
+                .Include(r => r.status)
+                .Include(r => r.createdBy)
+                .Include(r => r.assignedTo)
+                .Include(r => r.comments)
+                    .ThenInclude(c => c.creator)
+                .Include(r => r.attachments)
+                    .ThenInclude(a => a.creator)
+                .FirstOrDefaultAsync(r => r.requestID == requestId);
+
+            return Partial("_RequestDetail", RequestItem);
         }
 
         public async Task<IActionResult> OnPostAddAttachmentAsync(int requestId, IFormFile file)
@@ -120,7 +131,19 @@ namespace CampusConnect.Pages.StaffPages
 
             // TODO: Trigger notification to request creator
 
-            return RedirectToPage(new { requestId });
+            // Reload the request with updated data and return partial view
+            RequestItem = await _context.request
+                .Include(r => r.category)
+                .Include(r => r.status)
+                .Include(r => r.createdBy)
+                .Include(r => r.assignedTo)
+                .Include(r => r.comments)
+                    .ThenInclude(c => c.creator)
+                .Include(r => r.attachments)
+                    .ThenInclude(a => a.creator)
+                .FirstOrDefaultAsync(r => r.requestID == requestId);
+
+            return Partial("_RequestDetail", RequestItem);
         }
     }
 }

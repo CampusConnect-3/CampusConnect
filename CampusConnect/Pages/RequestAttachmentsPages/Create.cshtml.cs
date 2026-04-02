@@ -36,6 +36,9 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
         [BindProperty(SupportsGet = true)]
         public int? RequestId { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? ReturnUrl { get; set; }
+
         [BindProperty]
         public IFormFile? Upload { get; set; }
 
@@ -127,7 +130,19 @@ namespace CampusConnect.Pages.RequestAttachmentsPages
                 row.fileID,
                 row.requestID);
 
-            return RedirectToPage("/RequestPages/Details", new { id = RequestId.Value });
+            // Redirect back to the correct page based on ReturnUrl or user role
+            if (!string.IsNullOrEmpty(ReturnUrl))
+            {
+                return LocalRedirect(ReturnUrl);
+            }
+            else if (User.IsInRole("Staff") || User.IsInRole("Manager"))
+            {
+                return RedirectToPage("/StaffPages/RequestDetail", new { requestId = RequestId.Value });
+            }
+            else
+            {
+                return RedirectToPage("/RequestPages/Details", new { id = RequestId.Value });
+            }
         }
 
         private async Task<bool> CanAccessRequestAsync(int requestId, CancellationToken cancellationToken = default)
