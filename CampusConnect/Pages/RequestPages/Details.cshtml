@@ -115,6 +115,56 @@
         margin-top: 2px;
     }
 
+    .comments-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+    }
+
+        .comments-list li {
+            border: 1px solid #ddd;
+            background: #fafafa;
+            padding: 12px 14px;
+        }
+
+    .comment-meta {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .comment-text {
+        white-space: pre-wrap;
+        color: #111;
+    }
+
+    .comment-form {
+        margin-top: 14px;
+    }
+
+    .comment-label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .comment-input {
+        width: 100%;
+        min-height: 120px;
+        padding: 12px;
+        border: 1px solid #ccc;
+        font: inherit;
+        resize: vertical;
+    }
+
+    .validation {
+        color: #b42318;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
     .btn-row {
         display: flex;
         gap: 10px;
@@ -282,6 +332,42 @@
             }
         </div>
 
+        <div class="section">
+            <h3>Comments</h3>
+
+            @if (Model.Comments.Any())
+            {
+                <ul class="comments-list">
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <li>
+                            <div class="comment-meta">
+                                @(comment.creator?.email ?? "Unknown user")
+                                •
+                                @comment.createdAt.ToLocalTime().ToString("MM/dd/yyyy h:mm tt")
+                            </div>
+                            <div class="comment-text">@comment.commentText</div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p style="color:#666; margin-top: 10px;">No comments yet.</p>
+            }
+
+            <form method="post" asp-page-handler="AddComment" class="comment-form">
+                <label asp-for="Input.CommentText" class="comment-label">Add Comment</label>
+                <textarea asp-for="Input.CommentText" class="comment-input" placeholder="Add an update or question about this request."></textarea>
+                <span asp-validation-for="Input.CommentText" class="validation"></span>
+                <div asp-validation-summary="ModelOnly" class="validation"></div>
+
+                <div class="btn-row" style="margin-top: 10px;">
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </div>
+            </form>
+        </div>
+
         <div class="btn-row">
             @* Admin/Manager can edit (optional) *@
             @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
@@ -315,3 +401,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

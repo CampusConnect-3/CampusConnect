@@ -83,6 +83,59 @@ namespace CampusConnect.Migrations.Tables
                     b.ToTable("category", (string)null);
                 });
 
+            modelBuilder.Entity("CampusConnect.Models.notification", b =>
+                {
+                    b.Property<int>("notificationID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("notificationID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("notificationID"));
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("isRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("recipientUserID")
+                        .HasColumnType("int")
+                        .HasColumnName("recipientUserID");
+
+                    b.Property<int>("requestID")
+                        .HasColumnType("int")
+                        .HasColumnName("requestID");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int?>("triggeredByUserID")
+                        .HasColumnType("int")
+                        .HasColumnName("triggeredByUserID");
+
+                    b.Property<string>("type")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("notificationID");
+
+                    b.HasIndex("recipientUserID");
+
+                    b.HasIndex("requestID");
+
+                    b.HasIndex("triggeredByUserID");
+
+                    b.ToTable("notifications", (string)null);
+                });
+
             modelBuilder.Entity("CampusConnect.Models.request", b =>
                 {
                     b.Property<int>("requestID")
@@ -315,6 +368,32 @@ namespace CampusConnect.Migrations.Tables
                     b.Navigation("request");
                 });
 
+            modelBuilder.Entity("CampusConnect.Models.notification", b =>
+                {
+                    b.HasOne("CampusConnect.Models.user", "recipientUser")
+                        .WithMany("notificationsReceived")
+                        .HasForeignKey("recipientUserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CampusConnect.Models.request", "request")
+                        .WithMany("notifications")
+                        .HasForeignKey("requestID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CampusConnect.Models.user", "triggeredByUser")
+                        .WithMany("notificationsTriggered")
+                        .HasForeignKey("triggeredByUserID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("recipientUser");
+
+                    b.Navigation("request");
+
+                    b.Navigation("triggeredByUser");
+                });
+
             modelBuilder.Entity("CampusConnect.Models.request", b =>
                 {
                     b.HasOne("CampusConnect.Models.user", "assignedTo")
@@ -396,6 +475,8 @@ namespace CampusConnect.Migrations.Tables
                     b.Navigation("attachments");
 
                     b.Navigation("comments");
+
+                    b.Navigation("notifications");
                 });
 
             modelBuilder.Entity("CampusConnect.Models.requestStatus", b =>
@@ -413,6 +494,10 @@ namespace CampusConnect.Migrations.Tables
                     b.Navigation("attachments");
 
                     b.Navigation("comments");
+
+                    b.Navigation("notificationsReceived");
+
+                    b.Navigation("notificationsTriggered");
 
                     b.Navigation("requestsAssigned");
 

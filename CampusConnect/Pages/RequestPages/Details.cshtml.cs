@@ -108,7 +108,9 @@ namespace CampusConnect.Pages.RequestPages
             await LoadRelatedDataAsync(req.requestID, cancellationToken);
 
             if (string.IsNullOrWhiteSpace(Input.CommentText))
+            {
                 ModelState.AddModelError("Input.CommentText", "Comment text is required.");
+            }
 
             if (!ModelState.IsValid)
                 return Page();
@@ -177,6 +179,11 @@ namespace CampusConnect.Pages.RequestPages
                 }
             }
 
+            _logger.LogInformation("COMMENT ADDED. RequestId={RequestId} CommentId={CommentId} UserId={UserId} TraceId={TraceId}",
+                req.requestID,
+                comment.commentID,
+                identityUserId,
+                HttpContext.TraceIdentifier);
             return RedirectToPage(new { id = req.requestID });
         }
 
