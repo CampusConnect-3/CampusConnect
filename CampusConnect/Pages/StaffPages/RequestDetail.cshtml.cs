@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
@@ -48,6 +49,11 @@ namespace CampusConnect.Pages.StaffPages
 
         public async Task<IActionResult> OnPostAddCommentAsync(int requestId, string commentText)
         {
+            if (string.IsNullOrWhiteSpace(commentText))
+            {
+                return BadRequest("Comment text is required.");
+            }
+
             var identityUser = await _userManager.GetUserAsync(User);
             if (identityUser == null)
             {
@@ -60,17 +66,16 @@ namespace CampusConnect.Pages.StaffPages
             var comment = new requestComments
             {
                 requestID = requestId,
-                commentText = commentText,
+                commentText = commentText.Trim(),
                 createdAt = DateTime.Now,
                 creatorID = currentUser!.userID
             };
 
+            await EnsureCommentIdAsync(comment);
+
             _context.requestComments.Add(comment);
             await _context.SaveChangesAsync();
 
-            // TODO: Trigger notification to request creator
-
-            // Reload the request with updated data and return partial view
             RequestItem = await _context.request
                 .Include(r => r.category)
                 .Include(r => r.status)
@@ -81,6 +86,11 @@ namespace CampusConnect.Pages.StaffPages
                 .Include(r => r.attachments)
                     .ThenInclude(a => a.creator)
                 .FirstOrDefaultAsync(r => r.requestID == requestId);
+
+            if (RequestItem == null)
+            {
+                return NotFound();
+            }
 
             return Partial("_RequestDetail", RequestItem);
         }
@@ -144,6 +154,46 @@ namespace CampusConnect.Pages.StaffPages
                 .FirstOrDefaultAsync(r => r.requestID == requestId);
 
             return Partial("_RequestDetail", RequestItem);
+        }
+
+        private async Task EnsureCommentIdAsync(requestComments comment)
+        {
+            const string isIdentitySql = """
+                SELECT CAST(COLUMNPROPERTY(OBJECT_ID('dbo.requestComments'), 'commentID', 'IsIdentity') AS int)
+                """;
+
+            var connection = _context.Database.GetDbConnection();
+            var shouldClose = connection.State != System.Data.ConnectionState.Open;
+
+            if (shouldClose)
+                await connection.OpenAsync();
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = isIdentitySql;
+
+                if (command is SqlCommand sqlCommand)
+                    sqlCommand.CommandTimeout = 30;
+
+                var result = await command.ExecuteScalarAsync();
+                var isIdentity = result != null && result != DBNull.Value && Convert.ToInt32(result) == 1;
+
+                if (!isIdentity)
+                {
+                    comment.commentID = await _context.requestComments
+                        .AsNoTracking()
+                        .Select(c => (int?)c.commentID)
+                        .MaxAsync() is int maxCommentId
+                        ? maxCommentId + 1
+                        : 1;
+                }
+            }
+            finally
+            {
+                if (shouldClose)
+                    await connection.CloseAsync();
+            }
         }
     }
 }

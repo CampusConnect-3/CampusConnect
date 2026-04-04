@@ -6,7 +6,15 @@
      style="cursor: grab;">
     <div class="card-body p-2">
         <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="card-title mb-0" style="font-size: 0.9rem; pointer-events: none;">@Model.title</h6>
+            <div>
+                <a asp-page="/RequestPages/Details"
+                   asp-route-id="@Model.requestID"
+                   class="fw-semibold text-decoration-none"
+                   style="font-size: 0.8rem; pointer-events: auto; position: relative; z-index: 10;">
+                    #@Model.requestID
+                </a>
+                <h6 class="card-title mb-0" style="font-size: 0.9rem; pointer-events: none;">@Model.title</h6>
+            </div>
             <span class="badge bg-@(Model.priority == "High" ? "danger" : Model.priority == "Medium" ? "warning" : "secondary") ms-2" style="pointer-events: none;">
                 @Model.priority
             </span>

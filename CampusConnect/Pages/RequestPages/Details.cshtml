@@ -115,50 +115,6 @@
         margin-top: 2px;
     }
 
-    .comments-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: grid;
-        gap: 12px;
-    }
-
-        .comments-list li {
-            border: 1px solid #ddd;
-            background: #fafafa;
-            padding: 12px 14px;
-        }
-
-    .comment-meta {
-        color: #666;
-        font-size: 12px;
-        margin-bottom: 6px;
-    }
-
-    .comment-text {
-        white-space: pre-wrap;
-        color: #111;
-    }
-
-    .comment-form {
-        margin-top: 14px;
-    }
-
-    .comment-label {
-        display: block;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-
-    .comment-input {
-        width: 100%;
-        min-height: 120px;
-        padding: 12px;
-        border: 1px solid #ccc;
-        font: inherit;
-        resize: vertical;
-    }
-
     .validation {
         color: #b42318;
         font-size: 13px;
@@ -264,12 +220,12 @@
 
             <div class="field">
                 <div class="label">Created By</div>
-                <div class="value">@Model.request.createdBy?.email</div>
+                <div class="value">@Model.GetDisplayName(Model.request.createdBy)</div>
             </div>
 
             <div class="field">
                 <div class="label">Assigned To</div>
-                <div class="value">@Model.request.assignedTo?.email</div>
+                <div class="value">@Model.GetDisplayName(Model.request.assignedTo, "Unassigned")</div>
             </div>
 
             <div class="field">
@@ -333,39 +289,24 @@
         </div>
 
         <div class="section">
-            <h3>Comments</h3>
+            <h3>Conversation</h3>
 
-            @if (Model.Comments.Any())
-            {
-                <ul class="comments-list">
-                    @foreach (var comment in Model.Comments)
-                    {
-                        <li>
-                            <div class="comment-meta">
-                                @(comment.creator?.email ?? "Unknown user")
-                                •
-                                @comment.createdAt.ToLocalTime().ToString("MM/dd/yyyy h:mm tt")
-                            </div>
-                            <div class="comment-text">@comment.commentText</div>
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p style="color:#666; margin-top: 10px;">No comments yet.</p>
-            }
+            <p style="color:#666; margin: 0 0 12px 0;">
+                Messages between the requester and staff are kept in a separate conversation view so the ticket details stay readable.
+            </p>
 
-            <form method="post" asp-page-handler="AddComment" class="comment-form">
-                <label asp-for="Input.CommentText" class="comment-label">Add Comment</label>
-                <textarea asp-for="Input.CommentText" class="comment-input" placeholder="Add an update or question about this request."></textarea>
-                <span asp-validation-for="Input.CommentText" class="validation"></span>
-                <div asp-validation-summary="ModelOnly" class="validation"></div>
+            <div class="field">
+                <div class="label">Saved Messages</div>
+                <div class="value">@Model.CommentCount comment@(Model.CommentCount == 1 ? "" : "s") on this request</div>
+            </div>
 
-                <div class="btn-row" style="margin-top: 10px;">
-                    <button type="submit" class="btn btn-primary">Post Comment</button>
-                </div>
-            </form>
+            <div class="btn-row">
+                <a class="btn btn-primary"
+                   asp-page="/RequestPages/Conversation"
+                   asp-route-id="@Model.request.requestID">
+                    Open Conversation
+                </a>
+            </div>
         </div>
 
         <div class="btn-row">

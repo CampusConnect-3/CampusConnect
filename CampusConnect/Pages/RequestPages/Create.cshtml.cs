@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -38,9 +37,12 @@ namespace CampusConnect.Pages.RequestPages
         [BindProperty]
         public List<IFormFile>? Attachments { get; set; }
 
-        public IActionResult OnGet()
+        public string DisplayName { get; private set; } = "User";
+        public string StudentId { get; private set; } = "N/A";
+
+        public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken = default)
         {
-            PopulateDropdowns();
+            await LoadHeaderAsync(cancellationToken);
 
             request = new request
             {
@@ -53,14 +55,20 @@ namespace CampusConnect.Pages.RequestPages
 
         public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-            {
-                PopulateDropdowns();
-                return Page();
-            }
+            await LoadHeaderAsync(cancellationToken);
 
             // FORCE EMAIL SERVER-SIDE (never trust UI)
             request.email = User.Identity?.Name ?? request.email;
+
+            if (!await ApplySystemManagedDefaultsAsync(cancellationToken))
+                return Page();
+
+            ModelState.Remove("request.priority");
+            ModelState.Remove("request.categoryID");
+            ModelState.Remove("request.statusID");
+
+            if (!TryValidateModel(request, nameof(request)))
+                return Page();
 
             // get Identity ID
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -170,17 +178,67 @@ namespace CampusConnect.Pages.RequestPages
             return uploadedCount;
         }
 
-        private void PopulateDropdowns()
+        private async Task LoadHeaderAsync(CancellationToken cancellationToken)
         {
-            ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            ViewData["priority"] = new SelectList(new[]
+            DisplayName = User.Identity?.Name ?? "User";
+            StudentId = User.FindFirst("student_id")?.Value ?? "N/A";
+
+            if (string.IsNullOrWhiteSpace(identityUserId))
+                return;
+
+            var appUser = await _context.users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.identityUserId == identityUserId, cancellationToken);
+
+            if (appUser == null)
+                return;
+
+            var fullName = $"{appUser.fName} {appUser.lName}".Trim();
+            if (!string.IsNullOrWhiteSpace(fullName))
+                DisplayName = fullName;
+            else if (!string.IsNullOrWhiteSpace(appUser.email))
+                DisplayName = appUser.email;
+
+            if (!string.IsNullOrWhiteSpace(appUser.username))
+                StudentId = appUser.username;
+        }
+
+        private async Task<bool> ApplySystemManagedDefaultsAsync(CancellationToken cancellationToken)
+        {
+            request.priority = string.Empty;
+
+            if (request.categoryID <= 0)
             {
-                new { Value = "Low", Text = "Low" },
-                new { Value = "Medium", Text = "Medium" },
-                new { Value = "High", Text = "High" },
-                new { Value = "Critical", Text = "Critical" }
-            }, "Value", "Text");
+                var preferredCategoryNames = new[] { "General", "General Support", "Triage", "Uncategorized", "Other" };
+
+                var defaultCategoryId = await _context.category
+                    .AsNoTracking()
+                    .OrderBy(c => preferredCategoryNames.Contains(c.categoryName) ? 0 : 1)
+                    .ThenBy(c => c.categoryName)
+                    .Select(c => (int?)c.categoryID)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (!defaultCategoryId.HasValue)
+                {
+                    ModelState.AddModelError(string.Empty, "No request categories are configured yet. Please contact support.");
+                    return false;
+                }
+
+                request.categoryID = defaultCategoryId.Value;
+            }
+
+            if (!request.statusID.HasValue)
+            {
+                request.statusID = await _context.requestStatus
+                    .AsNoTracking()
+                    .Where(s => s.statusName == Constants.RequestStatuses.ToDo)
+                    .Select(s => (int?)s.statusID)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
+            return true;
         }
     }
 }
