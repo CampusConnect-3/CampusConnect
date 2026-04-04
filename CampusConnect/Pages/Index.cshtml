@@ -120,6 +120,21 @@
             font-size: 18px;
             border-top: 4px solid #111;
         }
+
+    .request-link {
+        text-decoration: none;
+    }
+
+    .view-all {
+        margin: 18px 0 8px 0;
+        text-align: right;
+    }
+
+    .view-all a {
+        color: #1b6ec2;
+        font-weight: 600;
+        text-decoration: none;
+    }
 </style>
 
 <div class="home-shell">
@@ -158,7 +173,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <a asp-page="/RequestPages/Details" asp-route-id="@r.requestID">
+                                        <a class="request-link" asp-page="/RequestPages/Details" asp-route-id="@r.requestID">
                                             @r.requestID
                                         </a>
                                     </td>
@@ -177,11 +192,10 @@
                     </tbody>
                 </table>
 
-                @* only show View All if more than 3 *@
-                @if (Model.TotalMyRequests > 3)
+                @if (Model.HasMoreRecentRequests)
                 {
                     <div class="view-all">
-                        <a asp-page="/RequestPages/MyRequests">View All</a>
+                        <a asp-page="/RequestPages/MyRequests">View All Requests</a>
                     </div>
                 }
             </div>

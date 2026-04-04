@@ -1,6 +1,7 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Middleware;
 using CampusConnect.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+if (builder.Environment.IsDevelopment())
+{
+    // Make auth cookies invalid after each app restart during local development.
+    builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
+}
 
 // DbContext Registration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
