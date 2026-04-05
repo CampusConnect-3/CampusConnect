@@ -1,0 +1,46 @@
+﻿@page
+@model CampusConnect.Pages.Admin.TestMongoModel
+
+<div class="container mt-5">
+    <h1>MongoDB & AI Test Dashboard</h1>
+    
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-info">
+            <strong>@Model.Message</strong>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Request Snapshots</h5>
+                    <p class="display-4">@Model.SyncedCount</p>
+                    <p class="text-muted">Documents in MongoDB</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🤖 AI Insights</h5>
+                    <p class="display-4">@Model.InsightCount</p>
+                    <p class="text-muted">Generated insights</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" class="mb-3">
+        <button type="submit" asp-page-handler="SyncAll" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat"></i> Sync All Requests to MongoDB
+        </button>
+    </form>
+
+    <form method="post">
+        <button type="submit" asp-page-handler="GenerateInsights" class="btn btn-success">
+            <i class="bi bi-lightbulb"></i> Generate AI Insights
+        </button>
+    </form>
+</div>

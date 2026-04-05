@@ -1,0 +1,205 @@
+﻿@page
+@model CampusConnect.Pages.Manager.AIInsights.IndexModel
+
+@{
+    ViewData["Title"] = "AI Insights Dashboard";
+}
+
+<style>
+    .insight-card {
+        border-left: 4px solid;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .insight-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .insight-critical {
+        border-left-color: #dc2626;
+    }
+
+    .insight-warning {
+        border-left-color: #f59e0b;
+    }
+
+    .insight-info {
+        border-left-color: #3b82f6;
+    }
+
+    .severity-badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h1>🤖 AI Insights Dashboard</h1>
+        <p>AI-generated maintenance patterns and recommendations</p>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-danger">@Model.ActiveInsights.Count(i => i.Severity == "Critical")</h3>
+                <p class="text-muted mb-0">Critical</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-warning">@Model.ActiveInsights.Count(i => i.Severity == "Warning")</h3>
+                <p class="text-muted mb-0">Warnings</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-primary">@Model.ActiveInsights.Count(i => i.Severity == "Info")</h3>
+                <p class="text-muted mb-0">Info</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-success">@Model.ResolvedInsights.Count</h3>
+                <p class="text-muted mb-0">Resolved</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Severity</label>
+                    <select asp-for="FilterSeverity" class="form-select">
+                        <option value="">All Severities</option>
+                        <option value="Critical">Critical</option>
+                        <option value="Warning">Warning</option>
+                        <option value="Info">Info</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Building</label>
+                    <input asp-for="FilterBuilding" class="form-control" placeholder="Building name..." />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filter</button>
+                    <a asp-page="./Index" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Insights -->
+    <h3 class="mb-3">🔔 Active Insights</h3>
+    @if (Model.ActiveInsights.Any())
+    {
+        foreach (var insight in Model.ActiveInsights.OrderBy(i => i.Severity == "Critical" ? 0 : i.Severity == "Warning" ? 1 : 2))
+        {
+            var severityClass = insight.Severity switch
+            {
+                "Critical" => "insight-critical",
+                "Warning" => "insight-warning",
+                _ => "insight-info"
+            };
+
+            var badgeClass = insight.Severity switch
+            {
+                "Critical" => "bg-danger",
+                "Warning" => "bg-warning text-dark",
+                _ => "bg-primary"
+            };
+
+            <div class="card insight-card @severityClass">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="severity-badge @badgeClass">@insight.Severity</span>
+                            @if (!string.IsNullOrEmpty(insight.BuildingName))
+                            {
+                                <span class="badge bg-secondary ms-2">@insight.BuildingName</span>
+                            }
+                            @if (!string.IsNullOrEmpty(insight.CategoryName))
+                            {
+                                <span class="badge bg-info text-dark ms-2">@insight.CategoryName</span>
+                            }
+                        </div>
+                        <small class="text-muted">@insight.GeneratedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                    </div>
+                    
+                    <h5 class="card-title">@insight.Title</h5>
+                    <p class="card-text text-muted mb-3">
+                        @(insight.Description.Length > 200 ? insight.Description.Substring(0, 200) + "..." : insight.Description)
+                    </p>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">
+                                <strong>@insight.Metrics.RequestCount</strong> requests in <strong>@insight.Metrics.DaySpan</strong> days
+                            </small>
+                        </div>
+                        <div>
+                            <a asp-page="./Details" asp-route-id="@insight.Id" class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> No active insights - everything looks good!
+        </div>
+    }
+
+    <!-- Resolved Insights (Collapsed) -->
+    @if (Model.ResolvedInsights.Any())
+    {
+        <div class="mt-4">
+            <h3 class="mb-3">
+                <a data-bs-toggle="collapse" href="#resolvedSection" role="button">
+                    ✅ Resolved Insights (@Model.ResolvedInsights.Count)
+                </a>
+            </h3>
+            <div class="collapse" id="resolvedSection">
+                @foreach (var insight in Model.ResolvedInsights.Take(10))
+                {
+                    <div class="card mb-2 opacity-75">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between">
+                                <span>@insight.Title</span>
+                                <small class="text-muted">Resolved @insight.ResolvedAt?.ToString("MMM dd")</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

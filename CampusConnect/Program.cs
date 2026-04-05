@@ -1,4 +1,6 @@
-﻿using CampusConnect.Data;
+﻿using CampusConnect.BackgroundServices;
+using CampusConnect.Configuration;
+using CampusConnect.Data;
 using CampusConnect.Middleware;
 using CampusConnect.Services;
 using Microsoft.AspNetCore.Identity;
@@ -51,6 +53,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Identity/Account/Logout";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
+
+// Configure MongoDB
+builder.Services.Configure<MongoDBSettings>(
+    builder.Configuration.GetSection("MongoDBSettings"));
+
+builder.Services.AddSingleton<MongoDBService>();
+builder.Services.AddScoped<RequestSyncService>();
+
+// Configure OpenAI
+builder.Services.Configure<GeminiSettings>(
+    builder.Configuration.GetSection("Gemini"));
+
+builder.Services.AddHttpClient(); // Required for Gemini
+builder.Services.AddScoped<GeminiInsightService>();
+
+builder.Services.AddHostedService<BackgroundInsightGenerator>();
 
 var app = builder.Build();
 
