@@ -1,0 +1,15 @@
+@model string
+
+@{
+    var priority = Model ?? "Low";
+    var badgeClass = priority switch
+    {
+        "Critical" => "bg-danger",
+        "High" => "bg-warning text-dark",
+        "Medium" => "bg-primary",
+        "Low" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
+
+<span class="badge @badgeClass">@priority</span>

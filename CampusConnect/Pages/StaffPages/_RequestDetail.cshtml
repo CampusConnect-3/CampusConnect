@@ -13,9 +13,7 @@
 
                 <dt class="col-sm-4">Priority:</dt>
                 <dd class="col-sm-8">
-                    <span class="badge bg-@(Model.priority == "High" ? "danger" : Model.priority == "Medium" ? "warning" : "secondary")">
-                        @Model.priority
-                    </span>
+                    <partial name="_PriorityBadge" model="@Model.priority" />
                 </dd>
 
                 <dt class="col-sm-4">Status:</dt>
