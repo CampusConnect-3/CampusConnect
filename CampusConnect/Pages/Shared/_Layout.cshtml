@@ -8,6 +8,8 @@
     bool isQueue = currentPage == "/Manager/Queue";
     bool isReviewRequests = currentPage == "/Manager/ReviewRequests";
     bool isArchive = currentPage == "/Manager/Archive";
+    bool isAIInsights = currentPage == "/Manager/AIInsights/Index";
+    bool isTestMongo = currentPage == "/Admin/TestMongo";
 }
 
 <!DOCTYPE html>
@@ -16,26 +18,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - CampusConnect</title>
-
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CampusConnect.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-
-                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-page="/Index">
-                    <img src="~/images/campus-connect-logo.png"
-                         alt="CampusConnect"
-                         style="height:32px;width:auto;" />
-                </a>
-
-                <button class="navbar-toggler" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse"
+                <a class="navbar-brand" asp-area="" asp-page="/Index">CampusConnect</a>
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbarCollapse"
                         aria-controls="mainNavbarCollapse"
                         aria-expanded="false"
                         aria-label="Toggle navigation">
@@ -90,6 +86,21 @@
                             <li class="nav-item">
                                 <a class="nav-link @(isArchive ? "active fw-bold text-primary" : "text-dark")"
                                    asp-page="/Manager/Archive">Archive</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(isAIInsights ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Manager/AIInsights/Index">
+                                    <i class="bi bi-lightbulb"></i> AI Insights
+                                </a>
+                            </li>
+                        }
+                        @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(isTestMongo ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Admin/TestMongo">
+                                    <i class="bi bi-database"></i> MongoDB Test
+                                </a>
                             </li>
                         }
                     </ul>

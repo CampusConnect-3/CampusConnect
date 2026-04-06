@@ -1,3 +1,4 @@
+﻿
 console.log('staff-queue.js loaded successfully');
 
 function showRequestDetail(requestId) {

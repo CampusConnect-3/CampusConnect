@@ -146,22 +146,7 @@
                                 }
                             </td>
                             <td>
-                                @if (!string.IsNullOrEmpty(r.priority))
-                                {
-                                    var p = r.priority.ToLowerInvariant();
-                                    if (p.Contains("high"))
-                                    {
-                                        <span class="priority-high">@r.priority</span>
-                                    }
-                                    else if (p.Contains("med"))
-                                    {
-                                        <span class="priority-medium">@r.priority</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="priority-low">@r.priority</span>
-                                    }
-                                }
+                                <partial name="_PriorityBadge" model="@r.priority" />
                             </td>
                             <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
                         </tr>

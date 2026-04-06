@@ -25,8 +25,13 @@ namespace CampusConnect.Pages.StaffPages
 
         public request RequestItem { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int requestId)
+        public async Task<IActionResult> OnGetAsync([FromQuery] int? requestId)
         {
+            if (requestId == null)
+            {
+                return BadRequest("Request ID is required");
+            }
+
             RequestItem = await _context.request
                 .Include(r => r.category)
                 .Include(r => r.status)
@@ -36,7 +41,7 @@ namespace CampusConnect.Pages.StaffPages
                     .ThenInclude(c => c.creator)
                 .Include(r => r.attachments)
                     .ThenInclude(a => a.creator)
-                .FirstOrDefaultAsync(r => r.requestID == requestId);
+                .FirstOrDefaultAsync(r => r.requestID == requestId.Value);
 
             if (RequestItem == null)
             {

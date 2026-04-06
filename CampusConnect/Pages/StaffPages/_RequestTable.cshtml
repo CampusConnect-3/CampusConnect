@@ -23,14 +23,12 @@ else
             <tbody>
                 @foreach (var item in Model)
                 {
-                    <tr style="cursor: pointer;" onclick="showRequestDetail(@item.requestID)">
+                    <tr>
                         <td>@item.requestID</td>
                         <td>@item.title</td>
                         <td>@item.buildingName - @item.roomNumber</td>
                         <td>
-                            <span class="badge bg-@(item.priority == "High" ? "danger" : item.priority == "Medium" ? "warning" : "secondary")">
-                                @item.priority
-                            </span>
+                            <partial name="_PriorityBadge" model="@item.priority" />
                         </td>
                         <td>@item.status?.statusName</td>
                         <td>
@@ -44,13 +42,25 @@ else
                             }
                         </td>
                         <td>@item.createdAt.ToString("MMM dd, yyyy")</td>
-                        <td onclick="event.stopPropagation();">
-                            @if (item.assigned_to == null)
-                            {
-                                <form method="post" asp-page-handler="AssignToMe" asp-route-requestId="@item.requestID" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-primary">Assign to Me</button>
-                                </form>
-                            }
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" 
+                                        class="btn btn-sm btn-info text-white" 
+                                        onclick="showRequestDetail(@item.requestID)"
+                                        title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                @if (item.assigned_to == null)
+                                {
+                                    <form method="post" asp-page-handler="AssignToMe" asp-route-requestId="@item.requestID" style="display:inline;">
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-primary" 
+                                                title="Assign to Me">
+                                            <i class="bi bi-person-check"></i> Assign
+                                        </button>
+                                    </form>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
