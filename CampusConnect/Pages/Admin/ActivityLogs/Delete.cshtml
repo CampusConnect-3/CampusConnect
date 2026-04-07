@@ -1,0 +1,43 @@
+@page
+@model CampusConnect.Pages.Admin.ActivityLogs.DeleteModel
+@{
+    ViewData["Title"] = "Delete Activity Log";
+}
+
+<div class="container mt-4">
+    <h1 class="text-danger">Delete Activity Log</h1>
+    <p>Are you sure you want to delete this log entry?</p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Timestamp</dt>
+                <dd class="col-sm-9">@Model.ActivityLog?.Timestamp.ToLocalTime()</dd>
+
+                <dt class="col-sm-3">User</dt>
+                <dd class="col-sm-9">@Model.ActivityLog?.UserName (@Model.ActivityLog?.UserRole)</dd>
+
+                <dt class="col-sm-3">Action</dt>
+                <dd class="col-sm-9">@Model.ActivityLog?.Action.Replace("_", " ")</dd>
+
+                <dt class="col-sm-3">Request</dt>
+                <dd class="col-sm-9">
+                    @if (Model.ActivityLog?.RequestId.HasValue == true)
+                    {
+                        <span>#@Model.ActivityLog.RequestId - @Model.ActivityLog.RequestTitle</span>
+                    }
+                    else
+                    {
+                        <span>N/A</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <form method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

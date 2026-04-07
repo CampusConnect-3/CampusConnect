@@ -1,0 +1,36 @@
+@page
+@model CampusConnect.Pages.Admin.ActivityLogs.CreateModel
+@{
+    ViewData["Title"] = "Log Activity";
+}
+
+<div class="container mt-4">
+    <h1>Manual Activity Log Entry</h1>
+
+    <form method="post">
+        <div class="mb-3">
+            <label asp-for="ActivityLog.Action" class="form-label">Action Type</label>
+            <select asp-for="ActivityLog.Action" class="form-select">
+                <option value="created_request">Created Request</option>
+                <option value="status_changed">Status Changed</option>
+                <option value="assigned_request">Assigned Request</option>
+                <option value="added_comment">Added Comment</option>
+                <option value="manual_entry">Manual Entry</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ActivityLog.RequestId" class="form-label">Request ID (optional)</label>
+            <input asp-for="ActivityLog.RequestId" class="form-control" type="number" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Details (JSON)</label>
+            <textarea asp-for="DetailsJson" class="form-control" rows="5" placeholder='{"oldStatus": "To-Do", "newStatus": "In Progress"}'></textarea>
+            <small class="text-muted">Enter details as JSON format</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Log</button>
+        <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

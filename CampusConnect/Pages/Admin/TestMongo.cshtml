@@ -12,7 +12,7 @@
     }
 
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">📊 Request Snapshots</h5>
@@ -21,7 +21,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">🤖 AI Insights</h5>
@@ -30,17 +30,67 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🕒 Activity Logs</h5>
+                    <p class="display-4">@Model.ActivityLogCount</p>
+                    <p class="text-muted">Activity log entries</p>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <form method="post" class="mb-3">
-        <button type="submit" asp-page-handler="SyncAll" class="btn btn-primary">
-            <i class="bi bi-arrow-repeat"></i> Sync All Requests to MongoDB
-        </button>
-    </form>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Request Sync</h5>
+                </div>
+                <div class="card-body">
+                    <p>Sync all requests from SQL Server to MongoDB</p>
+                    <form method="post">
+                        <button type="submit" asp-page-handler="SyncAll" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-repeat"></i> Sync All Requests
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-    <form method="post">
-        <button type="submit" asp-page-handler="GenerateInsights" class="btn btn-success">
-            <i class="bi bi-lightbulb"></i> Generate AI Insights
-        </button>
-    </form>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5>AI Insights</h5>
+                </div>
+                <div class="card-body">
+                    <p>Generate AI-powered insights using Gemini</p>
+                    <form method="post">
+                        <button type="submit" asp-page-handler="GenerateInsights" class="btn btn-success w-100">
+                            <i class="bi bi-lightbulb"></i> Generate AI Insights
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Activity Logs</h5>
+                </div>
+                <div class="card-body">
+                    <p>Seed sample activity logs for testing</p>
+                    <form method="post" class="d-inline me-2">
+                        <button type="submit" asp-page-handler="SeedActivityLogs" class="btn btn-warning">
+                            <i class="bi bi-database-fill-add"></i> Seed Sample Activity Logs
+                        </button>
+                    </form>
+                    <a asp-page="/Admin/ActivityLogs/Index" class="btn btn-info">
+                        <i class="bi bi-eye"></i> View Activity Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
