@@ -1,12 +1,10 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Models;
-using CampusConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,21 +19,15 @@ namespace CampusConnect.Pages.RequestPages
     {
         private readonly TablesDbContext _context;
         private readonly ILogger<DetailsModel> _logger;
-        private readonly INotificationService _notifications;
-
-        public DetailsModel(TablesDbContext context, ILogger<DetailsModel> logger, INotificationService notifications)
+        public DetailsModel(TablesDbContext context, ILogger<DetailsModel> logger)
         {
             _context = context;
             _logger = logger;
-            _notifications = notifications;
         }
 
         public request request { get; private set; } = default!;
         public List<attachments> Attachments { get; private set; } = new();
-        public List<requestComments> Comments { get; private set; } = new();
-
-        [BindProperty]
-        public NewCommentInput Input { get; set; } = new();
+        public int CommentCount { get; private set; }
 
         public async Task<IActionResult> OnGetAsync(int? id, CancellationToken cancellationToken = default)
         {
@@ -85,101 +77,6 @@ namespace CampusConnect.Pages.RequestPages
             }
         }
 
-        public async Task<IActionResult> OnPostAddCommentAsync(int? id, CancellationToken cancellationToken = default)
-        {
-            if (id == null)
-                return NotFound();
-
-            var req = await _context.request
-                .AsNoTracking()
-                .Include(r => r.createdBy)
-                .Include(r => r.assignedTo)
-                .Include(r => r.status)
-                .Include(r => r.category)
-                .FirstOrDefaultAsync(r => r.requestID == id, cancellationToken);
-
-            if (req == null)
-                return NotFound();
-
-            if (!await CanAccessRequestAsync(req, cancellationToken))
-                return Forbid();
-
-            request = req;
-            await LoadRelatedDataAsync(req.requestID, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(Input.CommentText))
-                ModelState.AddModelError("Input.CommentText", "Comment text is required.");
-
-            if (!ModelState.IsValid)
-                return Page();
-
-            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(identityUserId))
-                return Forbid();
-
-            var appUser = await _context.users
-                .FirstOrDefaultAsync(u => u.identityUserId == identityUserId, cancellationToken);
-
-            if (appUser == null)
-                return Forbid();
-
-            var comment = new requestComments
-            {
-                requestID = req.requestID,
-                creatorID = appUser.userID,
-                commentText = Input.CommentText.Trim(),
-                createdAt = DateTime.UtcNow
-            };
-
-            _context.requestComments.Add(comment);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            if ((User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Staff"))
-                && req.created_by != appUser.userID)
-            {
-                var recipientIdentityUserId = await _context.users
-                    .AsNoTracking()
-                    .Where(u => u.userID == req.created_by)
-                    .Select(u => u.identityUserId)
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                if (!string.IsNullOrEmpty(recipientIdentityUserId))
-                {
-                    await _notifications.CreateStaffCommentNotificationAsync(
-                        req.requestID,
-                        recipientIdentityUserId,
-                        appUser.userID,
-                        comment.commentText ?? string.Empty,
-                        cancellationToken);
-                }
-            }
-
-            if (User.IsInRole("User") && req.assigned_to.HasValue && req.assigned_to.Value != appUser.userID)
-            {
-                var staffRecipientIdentityUserId = await _context.users
-                    .AsNoTracking()
-                    .Where(u => u.userID == req.assigned_to.Value)
-                    .Select(u => u.identityUserId)
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                var studentName = ((appUser.fName + " " + appUser.lName).Trim()) == ""
-                    ? appUser.email
-                    : (appUser.fName + " " + appUser.lName).Trim();
-
-                if (!string.IsNullOrEmpty(staffRecipientIdentityUserId))
-                {
-                    await _notifications.CreateStudentCommentNotificationAsync(
-                        req.requestID,
-                        staffRecipientIdentityUserId,
-                        studentName,
-                        comment.commentText ?? string.Empty,
-                        cancellationToken);
-                }
-            }
-
-            return RedirectToPage(new { id = req.requestID });
-        }
-
         private async Task LoadRelatedDataAsync(int requestId, CancellationToken cancellationToken)
         {
             Attachments = await _context.attachments
@@ -189,12 +86,10 @@ namespace CampusConnect.Pages.RequestPages
                 .OrderByDescending(a => a.uploadedAt)
                 .ToListAsync(cancellationToken);
 
-            Comments = await _context.requestComments
+            CommentCount = await _context.requestComments
                 .AsNoTracking()
                 .Where(c => c.requestID == requestId)
-                .Include(c => c.creator)
-                .OrderBy(c => c.createdAt)
-                .ToListAsync(cancellationToken);
+                .CountAsync(cancellationToken);
         }
 
         private async Task<bool> CanAccessRequestAsync(request req, CancellationToken cancellationToken)
@@ -216,11 +111,19 @@ namespace CampusConnect.Pages.RequestPages
             return appUser != null && req.created_by == appUser.userID;
         }
 
-        public class NewCommentInput
+        public string GetDisplayName(user? person, string fallback = "Unknown user")
         {
-            [Required]
-            [StringLength(1000)]
-            public string CommentText { get; set; } = string.Empty;
+            if (person == null)
+                return fallback;
+
+            var fullName = $"{person.fName} {person.lName}".Trim();
+            if (!string.IsNullOrWhiteSpace(fullName))
+                return fullName;
+
+            if (!string.IsNullOrWhiteSpace(person.email))
+                return person.email;
+
+            return fallback;
         }
     }
 }

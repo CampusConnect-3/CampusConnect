@@ -37,14 +37,5 @@ function showRequestDetail(requestId) {
             console.log('Received HTML, updating modal');
             modalContent.innerHTML = html;
         })
-        .catch(error => {
-            console.error('Error loading request details:', error);
-            modalContent.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Failed to load request details. Please try again.
-                    <br><small>Error: ${error.message}</small>
-                </div>
-            `;
-        });
+        .catch(error => console.error('Error:', error));
 }
