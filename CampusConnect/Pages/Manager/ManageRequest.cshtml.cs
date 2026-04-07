@@ -1,5 +1,6 @@
 using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,12 +18,18 @@ namespace CampusConnect.Pages.Manager
         private readonly TablesDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ILogger<ManageRequestModel> _logger;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public ManageRequestModel(TablesDbContext context, UserManager<IdentityUser> userManager, ILogger<ManageRequestModel> logger)
+        public ManageRequestModel(
+            TablesDbContext context, 
+            UserManager<IdentityUser> userManager, 
+            ILogger<ManageRequestModel> logger,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _activityLogger = activityLogger;
         }
 
         public request RequestItem { get; set; } = default!;
@@ -65,7 +72,6 @@ namespace CampusConnect.Pages.Manager
 
             var categoryName = category.categoryName?.Trim();
 
-            // Get all active users with matching department
             var usersInDepartment = await _context.users
                 .Where(u => u.status == "Active" 
                     && !string.IsNullOrEmpty(u.identityUserId)
@@ -75,7 +81,6 @@ namespace CampusConnect.Pages.Manager
 
             var filteredStaff = new List<object>();
 
-            // Filter by Staff role
             foreach (var u in usersInDepartment)
             {
                 var identityUser = await _userManager.FindByIdAsync(u.identityUserId!);
@@ -99,16 +104,13 @@ namespace CampusConnect.Pages.Manager
 
         private async Task LoadDropdowns(int categoryID)
         {
-            // Get the category to filter staff
             var selectedCategory = await _context.category
                 .FirstOrDefaultAsync(c => c.categoryID == categoryID);
 
-            // Get all active users
             var activeUsers = await _context.users
                 .Where(u => u.status == "Active" && !string.IsNullOrEmpty(u.identityUserId))
                 .ToListAsync();
 
-            // Filter by department if category has one
             if (selectedCategory != null && !string.IsNullOrEmpty(selectedCategory.categoryName))
             {
                 var categoryName = selectedCategory.categoryName.Trim();
@@ -117,7 +119,6 @@ namespace CampusConnect.Pages.Manager
                     .ToList();
             }
 
-            // Filter by Staff role
             var staffUsers = new List<user>();
             foreach (var u in activeUsers)
             {
@@ -138,7 +139,6 @@ namespace CampusConnect.Pages.Manager
 
             StaffOptions = new SelectList(staffDisplay, "userID", "FullName");
 
-            // Load categories and statuses
             var categories = await _context.category.OrderBy(c => c.categoryName).ToListAsync();
             CategoryOptions = new SelectList(categories, "categoryID", "categoryName");
 
@@ -167,7 +167,7 @@ namespace CampusConnect.Pages.Manager
             AssignedTo = req.assigned_to;
             Priority = req.priority;
             StatusId = req.statusID;
-            AssignedDate = req.createdAt; // temporary
+            AssignedDate = req.createdAt;
 
             await LoadDropdowns(req.categoryID);
 
@@ -176,79 +176,107 @@ namespace CampusConnect.Pages.Manager
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
-            if (!ModelState.IsValid)
+            var request = await _context.request
+                .Include(r => r.category)
+                .Include(r => r.status)
+                .Include(r => r.assignedTo)
+                .FirstOrDefaultAsync(r => r.requestID == id);
+
+            if (request == null)
             {
-                var reloadedForValidation = await _context.request
-                    .Include(r => r.createdBy)
-                    .Include(r => r.assignedTo)
-                    .Include(r => r.status)
-                    .Include(r => r.category)
-                    .FirstOrDefaultAsync(r => r.requestID == id);
-
-                if (reloadedForValidation == null)
-                    return NotFound();
-
-                RequestItem = reloadedForValidation;
-                await LoadDropdowns(CategoryID);
-                return Page();
-            }
-
-            var req = await _context.request.FirstOrDefaultAsync(r => r.requestID == id);
-
-            if (req == null)
                 return NotFound();
-
-            // Update category
-            req.categoryID = CategoryID;
-            req.assigned_to = AssignedTo;
-            req.priority = Priority ?? req.priority;
-
-            // If a technician is assigned and no status was selected, force In Progress
-            if (AssignedTo.HasValue && !StatusId.HasValue)
-            {
-                var inProgressStatus = await _context.requestStatus
-                    .FirstOrDefaultAsync(s => s.statusName == "In Progress");
-
-                if (inProgressStatus != null)
-                {
-                    req.statusID = inProgressStatus.statusID;
-                }
-            }
-            else
-            {
-                req.statusID = StatusId;
             }
 
-            // Prevent closing a request if no technician is assigned
-            if (!AssignedTo.HasValue)
-            {
-                var closedStatus = await _context.requestStatus
-                    .FirstOrDefaultAsync(s => s.statusName == "Closed");
+            // Track changes for logging
+            var oldCategoryId = request.categoryID;
+            var oldAssignedTo = request.assigned_to;
+            var oldPriority = request.priority;
+            var oldStatusId = request.statusID;
+            var oldCategory = request.category?.categoryName;
+            var oldStatus = request.status?.statusName;
+            var oldAssignee = request.assignedTo != null 
+                ? $"{request.assignedTo.fName} {request.assignedTo.lName}" 
+                : "Unassigned";
 
-                if (closedStatus != null && req.statusID == closedStatus.statusID)
-                {
-                    ModelState.AddModelError(string.Empty, "You cannot close a request that has not been assigned to a technician.");
-
-                    var reloaded = await _context.request
-                        .Include(r => r.createdBy)
-                        .Include(r => r.assignedTo)
-                        .Include(r => r.status)
-                        .Include(r => r.category)
-                        .FirstOrDefaultAsync(r => r.requestID == id);
-
-                    if (reloaded == null)
-                        return NotFound();
-
-                    RequestItem = reloaded;
-                    await LoadDropdowns(CategoryID);
-                    return Page();
-                }
-            }
-
-            if (AssignedDate.HasValue)
-                req.createdAt = AssignedDate.Value;
+            // Update request
+            request.categoryID = CategoryID;
+            request.assigned_to = AssignedTo;
+            request.priority = Priority;
+            request.statusID = StatusId;
 
             await _context.SaveChangesAsync();
+
+            // Reload with new navigation properties
+            await _context.Entry(request).Reference(r => r.category).LoadAsync();
+            await _context.Entry(request).Reference(r => r.status).LoadAsync();
+            await _context.Entry(request).Reference(r => r.assignedTo).LoadAsync();
+
+            // Log category change
+            if (oldCategoryId != CategoryID)
+            {
+                await _activityLogger.LogActivityAsync(
+                    action: "changed_category",
+                    requestId: request.requestID,
+                    requestTitle: request.title,
+                    details: new Dictionary<string, object>
+                    {
+                        { "oldCategory", oldCategory ?? "Unknown" },
+                        { "newCategory", request.category?.categoryName ?? "Unknown" }
+                    }
+                );
+            }
+
+            // Log assignment change
+            if (oldAssignedTo != AssignedTo)
+            {
+                var newAssignee = request.assignedTo != null
+                    ? $"{request.assignedTo.fName} {request.assignedTo.lName}"
+                    : "Unassigned";
+
+                await _activityLogger.LogActivityAsync(
+                    action: "reassigned_request",
+                    requestId: request.requestID,
+                    requestTitle: request.title,
+                    details: new Dictionary<string, object>
+                    {
+                        { "oldAssignee", oldAssignee },
+                        { "newAssignee", newAssignee },
+                        { "department", request.category?.categoryName ?? "Unknown" }
+                    }
+                );
+            }
+
+            // Log priority change
+            if (oldPriority != Priority)
+            {
+                await _activityLogger.LogActivityAsync(
+                    action: "changed_priority",
+                    requestId: request.requestID,
+                    requestTitle: request.title,
+                    details: new Dictionary<string, object>
+                    {
+                        { "oldPriority", oldPriority ?? "Unknown" },
+                        { "newPriority", Priority ?? "Unknown" }
+                    }
+                );
+            }
+
+            // Log status change
+            if (oldStatusId != StatusId)
+            {
+                var newStatus = request.status?.statusName ?? "Unknown";
+
+                await _activityLogger.LogActivityAsync(
+                    action: "status_changed",
+                    requestId: request.requestID,
+                    requestTitle: request.title,
+                    details: new Dictionary<string, object>
+                    {
+                        { "oldStatus", oldStatus ?? "Unknown" },
+                        { "newStatus", newStatus }
+                    }
+                );
+            }
 
             _logger.LogInformation("Manager updated request. RequestId={RequestId}, CategoryId={CategoryId}, AssignedTo={AssignedTo}",
                 id, CategoryID, AssignedTo);

@@ -13,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IActivityLoggerService, ActivityLoggerService>();
+builder.Services.AddHttpContextAccessor(); // Required for getting HTTP context
 
 // DbContext Registration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

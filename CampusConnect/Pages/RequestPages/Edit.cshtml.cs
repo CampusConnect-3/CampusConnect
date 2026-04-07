@@ -19,15 +19,21 @@ namespace CampusConnect.Pages.RequestPages
     [Authorize(Roles = "Admin,Manager")]
     public class EditModel : PageModel
     {
-        private readonly CampusConnect.Data.TablesDbContext _context;
+        private readonly TablesDbContext _context;
         private readonly ILogger<EditModel> _logger;
         private readonly INotificationService _notifications;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public EditModel(TablesDbContext context, ILogger<EditModel> logger, INotificationService notifications)
+        public EditModel(
+            TablesDbContext context, 
+            ILogger<EditModel> logger, 
+            INotificationService notifications,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _logger = logger;
             _notifications = notifications;
+            _activityLogger = activityLogger;
         }
 
         [BindProperty]
@@ -61,18 +67,25 @@ namespace CampusConnect.Pages.RequestPages
                 return Page();
             }
 
-            // SECURITY: Prevent created_by from being tampered with
-            var existing = await _context.request.AsNoTracking()
+            var existing = await _context.request
+                .Include(r => r.category)
+                .Include(r => r.status)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.requestID == request.requestID, cancellationToken);
 
             if (existing == null)
                 return NotFound();
 
-            request.created_by = existing.created_by;
-            request.createdAt = existing.createdAt;
-
+            // Track changes
+            var titleChanged = existing.title != request.title;
+            var descriptionChanged = existing.description != request.description;
+            var priorityChanged = existing.priority != request.priority;
             var statusChanged = existing.statusID != request.statusID;
             var assigneeChanged = existing.assigned_to != request.assigned_to;
+            var categoryChanged = existing.categoryID != request.categoryID;
+
+            request.created_by = existing.created_by;
+            request.createdAt = existing.createdAt;
 
             var recipientIdentityUserId = await _context.users
                 .AsNoTracking()
@@ -100,46 +113,150 @@ namespace CampusConnect.Pages.RequestPages
             {
                 await _context.SaveChangesAsync(cancellationToken);
 
-                if (statusChanged && !string.IsNullOrEmpty(recipientIdentityUserId))
+                // Reload navigation properties
+                await _context.Entry(request).Reference(r => r.category).LoadAsync(cancellationToken);
+                await _context.Entry(request).Reference(r => r.status).LoadAsync(cancellationToken);
+
+                // Log title change
+                if (titleChanged)
                 {
-                    await _notifications.CreateStatusChangedNotificationAsync(
-                        request.requestID,
-                        recipientIdentityUserId,
-                        request.statusID,
-                        cancellationToken);
+                    await _activityLogger.LogActivityAsync(
+                        action: "edited_request_title",
+                        requestId: request.requestID,
+                        requestTitle: request.title,
+                        details: new Dictionary<string, object>
+                        {
+                            { "oldTitle", existing.title },
+                            { "newTitle", request.title }
+                        }
+                    );
                 }
 
-                if (assigneeChanged && request.assigned_to.HasValue && !string.IsNullOrEmpty(recipientIdentityUserId))
+                // Log description change
+                if (descriptionChanged)
                 {
-                    await _notifications.CreateStudentAssignmentNotificationAsync(
-                        request.requestID,
-                        recipientIdentityUserId,
-                        request.assigned_to.Value,
-                        cancellationToken);
+                    await _activityLogger.LogActivityAsync(
+                        action: "edited_request_description",
+                        requestId: request.requestID,
+                        requestTitle: request.title,
+                        details: new Dictionary<string, object>
+                        {
+                            { "changed", "Description updated" }
+                        }
+                    );
                 }
 
-                if (assigneeChanged && request.assigned_to.HasValue && !string.IsNullOrEmpty(assigneeIdentityUserId))
+                // Log priority change
+                if (priorityChanged)
                 {
-                    await _notifications.CreateStaffAssignmentNotificationAsync(
-                        request.requestID,
-                        assigneeIdentityUserId,
-                        requesterName,
-                        cancellationToken);
+                    await _activityLogger.LogActivityAsync(
+                        action: "changed_priority",
+                        requestId: request.requestID,
+                        requestTitle: request.title,
+                        details: new Dictionary<string, object>
+                        {
+                            { "oldPriority", existing.priority },
+                            { "newPriority", request.priority }
+                        }
+                    );
                 }
 
-                _logger.LogInformation("CRITICAL: Request edited. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                // Log category change
+                if (categoryChanged)
+                {
+                    await _activityLogger.LogActivityAsync(
+                        action: "changed_category",
+                        requestId: request.requestID,
+                        requestTitle: request.title,
+                        details: new Dictionary<string, object>
+                        {
+                            { "oldCategory", existing.category?.categoryName ?? "Unknown" },
+                            { "newCategory", request.category?.categoryName ?? "Unknown" }
+                        }
+                    );
+                }
+
+                // Log status change
+                if (statusChanged)
+                {
+                    await _activityLogger.LogActivityAsync(
+                        action: "status_changed",
+                        requestId: request.requestID,
+                        requestTitle: request.title,
+                        details: new Dictionary<string, object>
+                        {
+                            { "oldStatus", existing.status?.statusName ?? "Unknown" },
+                            { "newStatus", request.status?.statusName ?? "Unknown" }
+                        }
+                    );
+
+                    if (!string.IsNullOrEmpty(recipientIdentityUserId))
+                    {
+                        await _notifications.CreateStatusChangedNotificationAsync(
+                            request.requestID,
+                            recipientIdentityUserId,
+                            request.statusID,
+                            cancellationToken);
+                    }
+                }
+
+                // Log assignment change
+                if (assigneeChanged)
+                {
+                    var oldAssignee = existing.assigned_to.HasValue 
+                        ? await _context.users
+                            .Where(u => u.userID == existing.assigned_to.Value)
+                            .Select(u => $"{u.fName} {u.lName}")
+                            .FirstOrDefaultAsync(cancellationToken) ?? "Unassigned"
+                        : "Unassigned";
+
+                    var newAssignee = request.assigned_to.HasValue
+                        ? await _context.users
+                            .Where(u => u.userID == request.assigned_to.Value)
+                            .Select(u => $"{u.fName} {u.lName}")
+                            .FirstOrDefaultAsync(cancellationToken) ?? "Unassigned"
+                        : "Unassigned";
+
+                    await _activityLogger.LogActivityAsync(
+                        action: "reassigned_request",
+                        requestId: request.requestID,
+                        requestTitle: request.title,
+                        details: new Dictionary<string, object>
+                        {
+                            { "oldAssignee", oldAssignee },
+                            { "newAssignee", newAssignee }
+                        }
+                    );
+
+                    if (request.assigned_to.HasValue && !string.IsNullOrEmpty(recipientIdentityUserId))
+                    {
+                        await _notifications.CreateStudentAssignmentNotificationAsync(
+                            request.requestID,
+                            recipientIdentityUserId,
+                            request.assigned_to.Value,
+                            cancellationToken);
+                    }
+
+                    if (request.assigned_to.HasValue && !string.IsNullOrEmpty(assigneeIdentityUserId))
+                    {
+                        await _notifications.CreateStaffAssignmentNotificationAsync(
+                            request.requestID,
+                            assigneeIdentityUserId,
+                            requesterName,
+                            cancellationToken);
+                    }
+                }
+
+                _logger.LogInformation("Request edited. RequestId={RequestId} UserId={UserId}",
                     request.requestID,
-                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier
+                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 );
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 _logger.LogWarning(ex,
-                    "Concurrency conflict editing request. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    request.requestID,
-                    User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    HttpContext.TraceIdentifier
+                    "Concurrency conflict editing request. RequestId={RequestId}",
+                    request.requestID
                 );
 
                 if (!requestExists(request.requestID))
@@ -151,92 +268,23 @@ namespace CampusConnect.Pages.RequestPages
             return RedirectToPage("./Index");
         }
 
-        // AJAX handler for dynamic staff filtering when category changes
-        public async Task<JsonResult> OnGetFilteredStaffAsync(int categoryId, CancellationToken cancellationToken = default)
+        private bool requestExists(int id)
         {
-            var category = await _context.category
-                .FirstOrDefaultAsync(c => c.categoryID == categoryId, cancellationToken);
-
-            if (category == null)
-            {
-                return new JsonResult(new List<object>());
-            }
-
-            var categoryName = category.categoryName?.Trim();
-
-            // Filter users where department matches the category name (case-insensitive)
-            var filteredStaff = await _context.users
-                .Where(u => u.department != null && u.department.Trim().ToLower() == categoryName.ToLower())
-                .Select(u => new
-                {
-                    u.userID,
-                    u.email,
-                    u.fName,
-                    u.lName,
-                    u.department
-                })
-                .OrderBy(u => u.fName)
-                .ThenBy(u => u.lName)
-                .ToListAsync(cancellationToken);
-
-            _logger.LogInformation("Filtered {Count} staff members for category '{CategoryName}'", 
-                filteredStaff.Count, categoryName);
-
-            return new JsonResult(filteredStaff);
+            return _context.request.Any(e => e.requestID == id);
         }
 
         private async Task PopulateDropdownsAsync(int categoryID, CancellationToken cancellationToken = default)
         {
-            // Get the category to filter staff by matching department
-            var selectedCategory = await _context.category
-                .FirstOrDefaultAsync(c => c.categoryID == categoryID, cancellationToken);
+            var categories = await _context.category.ToListAsync(cancellationToken);
+            ViewData["categoryID"] = new SelectList(categories, "categoryID", "categoryName");
 
-            // Filter staff by department matching category name (case-insensitive, trimmed)
-            var staffQuery = _context.users.AsQueryable();
-            
-            if (selectedCategory != null)
-            {
-                var categoryName = selectedCategory.categoryName?.Trim();
-                
-                // Match user.department with category.categoryName (case-insensitive)
-                staffQuery = staffQuery.Where(u => 
-                    u.department != null && 
-                    u.department.Trim().ToLower() == categoryName.ToLower()
-                );
+            var statuses = await _context.requestStatus.ToListAsync(cancellationToken);
+            ViewData["statusID"] = new SelectList(statuses, "statusID", "statusName");
 
-                // Log for debugging
-                _logger.LogInformation("Filtering staff by category: {CategoryName}", categoryName);
-            }
-
-            var filteredStaff = await staffQuery
-                .OrderBy(u => u.fName)
-                .ThenBy(u => u.lName)
-                .Select(u => new
-                {
-                    u.userID,
-                    DisplayText = $"{u.fName} {u.lName} ({u.email}) - {u.department}"
-                })
+            var staff = await _context.users
+                .Where(u => u.status == "Active")
                 .ToListAsync(cancellationToken);
-
-            // Log the count for debugging
-            _logger.LogInformation("Found {Count} staff members for category {CategoryId}", 
-                filteredStaff.Count, categoryID);
-
-            ViewData["assigned_to"] = new SelectList(
-                filteredStaff,
-                "userID",
-                "DisplayText",
-                request?.assigned_to
-            );
-
-            ViewData["categoryID"] = new SelectList(_context.category, "categoryID", "categoryName");
-            ViewData["created_by"] = new SelectList(_context.users, "userID", "email");
-            ViewData["statusID"] = new SelectList(_context.requestStatus, "statusID", "statusName");
-        }
-
-        private bool requestExists(int id)
-        {
-            return _context.request.Any(e => e.requestID == id);
+            ViewData["assigned_to"] = new SelectList(staff, "userID", "fName");
         }
     }
 }
