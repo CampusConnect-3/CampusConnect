@@ -1,0 +1,31 @@
+@page
+@model CampusConnect.Pages.Admin.ActivityLogs.EditModel
+@{
+    ViewData["Title"] = "Review Activity Log";
+}
+
+<div class="container mt-4">
+    <h1>Review Activity Log</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>@Model.ActivityLog?.Action.Replace("_", " ")</h5>
+            <p class="text-muted">
+                By @Model.ActivityLog?.UserName (@Model.ActivityLog?.UserRole) <br/>
+                @Model.ActivityLog?.Timestamp.ToLocalTime()
+            </p>
+        </div>
+    </div>
+
+    <form method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Review Notes</label>
+            <textarea asp-for="ReviewNotes" class="form-control" rows="4" placeholder="Add your review notes..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">Mark as Reviewed</button>
+        <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

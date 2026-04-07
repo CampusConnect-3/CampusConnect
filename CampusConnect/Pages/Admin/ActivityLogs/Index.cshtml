@@ -1,0 +1,88 @@
+@page
+@model CampusConnect.Pages.Admin.ActivityLogs.IndexModel
+@{
+    ViewData["Title"] = "Activity Logs";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-clock-history"></i> Activity Logs</h1>
+        <div>
+            <a asp-page="./Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Log Manual Entry
+            </a>
+        </div>
+    </div>
+
+    @if (Model.ActivityLogs?.Any() == true)
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Request</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.ActivityLogs)
+                    {
+                        <tr class="@(log.Reviewed ? "table-secondary" : "")">
+                            <td>@log.Timestamp.ToLocalTime().ToString("MMM dd, yyyy hh:mm tt")</td>
+                            <td>
+                                <strong>@log.UserName</strong><br/>
+                                <small class="text-muted">@log.UserRole</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">@log.Action.Replace("_", " ")</span>
+                            </td>
+                            <td>
+                                @if (log.RequestId.HasValue)
+                                {
+                                    <a asp-page="/RequestPages/Details" asp-route-id="@log.RequestId">
+                                        #@log.RequestId - @log.RequestTitle
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </td>
+                            <td>
+                                @if (log.Reviewed)
+                                {
+                                    <span class="badge bg-success">Reviewed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a asp-page="./Details" asp-route-id="@log.Id" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-page="./Edit" asp-route-id="@log.Id" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-page="./Delete" asp-route-id="@log.Id" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No activity logs found.</div>
+    }
+</div>

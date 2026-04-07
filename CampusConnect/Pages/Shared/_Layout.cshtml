@@ -10,6 +10,7 @@
     bool isArchive = currentPage == "/Manager/Archive";
     bool isAIInsights = currentPage == "/Manager/AIInsights/Index";
     bool isTestMongo = currentPage == "/Admin/TestMongo";
+    bool isActivityLogs = currentPage == "/Admin/ActivityLogs/Index";
 }
 
 <!DOCTYPE html>
@@ -100,6 +101,12 @@
                                 <a class="nav-link @(isTestMongo ? "active fw-bold text-primary" : "text-dark")"
                                    asp-page="/Admin/TestMongo">
                                     <i class="bi bi-database"></i> MongoDB Test
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(isActivityLogs ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Admin/ActivityLogs/Index">
+                                    <i class="bi bi-clock-history"></i> Activity Logs
                                 </a>
                             </li>
                         }
