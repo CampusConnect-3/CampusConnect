@@ -15,6 +15,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using CampusConnect.Services;
 
 namespace CampusConnect.Pages.RequestPages
 {
@@ -24,12 +26,21 @@ namespace CampusConnect.Pages.RequestPages
         private readonly TablesDbContext _context;
         private readonly ILogger<CreateModel> _logger;
         private readonly IWebHostEnvironment _env;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public CreateModel(TablesDbContext context, ILogger<CreateModel> logger, IWebHostEnvironment env)
+        public CreateModel(
+            TablesDbContext context,
+            ILogger<CreateModel> logger,
+            IWebHostEnvironment env,
+            UserManager<IdentityUser> userManager,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _logger = logger;
             _env = env;
+            _userManager = userManager;
+            _activityLogger = activityLogger;
         }
 
         [BindProperty]
@@ -80,6 +91,20 @@ namespace CampusConnect.Pages.RequestPages
             // Save request first to get the requestID
             _context.request.Add(request);
             await _context.SaveChangesAsync(cancellationToken);
+
+            // LOG THE ACTIVITY
+            await _activityLogger.LogActivityAsync(
+                action: "created_request",
+                requestId: request.requestID,
+                requestTitle: request.title,
+                details: new Dictionary<string, object>
+                {
+                    { "priority", request.priority },
+                    { "category", request.category?.categoryName ?? "Unknown" },
+                    { "building", request.buildingName },
+                    { "room", request.roomNumber }
+                }
+            );
 
             _logger.LogInformation(
                 "Request created. RequestId={RequestId} UserId={UserId}",

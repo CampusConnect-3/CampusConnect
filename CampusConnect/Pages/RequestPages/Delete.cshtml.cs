@@ -1,11 +1,13 @@
 ﻿using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
@@ -18,11 +20,16 @@ namespace CampusConnect.Pages.RequestPages
     {
         private readonly TablesDbContext _context;
         private readonly ILogger<DeleteModel> _logger;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public DeleteModel(TablesDbContext context, ILogger<DeleteModel> logger)
+        public DeleteModel(
+            TablesDbContext context, 
+            ILogger<DeleteModel> logger,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _logger = logger;
+            _activityLogger = activityLogger;
         }
 
         [BindProperty]
@@ -43,10 +50,7 @@ namespace CampusConnect.Pages.RequestPages
 
                 if (req == null)
                 {
-                    _logger.LogWarning("DELETE GET NOT FOUND. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                        id,
-                        User.FindFirstValue(ClaimTypes.NameIdentifier),
-                        HttpContext.TraceIdentifier);
+                    _logger.LogWarning("DELETE GET NOT FOUND. RequestId={RequestId}", id);
                     return NotFound();
                 }
 
@@ -55,11 +59,8 @@ namespace CampusConnect.Pages.RequestPages
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "DELETE GET FAILED. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    id,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    HttpContext.TraceIdentifier);
-                throw; // let global exception handler render /Error
+                _logger.LogError(ex, "DELETE GET FAILED. RequestId={RequestId}", id);
+                throw;
             }
         }
 
@@ -71,35 +72,42 @@ namespace CampusConnect.Pages.RequestPages
             try
             {
                 var req = await _context.request
+                    .Include(r => r.category)
                     .FirstOrDefaultAsync(r => r.requestID == id, cancellationToken);
 
                 if (req == null)
                 {
-                    _logger.LogWarning("DELETE POST NOT FOUND. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                        id,
-                        User.FindFirstValue(ClaimTypes.NameIdentifier),
-                        HttpContext.TraceIdentifier);
+                    _logger.LogWarning("DELETE POST NOT FOUND. RequestId={RequestId}", id);
                     return NotFound();
                 }
+
+                // LOG THE DELETION BEFORE REMOVING
+                await _activityLogger.LogActivityAsync(
+                    action: "deleted_request",
+                    requestId: req.requestID,
+                    requestTitle: req.title,
+                    details: new Dictionary<string, object>
+                    {
+                        { "category", req.category?.categoryName ?? "Unknown" },
+                        { "priority", req.priority },
+                        { "building", req.buildingName },
+                        { "room", req.roomNumber }
+                    }
+                );
 
                 _context.request.Remove(req);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                // ✅ Critical operation log
-                _logger.LogWarning("CRITICAL OPERATION: REQUEST DELETED. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
+                _logger.LogWarning("CRITICAL: REQUEST DELETED. RequestId={RequestId} UserId={UserId}",
                     id,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    HttpContext.TraceIdentifier);
+                    User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 return RedirectToPage("./Index");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "DELETE POST FAILED. RequestId={RequestId} UserId={UserId} TraceId={TraceId}",
-                    id,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    HttpContext.TraceIdentifier);
-                throw; // let global exception handler render /Error
+                _logger.LogError(ex, "DELETE POST FAILED. RequestId={RequestId}", id);
+                throw;
             }
         }
     }

@@ -1,11 +1,13 @@
 using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -16,11 +18,16 @@ namespace CampusConnect.Pages.StaffPages
     {
         private readonly TablesDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public RequestDetailModel(TablesDbContext context, UserManager<IdentityUser> userManager)
+        public RequestDetailModel(
+            TablesDbContext context, 
+            UserManager<IdentityUser> userManager,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _userManager = userManager;
+            _activityLogger = activityLogger;
         }
 
         public request RequestItem { get; set; } = default!;
@@ -62,6 +69,14 @@ namespace CampusConnect.Pages.StaffPages
             var currentUser = await _context.users
                 .FirstOrDefaultAsync(u => u.identityUserId == identityUser.Id);
 
+            var request = await _context.request
+                .FirstOrDefaultAsync(r => r.requestID == requestId);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
             var comment = new requestComments
             {
                 requestID = requestId,
@@ -73,9 +88,20 @@ namespace CampusConnect.Pages.StaffPages
             _context.requestComments.Add(comment);
             await _context.SaveChangesAsync();
 
-            // TODO: Trigger notification to request creator
+            // LOG THE ACTIVITY
+            await _activityLogger.LogActivityAsync(
+                action: "added_comment",
+                requestId: requestId,
+                requestTitle: request.title,
+                details: new Dictionary<string, object>
+                {
+                    { "commentPreview", commentText.Length > 50 
+                        ? commentText.Substring(0, 50) + "..." 
+                        : commentText }
+                }
+            );
 
-            // Reload the request with updated data and return partial view
+            // Reload the request with updated data
             RequestItem = await _context.request
                 .Include(r => r.category)
                 .Include(r => r.status)
@@ -106,6 +132,14 @@ namespace CampusConnect.Pages.StaffPages
             var currentUser = await _context.users
                 .FirstOrDefaultAsync(u => u.identityUserId == identityUser.Id);
 
+            var request = await _context.request
+                .FirstOrDefaultAsync(r => r.requestID == requestId);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
             // Save file to wwwroot/uploads
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             if (!Directory.Exists(uploadsFolder))
@@ -134,9 +168,20 @@ namespace CampusConnect.Pages.StaffPages
             _context.attachments.Add(attachment);
             await _context.SaveChangesAsync();
 
-            // TODO: Trigger notification to request creator
+            // LOG THE ACTIVITY
+            await _activityLogger.LogActivityAsync(
+                action: "added_attachment",
+                requestId: requestId,
+                requestTitle: request.title,
+                details: new Dictionary<string, object>
+                {
+                    { "fileName", file.FileName },
+                    { "fileSize", file.Length },
+                    { "contentType", file.ContentType }
+                }
+            );
 
-            // Reload the request with updated data and return partial view
+            // Reload the request with updated data
             RequestItem = await _context.request
                 .Include(r => r.category)
                 .Include(r => r.status)

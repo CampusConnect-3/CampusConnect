@@ -1,6 +1,7 @@
 using CampusConnect.Constants;
 using CampusConnect.Data;
 using CampusConnect.Models;
+using CampusConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +18,16 @@ namespace CampusConnect.Pages.StaffPages
     {
         private readonly TablesDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public QueueModel(TablesDbContext context, UserManager<IdentityUser> userManager)
+        public QueueModel(
+            TablesDbContext context, 
+            UserManager<IdentityUser> userManager,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _userManager = userManager;
+            _activityLogger = activityLogger;
         }
 
         public user? CurrentUser { get; set; }
@@ -97,7 +103,10 @@ namespace CampusConnect.Pages.StaffPages
             var currentUser = await _context.users
                 .FirstOrDefaultAsync(u => u.identityUserId == identityUser.Id);
 
-            var request = await _context.request.FindAsync(requestId);
+            var request = await _context.request
+                .Include(r => r.category)
+                .FirstOrDefaultAsync(r => r.requestID == requestId);
+                
             if (request == null)
             {
                 return NotFound();
@@ -105,6 +114,18 @@ namespace CampusConnect.Pages.StaffPages
 
             request.assigned_to = currentUser!.userID;
             await _context.SaveChangesAsync();
+
+            // LOG THE ACTIVITY
+            await _activityLogger.LogActivityAsync(
+                action: "assigned_request",
+                requestId: request.requestID,
+                requestTitle: request.title,
+                details: new Dictionary<string, object>
+                {
+                    { "assignedTo", $"{currentUser.fName} {currentUser.lName}" },
+                    { "department", request.category?.categoryName ?? "Unknown" }
+                }
+            );
 
             return RedirectToPage();
         }
