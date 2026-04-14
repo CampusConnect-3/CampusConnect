@@ -1,0 +1,154 @@
+﻿@page
+@model CampusConnect.Pages.Admin.TestGeminiModel
+@{
+    ViewData["Title"] = "Test Gemini API & AI Insights";
+}
+
+<div class="container mt-4">
+    <h1>🤖 Test Gemini API & AI Insights</h1>
+
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Step 1: Check API Connection -->
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5>Step 1: Available Models</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.AvailableModels.Any())
+                    {
+                        <div class="alert alert-success">
+                            <strong>✓ API Connection Successful!</strong>
+                            <p class="mb-0">Your API key has access to @Model.AvailableModels.Count model(s)</p>
+                        </div>
+                        <ul class="list-group">
+                            @foreach (var modelName in Model.AvailableModels)
+                            {
+                                <li class="list-group-item">
+                                    <code>@modelName</code>
+                                    @if (modelName.Contains(Model.CurrentModel, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span class="badge bg-success ms-2">Currently Configured</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            <strong>✗ No models found</strong>
+                            <p class="mb-0">Check your API key in appsettings.json</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Step 2: Check MongoDB Connection -->
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5>Step 2: MongoDB Status</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.MongoDbConnected)
+                    {
+                        <div class="alert alert-success">
+                            <strong>✓ MongoDB Connected</strong>
+                            <ul class="mb-0">
+                                <li>Request Snapshots: <strong>@Model.RequestSnapshotCount</strong></li>
+                                <li>AI Insights: <strong>@Model.InsightCount</strong></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            <strong>✗ MongoDB Not Connected</strong>
+                            <p class="mb-0">Check your connection string in appsettings.json</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Step 3: Sync Test Requests -->
+            <div class="card mb-3">
+                <div class="card-header bg-warning">
+                    <h5>Step 3: Sync Requests to MongoDB</h5>
+                </div>
+                <div class="card-body">
+                    <p>Sync recent requests from SQL to MongoDB for AI analysis</p>
+                    <form method="post" asp-page-handler="SyncRequests">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-arrow-repeat"></i> Sync Recent Requests
+                        </button>
+                    </form>
+                    @if (!string.IsNullOrEmpty(Model.SyncMessage))
+                    {
+                        <div class="alert alert-info mt-3">@Model.SyncMessage</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Step 4: Generate Insights -->
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5>Step 4: Generate AI Insights</h5>
+                </div>
+                <div class="card-body">
+                    <p>Generate AI insights for synced requests</p>
+                    <form method="post" asp-page-handler="GenerateInsights">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-stars"></i> Generate Insights
+                        </button>
+                    </form>
+                    @if (!string.IsNullOrEmpty(Model.InsightMessage))
+                    {
+                        <div class="alert alert-info mt-3">@Model.InsightMessage</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Step 5: View Results -->
+            @if (Model.RecentInsights.Any())
+            {
+                <div class="card mb-3">
+                    <div class="card-header bg-dark text-white">
+                        <h5>Recent AI Insights</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var insight in Model.RecentInsights)
+                        {
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <h6>@insight.Title</h6>
+                                    <p class="small text-muted">
+                                        Building: @insight.BuildingName | 
+                                        Category: @insight.CategoryName | 
+                                        Severity: <span class="badge bg-@(insight.Severity == "Critical" ? "danger" : insight.Severity == "Warning" ? "warning" : "info")">@insight.Severity</span>
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(insight.Description))
+                                    {
+                                        var displayLength = Math.Min(200, insight.Description.Length);
+                                        <p>@insight.Description.Substring(0, displayLength)@(displayLength < insight.Description.Length ? "..." : "")</p>
+                                    }
+                                    <small class="text-muted">Generated: @insight.GeneratedAt.ToString("g")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-header h5 {
+        margin: 0;
+    }
+    code {
+        background-color: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+</style>

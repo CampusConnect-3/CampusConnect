@@ -1,0 +1,88 @@
+﻿@page
+@model CampusConnect.Pages.Admin.TestApiKeyModel
+@{
+    ViewData["Title"] = "Gemini API Key Test";
+}
+
+<div class="container mt-4">
+    <h2>🔑 Gemini API Key Test</h2>
+
+    <div class="card mb-3">
+        <div class="card-header bg-primary text-white">
+            <h5>Configuration Check</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tr>
+                    <th width="200">API Key Preview:</th>
+                    <td><code>@Model.ApiKeyPreview</code></td>
+                </tr>
+                <tr>
+                    <th>Full Length:</th>
+                    <td>@Model.ApiKey.Length characters @(Model.ApiKey.Length == 39 ? "✅ (Expected length)" : "⚠️ (Unusual length)")</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td>
+                        @if (Model.IsSuccess)
+                        {
+                            <span class="badge bg-success">✅ API Key Valid</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">❌ API Key Invalid</span>
+                        }
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header @(Model.IsSuccess ? "bg-success" : "bg-danger") text-white">
+            <h5>API Test Result</h5>
+        </div>
+        <div class="card-body">
+            <pre style="background: #f5f5f5; padding: 15px; overflow-x: auto; max-height: 500px;">@Model.TestResult</pre>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header bg-info text-white">
+            <h5>Troubleshooting Steps</h5>
+        </div>
+        <div class="card-body">
+            <ol>
+                <li>
+                    <strong>Get a new API key:</strong> 
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank">https://aistudio.google.com/app/apikey</a>
+                </li>
+                <li>
+                    <strong>Enable the API:</strong> 
+                    <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank">Enable Generative Language API</a>
+                </li>
+                <li>
+                    <strong>Check for restrictions:</strong> Make sure there are NO application restrictions or API restrictions on your key
+                </li>
+                <li>
+                    <strong>Verify appsettings.json:</strong> Make sure the key is on a single line with no spaces or line breaks
+                </li>
+                <li>
+                    <strong>Try a different key:</strong> Sometimes keys generated at different times have different permissions
+                </li>
+            </ol>
+
+            <h6 class="mt-3">Common Error Messages:</h6>
+            <ul>
+                <li><code>403 Forbidden</code> - API key has restrictions or API not enabled</li>
+                <li><code>404 Not Found</code> - Wrong endpoint or model doesn't exist</li>
+                <li><code>429 Too Many Requests</code> - Rate limit exceeded</li>
+                <li><code>400 Bad Request</code> - Invalid API key format</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Admin/TestGemini" class="btn btn-primary">← Back to Test Page</a>
+    </div>
+</div>

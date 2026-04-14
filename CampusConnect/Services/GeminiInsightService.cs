@@ -135,8 +135,8 @@ public class GeminiInsightService
 
     private async Task<string> CallGeminiApiAsync(string prompt)
     {
-        // FIXED: Use v1 instead of v1beta
-        var url = $"https://generativelanguage.googleapis.com/v1/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
+        // FIXED: Changed from v1 to v1beta
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
 
         var requestBody = new
         {
@@ -250,5 +250,63 @@ Keep your response concise (under 300 words) and actionable.";
         var sampleScore = Math.Min(categoryCount / 10.0, 1.0);
         var concentrationScore = categoryCount / (double)totalRequests;
         return (sampleScore + concentrationScore) / 2.0;
+    }
+
+    // Add this method to GeminiInsightService class
+    public async Task<List<string>> ListAvailableModelsAsync()
+    {
+        try
+        {
+            _logger.LogInformation("=== GEMINI API DIAGNOSTICS ===");
+            _logger.LogInformation("API Key (first 10 chars): {KeyPreview}", _settings.ApiKey?.Substring(0, Math.Min(10, _settings.ApiKey?.Length ?? 0)));
+            _logger.LogInformation("API Key Length: {Length}", _settings.ApiKey?.Length ?? 0);
+            _logger.LogInformation("Model Setting: {Model}", _settings.Model);
+            
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models?key={_settings.ApiKey}";
+            _logger.LogInformation("Request URL: {Url}", url.Replace(_settings.ApiKey, "***API_KEY***"));
+            
+            var response = await _httpClient.GetAsync(url);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            
+            _logger.LogInformation("Response Status: {Status}", response.StatusCode);
+            _logger.LogInformation("Response Body: {Body}", responseBody);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = JsonDocument.Parse(responseBody);
+                var models = new List<string>();
+                
+                if (result.RootElement.TryGetProperty("models", out var modelsArray))
+                {
+                    foreach (var model in modelsArray.EnumerateArray())
+                    {
+                        if (model.TryGetProperty("name", out var name))
+                        {
+                            var modelName = name.GetString();
+                            if (modelName != null)
+                            {
+                                // Extract just the model name (remove "models/" prefix)
+                                var cleanName = modelName.Replace("models/", "");
+                                models.Add(cleanName);
+                                _logger.LogInformation("Found model: {ModelName}", cleanName);
+                            }
+                        }
+                    }
+                }
+                
+                return models;
+            }
+            else
+            {
+                _logger.LogError("API request failed with status {Status}: {Body}", response.StatusCode, responseBody);
+            }
+            
+            return new List<string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing available models");
+            return new List<string>();
+        }
     }
 }
