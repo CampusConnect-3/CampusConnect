@@ -135,7 +135,7 @@ public class GeminiInsightService
 
     private async Task<string> CallGeminiApiAsync(string prompt)
     {
-        // FIXED: Changed from v1 to v1beta
+        // Use the model name directly (it will be "gemini-2.5-flash")
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
 
         var requestBody = new
@@ -162,7 +162,7 @@ public class GeminiInsightService
 
         try
         {
-            _logger.LogInformation("Calling Gemini API: {Url}", url);
+            _logger.LogInformation("Calling Gemini API: {Url}", url.Replace(_settings.ApiKey, "***"));
             var response = await _httpClient.PostAsync(url, content);
             
             var responseBody = await response.Content.ReadAsStringAsync();
