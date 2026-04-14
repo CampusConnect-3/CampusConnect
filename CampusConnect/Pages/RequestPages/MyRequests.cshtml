@@ -23,6 +23,7 @@
         gap: 12px;
         align-items: center;
         margin-bottom: 8px;
+        flex-wrap: wrap;
     }
 
     .filter-label {
@@ -64,12 +65,49 @@
     .priority-medium { color: #f39f5f; font-weight: 600; }
     .priority-low { color: #2ecc71; font-weight: 600; }
 
+    .subject-cell {
+        display: grid;
+        gap: 6px;
+    }
+
+    .subject-title {
+        font-weight: 700;
+    }
+
+    .conversation-meta {
+        color: #5b5b5b;
+        font-size: 13px;
+    }
+
     .pager {
         text-align: center;
         margin-top: 18px;
     }
 
     a.details-link { color: #1b6ec2; text-decoration: none; }
+
+    .request-tabs {
+        display: flex;
+        gap: 12px;
+        margin: 18px 0;
+        flex-wrap: wrap;
+    }
+
+    .request-tab {
+        display: inline-block;
+        padding: 10px 18px;
+        border: 2px solid #111;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #111;
+        font-weight: 700;
+        background: #fff;
+    }
+
+    .request-tab.active {
+        background: #2156b0;
+        color: #fff;
+    }
 </style>
 
 <div class="my-requests-shell">
@@ -79,8 +117,22 @@
 
     <h1>My Requests</h1>
 
+    <div class="request-tabs" aria-label="Request views">
+        <a class="request-tab @(Model.ShowingHistory ? "" : "active")"
+           asp-page="./MyRequests"
+           asp-route-view="active">
+            Active
+        </a>
+        <a class="request-tab @(Model.ShowingHistory ? "active" : "")"
+           asp-page="./MyRequests"
+           asp-route-view="history">
+            Closed / History
+        </a>
+    </div>
+
     <div class="card-box">
         <form method="get" class="filter-bar" aria-label="Filter requests">
+            <input type="hidden" name="View" value="@Model.View" />
             <div class="filter-label">Filter by</div>
 
             <select name="StatusFilter" class="filter-select" onchange="this.form.submit()">
@@ -111,7 +163,9 @@
                 @if (Model.Requests?.Any() != true)
                 {
                     <tr>
-                        <td colspan="5" style="padding:28px; text-align:center; color:#666;">You have not submitted any requests.</td>
+                        <td colspan="5" style="padding:28px; text-align:center; color:#666;">
+                            @(Model.ShowingHistory ? "You do not have any closed requests yet." : "You do not have any active requests right now.")
+                        </td>
                     </tr>
                 }
                 else
@@ -120,24 +174,36 @@
                     {
                         <tr>
                             <td>
-                                <a class="details-link" asp-page="./Details" asp-route-id="@r.requestID">@r.requestID.ToString("D5")</a>
+                                <a class="details-link" asp-page="./Details" asp-route-id="@r.Request.requestID">@r.Request.requestID.ToString("D5")</a>
                             </td>
-                            <td>@r.title</td>
                             <td>
-                                @if (r.status != null)
+                                <div class="subject-cell">
+                                    <div class="subject-title">@r.Request.title</div>
+                                    <div class="conversation-meta">
+                                        @if (r.CommentCount > 0)
+                                        {
+                                            <span>@r.CommentCount comment@(r.CommentCount == 1 ? "" : "s")</span>
+                                            <span> • </span>
+                                        }
+                                        <a class="details-link" asp-page="./Conversation" asp-route-id="@r.Request.requestID">View history</a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (r.Request.status != null)
                                 {
-                                    var s = r.status.statusName?.ToLowerInvariant() ?? "";
+                                    var s = r.Request.status.statusName?.ToLowerInvariant() ?? "";
                                     if (s.Contains("closed"))
                                     {
-                                        <span class="status-closed">@r.status.statusName</span>
+                                        <span class="status-closed">@r.Request.status.statusName</span>
                                     }
                                     else if (s.Contains("progress"))
                                     {
-                                        <span class="status-inprogress">@r.status.statusName</span>
+                                        <span class="status-inprogress">@r.Request.status.statusName</span>
                                     }
                                     else
                                     {
-                                        <span class="status-todo">@r.status.statusName</span>
+                                        <span class="status-todo">@r.Request.status.statusName</span>
                                     }
                                 }
                                 else
@@ -146,9 +212,28 @@
                                 }
                             </td>
                             <td>
-                                <partial name="_PriorityBadge" model="@r.priority" />
+                                @if (!string.IsNullOrEmpty(r.Request.priority))
+                                {
+                                    var p = r.Request.priority.ToLowerInvariant();
+                                    if (p.Contains("high"))
+                                    {
+                                        <span class="priority-high">@r.Request.priority</span>
+                                    }
+                                    else if (p.Contains("med"))
+                                    {
+                                        <span class="priority-medium">@r.Request.priority</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="priority-low">@r.Request.priority</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span style="color:#777;">Pending</span>
+                                }
                             </td>
-                            <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
+                            <td>@r.LastActivityAt.ToString("MM/dd/yyyy h:mm tt")</td>
                         </tr>
                     }
                 }
