@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace CampusConnect.Pages
 {
@@ -33,6 +34,7 @@ namespace CampusConnect.Pages
 
         // Used for "View All" logic
         public int TotalMyRequests { get; private set; }
+        public bool HasMoreRecentRequests => TotalMyRequests > RecentRequests.Count;
 
         // Recent requests (your Index.cshtml expects List<request>)
         public List<request> RecentRequests { get; private set; } = new();
@@ -93,7 +95,8 @@ namespace CampusConnect.Pages
             ClosedCount = allMyRequests.Count(r => r.status?.statusName == RequestStatuses.Closed);
 
             RecentRequests = allMyRequests
-                .OrderByDescending(r => r.createdAt)
+                .OrderBy(r => string.Equals(r.status?.statusName, RequestStatuses.Closed, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
+                .ThenByDescending(r => r.createdAt)
                 .Take(3)
                 .ToList();
 

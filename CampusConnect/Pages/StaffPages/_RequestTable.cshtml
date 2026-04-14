@@ -23,8 +23,14 @@ else
             <tbody>
                 @foreach (var item in Model)
                 {
-                    <tr>
-                        <td>@item.requestID</td>
+                    <tr style="cursor: pointer;" onclick="showRequestDetail(@item.requestID)">
+                        <td onclick="event.stopPropagation();">
+                            <a asp-page="/RequestPages/Details"
+                               asp-route-id="@item.requestID"
+                               class="fw-semibold text-decoration-none">
+                                @item.requestID
+                            </a>
+                        </td>
                         <td>@item.title</td>
                         <td>@item.buildingName - @item.roomNumber</td>
                         <td>
