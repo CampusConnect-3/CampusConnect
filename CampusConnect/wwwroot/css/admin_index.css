@@ -1,0 +1,447 @@
+﻿/* admin_index.css */
+
+body {
+    background-color: #f0f2f5;
+}
+
+/*  Page Header  */
+
+.um-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+    .um-header h1 {
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        color: #111;
+        margin: 0 0 4px;
+        text-align: center;
+    }
+
+    .um-header p {
+        font-size: 16px !important;
+        color: #6b7280;
+        margin: 0;
+        text-align: center;
+    }
+
+/* Create Button */
+
+.btn-create {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: 6px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+    .btn-create:hover {
+        background: transparent;
+        color: #185FA5;
+    }
+
+    .btn-create:active {
+        transform: scale(0.95);
+    }
+
+/* Stat Cards */
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid #e0e0e0;
+}
+
+    .stat-card .stat-label {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0;
+    }
+
+    .stat-card.blue {
+        border-color: #d0e4f7;
+    }
+
+        .stat-card.blue .stat-label {
+            color: #185FA5;
+        }
+
+        .stat-card.blue .stat-value {
+            color: #0C447C;
+        }
+
+    .stat-card.green {
+        border-color: #b8dca0;
+    }
+
+        .stat-card.green .stat-label {
+            color: #3B6D11;
+        }
+
+        .stat-card.green .stat-value {
+            color: #173404;
+        }
+
+    .stat-card.amber {
+        border-color: #f0d8a0;
+    }
+
+        .stat-card.amber .stat-label {
+            color: #BA7517;
+        }
+
+        .stat-card.amber .stat-value {
+            color: #633806;
+        }
+
+    .stat-card.purple {
+        border-color: #c9bff5;
+    }
+
+        .stat-card.purple .stat-label {
+            color: #534AB7;
+        }
+
+        .stat-card.purple .stat-value {
+            color: #26215C;
+        }
+
+/* Search Card */
+
+.search-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 24px;
+    border: 1px solid #e0e0e0;
+}
+
+    .search-card .form-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 16px;
+        margin-bottom: 0.4rem;
+    }
+
+    .search-card .form-control,
+    .search-card .form-select {
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+        padding: 0.625rem 1rem;
+        font-size: 16px;
+        transition: all 0.2s ease;
+    }
+
+        .search-card .form-control:focus,
+        .search-card .form-select:focus {
+            border-color: #185FA5;
+            box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.1);
+        }
+
+.btn-search {
+    font-size: 15px; 
+    font-weight: 600;
+    padding: 10px 40px; 
+    border-radius: 6px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.btn-search:hover {
+    background: #6b7280;
+    color: #fff
+}
+
+.btn-reset {
+    font-size: 15px; 
+    font-weight: 600;
+    padding: 10px 40px; 
+    border-radius: 6px;
+    border: 1.5px solid #6b7280;
+    background: transparent;
+    color: #6b7280;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+    .btn-reset:hover {
+        background: #6b7280;
+        color: #fff;
+    }
+
+/* --- Active Filter Tags --- */
+
+.filter-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.active-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+    .active-filter-tag a {
+        color: #0369a1;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+        .active-filter-tag a:hover {
+            color: #dc2626;
+        }
+
+/* --- Table Card --- */
+
+.table-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-meta {
+    font-size: 16px;
+    color: #6b7280;
+    padding: 14px 16px 20px;
+    text-align: center; 
+}
+
+.table-card table {
+    margin: 0;
+}
+
+.table-card thead tr {
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.table-card thead th {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    padding: 14px 16px;
+    border: none;
+}
+
+.table-card tbody tr {
+    border-top: 1px solid #ececec;
+    transition: background 0.1s;
+    cursor: pointer;
+}
+
+    .table-card tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+.table-card tbody td {
+    padding: 13px 16px;
+    border: none;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+/* --- Cell Styles --- */
+
+.user-name {
+    font-weight: 600;
+    color: #111;
+}
+
+.user-secondary {
+    color: #185FA5;
+    font-size: 13px;
+}
+
+/* --- Role Pills --- */
+
+.role-pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.role-admin {
+    background: #fff0f0;
+    color: #A32D2D;
+    border-color: #f5c0c0;
+}
+
+.role-manager {
+    background: #EEEDFE;
+    color: #534AB7;
+    border-color: #c9bff5;
+}
+
+.role-staff {
+    background: #f0f7ff;
+    color: #185FA5;
+    border-color: #d0e4f7;
+}
+
+.role-user {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+.role-other {
+    background: #f1efe8;
+    color: #5F5E5A;
+    border-color: #d3d1c7;
+}
+
+/* --- Status Badges --- */
+
+.badge-pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.status-active {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+.status-pending {
+    background: #fff8ec;
+    color: #BA7517;
+    border-color: #f0d8a0;
+}
+
+.status-other {
+    background: #f1efe8;
+    color: #5F5E5A;
+    border-color: #d3d1c7;
+}
+
+/* --- Info Button --- */
+
+.info-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #185FA5;
+    background: #fff;
+    color: #185FA5;
+    font-size: 13px;
+    font-weight: 700;
+    font-style: italic;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+    .info-btn:hover {
+        background: #185FA5;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .info-btn:active {
+        transform: scale(0.95);
+    }
+
+/* --- Pagination --- */
+
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    gap: 6px;
+    padding: 14px 16px;
+    background: white;
+    flex-wrap: wrap;
+    border-top: 1px solid #f3f4f6;
+}
+
+.page-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1.5px solid #d0e4f7;
+    background: #fff;
+    color: #185FA5;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+    .page-btn:hover:not(:disabled) {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn.active {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn:disabled {
+        color: #aaa;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+
+    .page-btn:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+.page-info {
+    font-size: 12px;
+    color: #888;
+    margin-left: 8px;
+}

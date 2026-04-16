@@ -5,279 +5,51 @@
     ViewData["Title"] = "Active Request Queue";
 }
 
-<style>
-    .queue-container {
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-
-    .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .page-header h1 {
-        margin: 0;
-        font-size: 2rem;
-        font-weight: 700;
-    }
-
-    .page-header p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.95;
-        font-size: 0.95rem;
-    }
-
-    .search-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e5e7eb;
-    }
-
-    .priority-badges {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-        margin-bottom: 1.5rem;
-    }
-
-    .priority-badge-large {
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    }
-
-    .priority-section {
-        margin-bottom: 1.5rem;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        transition: all 0.3s ease;
-    }
-
-    .priority-section:hover {
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-    }
-
-    .priority-header {
-        cursor: pointer;
-        padding: 1.25rem 1.5rem;
-        transition: all 0.2s ease;
-        user-select: none;
-    }
-
-    .priority-header:hover {
-        filter: brightness(0.95);
-    }
-
-    .priority-header h3 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 700;
-    }
-
-    .priority-critical .priority-header {
-        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-        border-left: 6px solid #7f1d1d;
-    }
-
-    .priority-high .priority-header {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        border-left: 6px solid #b45309;
-    }
-
-    .priority-medium .priority-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-left: 6px solid #1d4ed8;
-    }
-
-    .priority-low .priority-header {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        border-left: 6px solid #047857;
-    }
-
-    .card-body {
-        background: #fafafa;
-        padding: 0;
-    }
-
-    .table-responsive {
-        border-radius: 0 0 12px 12px;
-        overflow: hidden;
-    }
-
-    .table {
-        margin: 0;
-        background: white;
-    }
-
-    .table thead {
-        background: #f9fafb;
-        border-bottom: 2px solid #e5e7eb;
-    }
-
-    .table thead th {
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        color: #6b7280;
-        padding: 1rem;
-        border: none;
-    }
-
-    .table tbody td {
-        padding: 1rem;
-        vertical-align: middle;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .table tbody tr:hover {
-        background: #f9fafb;
-    }
-
-    .info-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 2px solid #3b82f6;
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-        color: white;
-        font-size: 16px;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-    }
-
-    .info-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
-        color: white;
-        text-decoration: none;
-    }
-
-    .badge {
-        padding: 0.35rem 0.75rem;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .status-assigned {
-        color: #059669;
-        font-weight: 600;
-    }
-
-    .status-unassigned {
-        color: #dc2626;
-        font-weight: 600;
-    }
-
-    .status-unassigned-medium {
-        color: #d97706;
-        font-weight: 600;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: #9ca3af;
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-
-    .section-count {
-        font-size: 1rem;
-        padding: 0.4rem 0.8rem;
-        border-radius: 8px;
-        font-weight: 700;
-    }
-
-    .btn {
-        border-radius: 8px;
-        padding: 0.625rem 1.25rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-
-    .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .form-control {
-        border-radius: 8px;
-        border: 2px solid #e5e7eb;
-        padding: 0.625rem 1rem;
-        transition: all 0.2s ease;
-    }
-
-    .form-control:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .request-id {
-        font-weight: 700;
-        color: #1f2937;
-        font-size: 0.95rem;
-    }
-
-    .collapse-indicator {
-        transition: transform 0.3s ease;
-        margin-left: auto;
-        font-size: 1.2rem;
-    }
-
-    .collapsed .collapse-indicator {
-        transform: rotate(-90deg);
-    }
-</style>
+<link rel="stylesheet" href="~/css/manager_queue.css" />
 
 <div class="queue-container">
+
     <div class="page-header">
         <h1>📋 Active Request Queue</h1>
         <p>
-            Requests are organized by priority level and sorted by submission date. 
+            Requests are organized by priority level and sorted by submission date.
             Critical and high priority requests are expanded by default.
         </p>
     </div>
 
+    <!-- Search & Filter Card -->
     <div class="search-card">
         <form method="get" class="row g-3">
-            <div class="col-md-9">
-                <label asp-for="SearchTerm" class="form-label">Search Requests</label>
-                <input asp-for="SearchTerm" class="form-control" placeholder="Search by ticket ID, title, creator name..." />
+
+            <!-- Category Dropdown -->
+            <div class="col-md-4">
+                <label class="form-label">Filter by Category</label>
+                <select name="CategoryFilter" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in Model.CategoryOptions)
+                    {
+                        if (cat.Value == Model.CategoryFilter?.ToString())
+                        {
+                            <option value="@cat.Value" selected>@cat.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@cat.Value">@cat.Text</option>
+                        }
+                    }
+                </select>
             </div>
-            <div class="col-md-3 d-flex align-items-end">
-                <div class="d-grid gap-2 w-100">
+
+            <!-- Text Search -->
+            <div class="col-md-5">
+                <label asp-for="SearchTerm" class="form-label">Search by Ticket ID, Title, or Name</label>
+                <input asp-for="SearchTerm" class="form-control" placeholder="e.g. 1031, Broken, Kate Erickson..." />
+            </div>
+
+            <!-- Buttons — invisible label keeps vertical alignment -->
+            <div class="col-md-3">
+                <label class="form-label invisible">Actions</label>
+                <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search"></i> Search
                     </button>
@@ -286,9 +58,32 @@
                     </a>
                 </div>
             </div>
+
         </form>
+
+        @if (Model.CategoryFilter.HasValue || !string.IsNullOrWhiteSpace(Model.SearchTerm))
+        {
+            <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                <span class="filter-label">Active filters:</span>
+                @if (Model.CategoryFilter.HasValue)
+                {
+                    <span class="active-filter-tag">
+                        Category: @Model.CategoryOptions.FirstOrDefault(c => c.Value == Model.CategoryFilter.ToString())?.Text
+                        <a asp-page="./Queue" asp-route-SearchTerm="@Model.SearchTerm">✕</a>
+                    </span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                {
+                    <span class="active-filter-tag">
+                        Search: "@Model.SearchTerm"
+                        <a asp-page="./Queue" asp-route-CategoryFilter="@Model.CategoryFilter">✕</a>
+                    </span>
+                }
+            </div>
+        }
     </div>
 
+    <!-- Priority Summary Badges -->
     <div class="priority-badges">
         <span class="priority-badge-large bg-danger text-white">
             🔴 Critical <strong>@Model.CriticalRequests.Count</strong>
@@ -333,18 +128,12 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody data-section="critical">
                                 @foreach (var item in Model.CriticalRequests)
                                 {
-                                    var createdByName = item.createdBy != null
-                                        ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
-                                        : "Unknown";
-
-                                    var assignedToName = item.assignedTo != null
-                                        ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
-                                        : null;
-
-                                    <tr>
+                                    var createdByName = item.createdBy != null ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim() : "Unknown";
+                                    var assignedToName = item.assignedTo != null ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim() : null;
+                                    <tr class="queue-row">
                                         <td><span class="request-id">#@item.requestID</span></td>
                                         <td><strong>@item.title</strong></td>
                                         <td>@item.category?.categoryName</td>
@@ -357,13 +146,13 @@
                                             }
                                             else
                                             {
+
                                                 <span class="status-unassigned">⚠️ Unassigned</span>
                                             }
                                         </td>
                                         <td>@item.createdAt.ToString("MM/dd/yy HH:mm")</td>
                                         <td>
-                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" 
-                                               class="info-btn" title="View & Manage">
+                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" class="info-btn" title="View & Manage">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                         </td>
@@ -372,6 +161,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="pagination-bar" id="pagination-critical"></div>
                 </div>
             </div>
         </div>
@@ -406,18 +196,12 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody data-section="high">
                                 @foreach (var item in Model.HighPriorityRequests)
                                 {
-                                    var createdByName = item.createdBy != null
-                                        ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
-                                        : "Unknown";
-
-                                    var assignedToName = item.assignedTo != null
-                                        ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
-                                        : null;
-
-                                    <tr>
+                                    var createdByName = item.createdBy != null ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim() : "Unknown";
+                                    var assignedToName = item.assignedTo != null ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim() : null;
+                                    <tr class="queue-row">
                                         <td><span class="request-id">#@item.requestID</span></td>
                                         <td><strong>@item.title</strong></td>
                                         <td>@item.category?.categoryName</td>
@@ -430,13 +214,13 @@
                                             }
                                             else
                                             {
+
                                                 <span class="status-unassigned-medium">⚠️ Unassigned</span>
                                             }
                                         </td>
                                         <td>@item.createdAt.ToString("MM/dd/yy HH:mm")</td>
                                         <td>
-                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" 
-                                               class="info-btn" title="View & Manage">
+                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" class="info-btn" title="View & Manage">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                         </td>
@@ -445,13 +229,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="pagination-bar" id="pagination-high"></div>
                 }
                 else
                 {
-                    <div class="empty-state">
-                        <div>🎉</div>
-                        <p class="mb-0">No high priority requests at this time.</p>
-                    </div>
+                    <div class="empty-state"><div>🎉</div><p class="mb-0">No high priority requests at this time.</p></div>
                 }
             </div>
         </div>
@@ -486,18 +268,12 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody data-section="medium">
                                 @foreach (var item in Model.MediumPriorityRequests)
                                 {
-                                    var createdByName = item.createdBy != null
-                                        ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
-                                        : "Unknown";
-
-                                    var assignedToName = item.assignedTo != null
-                                        ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
-                                        : null;
-
-                                    <tr>
+                                    var createdByName = item.createdBy != null ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim() : "Unknown";
+                                    var assignedToName = item.assignedTo != null ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim() : null;
+                                    <tr class="queue-row">
                                         <td><span class="request-id">#@item.requestID</span></td>
                                         <td><strong>@item.title</strong></td>
                                         <td>@item.category?.categoryName</td>
@@ -510,13 +286,13 @@
                                             }
                                             else
                                             {
+
                                                 <span class="text-muted fw-semibold">⚠️ Unassigned</span>
                                             }
                                         </td>
                                         <td>@item.createdAt.ToString("MM/dd/yy HH:mm")</td>
                                         <td>
-                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" 
-                                               class="info-btn" title="View & Manage">
+                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" class="info-btn" title="View & Manage">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                         </td>
@@ -525,13 +301,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="pagination-bar" id="pagination-medium"></div>
                 }
                 else
                 {
-                    <div class="empty-state">
-                        <div>✨</div>
-                        <p class="mb-0">No medium priority requests.</p>
-                    </div>
+                    <div class="empty-state"><div>✨</div><p class="mb-0">No medium priority requests.</p></div>
                 }
             </div>
         </div>
@@ -566,18 +340,12 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody data-section="low">
                                 @foreach (var item in Model.LowPriorityRequests)
                                 {
-                                    var createdByName = item.createdBy != null
-                                        ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
-                                        : "Unknown";
-
-                                    var assignedToName = item.assignedTo != null
-                                        ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
-                                        : null;
-
-                                    <tr>
+                                    var createdByName = item.createdBy != null ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim() : "Unknown";
+                                    var assignedToName = item.assignedTo != null ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim() : null;
+                                    <tr class="queue-row">
                                         <td><span class="request-id">#@item.requestID</span></td>
                                         <td><strong>@item.title</strong></td>
                                         <td>@item.category?.categoryName</td>
@@ -590,13 +358,13 @@
                                             }
                                             else
                                             {
+
                                                 <span class="text-muted fw-semibold">⚠️ Unassigned</span>
                                             }
                                         </td>
                                         <td>@item.createdAt.ToString("MM/dd/yy HH:mm")</td>
                                         <td>
-                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" 
-                                               class="info-btn" title="View & Manage">
+                                            <a asp-page="/Manager/ManageRequest" asp-route-id="@item.requestID" class="info-btn" title="View & Manage">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                         </td>
@@ -605,30 +373,18 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="pagination-bar" id="pagination-low"></div>
                 }
                 else
                 {
-                    <div class="empty-state">
-                        <div>✨</div>
-                        <p class="mb-0">No low priority requests.</p>
-                    </div>
+                    <div class="empty-state"><div>✨</div><p class="mb-0">No low priority requests.</p></div>
                 }
             </div>
         </div>
     </div>
+
 </div>
 
 @section Scripts {
-    <script>
-        // Update collapse indicator on toggle
-        document.addEventListener('shown.bs.collapse', function (e) {
-            const indicator = e.target.previousElementSibling.querySelector('.collapse-indicator');
-            if (indicator) indicator.classList.remove('collapsed');
-        });
-
-        document.addEventListener('hidden.bs.collapse', function (e) {
-            const indicator = e.target.previousElementSibling.querySelector('.collapse-indicator');
-            if (indicator) indicator.classList.add('collapsed');
-        });
-    </script>
+    <script src="~/js/manager_queue.js"></script>
 }

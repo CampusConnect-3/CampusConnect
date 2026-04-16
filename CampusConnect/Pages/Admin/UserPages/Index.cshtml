@@ -1,268 +1,159 @@
 ﻿@page
 @model CampusConnect.Pages.Admin.UserPages.IndexModel
-
 @{
     ViewData["Title"] = "User Management";
 }
 
-<style>
-    .page-shell {
-        max-width: 1200px;
-        margin: 18px auto;
-        padding: 18px;
-    }
+<link rel="stylesheet" href="~/css/admin_index.css" />
 
-    .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-    }
-
-    .page-title {
-        font-size: 24px;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    .btn-simple {
-        display: inline-block;
-        background: #0b5ed7;
-        color: #fff !important;
-        text-decoration: none;
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-        margin-bottom: 18px;
-    }
-
-    .summary-card {
-        border: 2px solid #111;
-        background: #fff;
-        padding: 14px;
-    }
-
-    .summary-label {
-        font-size: 13px;
-        color: #555;
-        margin-bottom: 8px;
-    }
-
-    .summary-value {
-        font-size: 28px;
-        font-weight: 700;
-        line-height: 1;
-    }
-
-    .card-box {
-        border: 2px solid #111;
-        background: #fff;
-        padding: 14px;
-    }
-
-    .search-row {
-        margin-bottom: 14px;
-    }
-
-    table.user-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-    }
-
-        table.user-table th {
-            text-align: left;
-            padding: 10px 8px;
-            border-bottom: 2px solid #111;
-            white-space: nowrap;
-        }
-
-        table.user-table td {
-            padding: 12px 8px;
-            border-top: 1px solid #ddd;
-            vertical-align: middle;
-        }
-
-    .muted {
-        color: #666;
-        font-size: 12px;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-weight: 700;
-        font-size: 12px;
-        line-height: 1;
-    }
-
-    .badge-active {
-        background: #198754;
-        color: #fff;
-    }
-
-    .badge-pending {
-        background: #f0ad4e;
-        color: #111;
-    }
-
-    .badge-other {
-        background: #6c757d;
-        color: #fff;
-    }
-
-    .role-text {
-        font-weight: 600;
-    }
-
-    .info-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 3px solid #1d4ed8;
-        background: #fff;
-        color: #1d4ed8;
-        font-size: 24px;
-        font-weight: 700;
-        line-height: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-        .info-btn:hover {
-            background: #eff6ff;
-            text-decoration: none;
-            color: #1d4ed8;
-        }
-</style>
-
-<div class="page-shell">
-    <div class="topbar">
-        <h1 class="page-title">User Management</h1>
-        <a class="btn-simple" asp-page="./Create">+ Create User</a>
+<div class="um-header">
+    <div>
+        <h1>User Management</h1>
+        <p>Manage all registered users, roles, and account statuses.</p>
     </div>
+</div>
 
-    <div class="summary-grid">
-        <div class="summary-card">
-            <div class="summary-label">Total Users</div>
-            <div class="summary-value">@Model.TotalUsers</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Active Users</div>
-            <div class="summary-value">@Model.ActiveUsers</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Pending Users</div>
-            <div class="summary-value">@Model.PendingUsers</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Staff / Managers</div>
-            <div class="summary-value">@Model.StaffAndManagers</div>
-        </div>
+<!-- Stat Cards -->
+<div class="stat-grid">
+    <div class="stat-card blue">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">@Model.TotalUsers</div>
     </div>
+    <div class="stat-card green">
+        <div class="stat-label">Active Users</div>
+        <div class="stat-value">@Model.ActiveUsers</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-label">Pending Users</div>
+        <div class="stat-value">@Model.PendingUsers</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-label">Staff / Managers</div>
+        <div class="stat-value">@Model.StaffAndManagers</div>
+    </div>
+</div>
 
-    <div class="card-box">
-        <form method="get" class="search-row">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-5">
-                    <input asp-for="SearchTerm"
-                           class="form-control"
-                           placeholder="Search by name, username, email, role, or status..." />
-                </div>
-
-                <div class="col-md-2">
-                    <select asp-for="RoleFilter" class="form-select">
-                        <option value="">All Roles</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Manager">Manager</option>
-                        <option value="Staff">Staff</option>
-                        <option value="User">User</option>
-                        <option value="Pending">Pending</option>
-                    </select>
-                </div>
-
-                <div class="col-md-auto d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Search</button>
-                    <a asp-page="./Index" class="btn btn-secondary">Reset</a>
-                </div>
+<!-- Search Card -->
+<div class="search-card">
+    <form method="get" class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Search</label>
+            <input asp-for="SearchTerm" class="form-control"
+                   placeholder="Search by name, username, email, role, or status..." />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Filter by Role</label>
+            <select asp-for="RoleFilter" class="form-select">
+                <option value="">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="Staff">Staff</option>
+                <option value="User">User</option>
+                <option value="Pending">Pending</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label invisible">Actions</label>
+            <div class="d-flex gap-3 justify-content-end">
+                <button type="submit" class="btn-search">Search</button>
+                <a asp-page="./Index" class="btn-reset">Reset</a>
             </div>
-        </form>
-
-        <div class="muted" style="margin-bottom:10px;">
-            Showing @Model.Users.Count users
         </div>
+    </form>
 
-        <table class="user-table">
-            <thead>
+    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || !string.IsNullOrWhiteSpace(Model.RoleFilter))
+    {
+        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+            <span class="filter-label">Active filters:</span>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+            {
+                <span class="active-filter-tag">
+                    Search: "@Model.SearchTerm"
+                    <a asp-page="./Index" asp-route-RoleFilter="@Model.RoleFilter">✕</a>
+                </span>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.RoleFilter))
+            {
+                <span class="active-filter-tag">
+                    Role: @Model.RoleFilter
+                    <a asp-page="./Index" asp-route-SearchTerm="@Model.SearchTerm">✕</a>
+                </span>
+            }
+        </div>
+    }
+</div>
+
+<!-- Table Card -->
+<div class="table-card">
+    <div class="table-meta">Showing @Model.Users.Count users</div>
+    <table class="table table-borderless" id="user-table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Info</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Users == null || !Model.Users.Any())
+            {
                 <tr>
-                    <th style="width:20%;">Full Name</th>
-                    <th style="width:16%;">Username</th>
-                    <th style="width:26%;">Email</th>
-                    <th style="width:16%;">Role</th>
-                    <th style="width:12%;">Status</th>
-                    <th style="width:10%;">Info</th>
+                    <td colspan="6" class="text-center text-muted py-4">No users found.</td>
                 </tr>
-            </thead>
-            <tbody>
-                @if (Model.Users == null || !Model.Users.Any())
+            }
+            else
+            {
+                foreach (var u in Model.Users)
                 {
-                    <tr>
-                        <td colspan="6" class="muted" style="padding:20px; text-align:center;">
-                            No users found.
+                    var roleClass = (u.RoleName?.ToLower()) switch
+                    {
+                        "admin" => "role-admin",
+                        "manager" => "role-manager",
+                        "staff" => "role-staff",
+                        "user" => "role-user",
+                        _ => "role-other"
+                    };
+
+                    <tr class="user-row">
+                        <td class="user-name">@(string.IsNullOrWhiteSpace(u.FullName) ? "(no profile)" : u.FullName)</td>
+                        <td class="user-secondary">@u.UserName</td>
+                        <td class="user-secondary">@u.Email</td>
+                        <td><span class="role-pill @roleClass">@u.RoleName</span></td>
+                        <td>
+                            @if (u.Status?.ToLowerInvariant().Contains("pending") == true)
+                            {
+                                <span class="badge-pill status-pending">Pending</span>
+                            }
+                            else if (u.Status?.ToLowerInvariant().Contains("active") == true)
+                            {
+                                <span class="badge-pill status-active">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge-pill status-other">@u.Status</span>
+                            }
+                        </td>
+                        <td>
+                            @if (u.AppUserId.HasValue)
+                            {
+                                <a asp-page="./Details"
+                                   asp-route-id="@u.AppUserId"
+                                   class="info-btn"
+                                   title="User Info">i</a>
+                            }
                         </td>
                     </tr>
                 }
-                else
-                {
-                    foreach (var u in Model.Users)
-                    {
-                        <tr>
-                            <td>@(string.IsNullOrWhiteSpace(u.FullName) ? "(no profile)" : u.FullName)</td>
-                            <td>@u.UserName</td>
-                            <td>@u.Email</td>
-                            <td class="role-text">@u.RoleName</td>
-                            <td>
-                                @if (u.Status?.ToLowerInvariant().Contains("pending") == true)
-                                {
-                                    <span class="badge badge-pending">Pending</span>
-                                }
-                                else if (u.Status?.ToLowerInvariant().Contains("active") == true)
-                                {
-                                    <span class="badge badge-active">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-other">@u.Status</span>
-                                }
-                            </td>
-                            <td>
-                                @if (u.AppUserId.HasValue)
-                                {
-                                    <a asp-page="./Details"
-                                       asp-route-id="@u.AppUserId"
-                                       class="info-btn"
-                                       title="User Info">
-                                        i
-                                    </a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
+
+    <div class="pagination-bar" id="pagination-users"></div>
 </div>
+
+@section Scripts {
+    <script src="~/js/admin_index.js"></script>
+}
