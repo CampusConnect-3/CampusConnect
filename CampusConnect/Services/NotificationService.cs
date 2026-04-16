@@ -11,6 +11,7 @@ namespace CampusConnect.Services
         Task<List<notification>> GetAllForIdentityUserAsync(string identityUserId, CancellationToken cancellationToken = default);
         Task MarkAsReadAsync(int notificationId, string identityUserId, CancellationToken cancellationToken = default);
         Task MarkAllAsReadAsync(string identityUserId, CancellationToken cancellationToken = default);
+        Task MarkCommentNotificationsAsReadAsync(int requestId, string identityUserId, CancellationToken cancellationToken = default);
         Task CreateStatusChangedNotificationAsync(int requestId, string recipientIdentityUserId, int? statusId, CancellationToken cancellationToken = default);
         Task CreateStudentAssignmentNotificationAsync(int requestId, string recipientIdentityUserId, int assignedToUserId, CancellationToken cancellationToken = default);
         Task CreateStaffAssignmentNotificationAsync(int requestId, string recipientIdentityUserId, string requesterName, CancellationToken cancellationToken = default);
@@ -84,6 +85,29 @@ namespace CampusConnect.Services
 
             var notifications = await _context.notifications
                 .Where(n => n.userId == identityUserId && !n.isRead)
+                .ToListAsync(cancellationToken);
+
+            if (!notifications.Any())
+                return;
+
+            foreach (var notification in notifications)
+            {
+                notification.isRead = true;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task MarkCommentNotificationsAsReadAsync(int requestId, string identityUserId, CancellationToken cancellationToken = default)
+        {
+            if (requestId <= 0 || string.IsNullOrWhiteSpace(identityUserId))
+                return;
+
+            var notifications = await _context.notifications
+                .Where(n => n.userId == identityUserId
+                    && n.requestId == requestId
+                    && !n.isRead
+                    && (n.title == "New staff comment" || n.title == "New student comment"))
                 .ToListAsync(cancellationToken);
 
             if (!notifications.Any())
@@ -171,7 +195,7 @@ namespace CampusConnect.Services
                 "New staff comment",
                 preview,
                 primaryActionText: "View comment",
-                primaryActionUrl: $"/RequestPages/Details?id={requestId}",
+                primaryActionUrl: $"/RequestPages/Conversation/{requestId}",
                 cancellationToken: cancellationToken);
         }
 
@@ -187,7 +211,7 @@ namespace CampusConnect.Services
                 "New student comment",
                 preview,
                 primaryActionText: "View comment",
-                primaryActionUrl: $"/RequestPages/Details?id={requestId}",
+                primaryActionUrl: $"/RequestPages/Conversation/{requestId}",
                 cancellationToken: cancellationToken);
         }
 

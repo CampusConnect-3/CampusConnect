@@ -34,6 +34,10 @@ namespace CampusConnect.Pages.Notifications
                 return RedirectToPage("/Notifications/Index");
 
             await _notifications.MarkAsReadAsync(notificationId, identityUserId, cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(notification.primaryActionUrl) && Url.IsLocalUrl(notification.primaryActionUrl))
+                return LocalRedirect(notification.primaryActionUrl);
+
             return RedirectToPage("/RequestPages/Details", new { id = notification.requestId });
         }
     }
