@@ -1,0 +1,253 @@
+﻿/* manager_exportarchive.css */
+
+body {
+    background-color: #f0f2f5;
+}
+
+/* Page Header */
+
+.detail-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+    .detail-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 6px;
+    }
+
+    .detail-header p {
+        font-size: 16px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+/* Main Card */
+
+.detail-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+}
+
+/* Top Bar */
+
+.detail-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.detail-ticket-id {
+    font-size: 16px;
+    font-weight: 700;
+    color: #6b7280;
+}
+
+/* Title & Description   */
+
+.detail-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 10px;
+}
+
+.detail-description {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.7;
+    background: #f8fafc;
+    border-left: 3px solid #d0e4f7;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 16px;
+    margin: 0 0 4px;
+}
+
+.detail-divider {
+    border-top: 1px solid #ececec;
+    margin: 20px 0;
+}
+
+/* Two Column Grid */
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+/* Section */
+
+.detail-section {
+    background: #f8fafc;
+    border: 1px solid #ececec;
+    border-radius: 8px;
+    padding: 16px 18px;
+}
+
+.section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #185FA5;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* Rows */
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #ececec;
+}
+
+    .detail-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+.detail-key {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.detail-val {
+    font-size: 14px;
+    color: #111;
+    font-weight: 600;
+    text-align: right;
+}
+
+.section-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #185FA5;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.user-val {
+    color: #185FA5;
+}
+
+.muted-val {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+/* Priority & Status Badges */
+
+.badge-pill {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.priority-high {
+    background: #fff0f0;
+    color: #A32D2D;
+    border-color: #f5c0c0;
+}
+
+.priority-critical {
+    background: #fff0f0;
+    color: #A32D2D;
+    border-color: #f5c0c0;
+}
+
+.priority-medium {
+    background: #fff8ec;
+    color: #BA7517;
+    border-color: #f0d8a0;
+}
+
+.priority-low {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+.status-closed {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+/* Action Buttons */
+
+.detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-export-pdf {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 22px;
+    border-radius: 6px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+    .btn-export-pdf:hover {
+        background: transparent;
+        color: #185FA5;
+    }
+
+    .btn-export-pdf:active {
+        transform: scale(0.95);
+    }
+
+.btn-back {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 22px;
+    border-radius: 6px;
+    border: 1.5px solid #6b7280;
+    background: transparent;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+    .btn-back:hover {
+        background: #6b7280;
+        color: #fff;
+    }
+
+    .btn-back:active {
+        transform: scale(0.95);
+    }
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-card {
+        padding: 20px 16px;
+    }
+}

@@ -1,48 +1,128 @@
 ﻿@page "{id:int}"
 @model CampusConnect.Pages.Manager.ArchiveExportModel
-
 @{
     ViewData["Title"] = "Archived Request Details";
-
     var createdByName = Model.RequestItem.createdBy != null
         ? $"{Model.RequestItem.createdBy.fName} {Model.RequestItem.createdBy.lName}".Trim()
         : "Unknown";
-
     var assignedToName = Model.RequestItem.assignedTo != null
         ? $"{Model.RequestItem.assignedTo.fName} {Model.RequestItem.assignedTo.lName}".Trim()
         : "Unassigned";
+
+    var priorityClass = (Model.RequestItem.priority?.ToLower()) switch
+    {
+        "high" => "priority-high",
+        "critical" => "priority-critical",
+        "medium" => "priority-medium",
+        "low" => "priority-low",
+        _ => "priority-medium"
+    };
 }
 
-<h1>Archived Request Details</h1>
+<link rel="stylesheet" href="~/css/manager_exportarchive.css" />
 
-<hr />
-
-<div class="mb-4">
-    <p><strong>Ticket Number:</strong> @Model.RequestItem.requestID</p>
-    <p><strong>Title of Request:</strong> @Model.RequestItem.title</p>
-    <p><strong>Description:</strong> @Model.RequestItem.description</p>
-    <p><strong>Created By:</strong> @createdByName</p>
-    <p><strong>Assigned To:</strong> @assignedToName</p>
-    <p><strong>Category:</strong> @Model.RequestItem.category?.categoryName</p>
-    <p><strong>Priority:</strong> @Model.RequestItem.priority</p>
-    <p><strong>Status:</strong> @Model.RequestItem.status?.statusName</p>
-    <p><strong>Building:</strong> @Model.RequestItem.buildingName</p>
-    <p><strong>Room Number:</strong> @Model.RequestItem.roomNumber</p>
-    <p><strong>Phone Number:</strong> @Model.RequestItem.phoneNumber</p>
-    <p><strong>Email:</strong> @Model.RequestItem.email</p>
-    <p><strong>Created At:</strong> @Model.RequestItem.createdAt.ToString("MM/dd/yyyy")</p>
-    <p><strong>Closed At:</strong> @Model.RequestItem.closedAt?.ToString("MM/dd/yyyy")</p>
+<div class="detail-header">
+    <h1>Archived Request Details</h1>
+    <p>Ticket #@Model.RequestItem.requestID — closed on @Model.RequestItem.closedAt?.ToString("MM/dd/yyyy")</p>
 </div>
 
-<div class="mt-4">
+<div class="detail-card">
+
+    <!-- Top bar with ticket ID and priority badge -->
+    <div class="detail-topbar">
+        <div class="detail-ticket-id">#@Model.RequestItem.requestID</div>
+        <span class="badge-pill @priorityClass">@Model.RequestItem.priority</span>
+        <span class="badge-pill status-closed">@Model.RequestItem.status?.statusName</span>
+    </div>
+
+    <h2 class="detail-title">@Model.RequestItem.title</h2>
+
+    @if (!string.IsNullOrWhiteSpace(Model.RequestItem.description))
+    {
+        <p class="detail-description">@Model.RequestItem.description</p>
+    }
+
+    <div class="detail-divider"></div>
+
+    <!-- Two column grid -->
+    <div class="detail-grid">
+
+        <div class="detail-section">
+            <div class="section-label">People</div>
+            <div class="detail-row">
+                <span class="detail-key">Created By</span>
+                <span class="detail-val user-val">@createdByName</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Assigned To</span>
+                <span class="detail-val @(Model.RequestItem.assignedTo != null ? "user-val" : "muted-val")">@assignedToName</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="section-label">Classification</div>
+            <div class="detail-row">
+                <span class="detail-key">Category</span>
+                <span class="detail-val">@Model.RequestItem.category?.categoryName</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Priority</span>
+                <span class="detail-val">@Model.RequestItem.priority</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Status</span>
+                <span class="detail-val">@Model.RequestItem.status?.statusName</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="section-label">Location</div>
+            <div class="detail-row">
+                <span class="detail-key">Building</span>
+                <span class="detail-val">@(Model.RequestItem.buildingName ?? "—")</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Room Number</span>
+                <span class="detail-val">@(Model.RequestItem.roomNumber ?? "—")</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="section-label">Contact</div>
+            <div class="detail-row">
+                <span class="detail-key">Phone</span>
+                <span class="detail-val">@(Model.RequestItem.phoneNumber ?? "—")</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Email</span>
+                <span class="detail-val">@(Model.RequestItem.email ?? "—")</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="section-label">Timeline</div>
+            <div class="detail-row">
+                <span class="detail-key">Created At</span>
+                <span class="detail-val">@Model.RequestItem.createdAt.ToString("MM/dd/yyyy")</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Closed At</span>
+                <span class="detail-val">@(Model.RequestItem.closedAt?.ToString("MM/dd/yyyy") ?? "—")</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="detail-actions">
     <a asp-page="./ArchiveExport"
        asp-page-handler="ExportPdf"
        asp-route-id="@Model.RequestItem.requestID"
-       class="btn btn-primary">
+       class="btn-export-pdf">
         Export PDF Report
     </a>
-
-    <a asp-page="/Manager/Archive" class="btn btn-secondary">
-        Back to Archive
+    <a asp-page="/Manager/Archive" class="btn-back">
+        ← Back to Archive
     </a>
 </div>

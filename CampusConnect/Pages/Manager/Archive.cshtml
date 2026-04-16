@@ -1,120 +1,106 @@
 ﻿@page
 @model CampusConnect.Pages.Manager.ArchiveModel
-
 @{
     ViewData["Title"] = "Archive";
 }
 
-<style>
-    .info-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 3px solid #1d4ed8;
-        background: #fff;
-        color: #1d4ed8;
-        font-size: 24px;
-        font-weight: 700;
-        line-height: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        text-decoration: none;
-    }
+<link rel="stylesheet" href="~/css/manager_archive.css" />
 
-        .info-btn:hover {
-            background: #eff6ff;
-            text-decoration: none;
-            color: #1d4ed8;
-        }
-</style>
+<div class="archive-header">
+    <h1>Archived Requests</h1>
+    <p>All completed (closed) requests.</p>
+</div>
 
-<h1>Archived Requests</h1>
-
-<p>All completed (closed) requests.</p>
-
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-5">
-        <label asp-for="SearchTerm" class="form-label">Search</label>
-        <input asp-for="SearchTerm"
-               class="form-control"
-               placeholder="Search title, creator, assigned user, category..." />
-    </div>
-
-    <div class="col-md-2">
-        <label asp-for="DateFrom" class="form-label">Closed From</label>
-        <input asp-for="DateFrom" type="date" class="form-control" />
-    </div>
-
-    <div class="col-md-2">
-        <label asp-for="DateTo" class="form-label">Closed To</label>
-        <input asp-for="DateTo" type="date" class="form-control" />
-    </div>
-
-    <div class="col-md-1 d-flex align-items-end">
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Apply</button>
-            <a asp-page="./Archive" class="btn btn-secondary">Reset</a>
+<!-- Search & Filter Card -->
+<div class="search-card">
+    <form method="get" class="row g-3">
+        <div class="col-md-5">
+            <label asp-for="SearchTerm" class="form-label">Search</label>
+            <input asp-for="SearchTerm" class="form-control"
+                   placeholder="Search title, creator, assigned user, category..." />
         </div>
-    </div>
-</form>
+        <div class="col-md-2">
+            <label asp-for="DateFrom" class="form-label">Closed From</label>
+            <input asp-for="DateFrom" type="date" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label asp-for="DateTo" class="form-label">Closed To</label>
+            <input asp-for="DateTo" type="date" class="form-control" />
+        </div>
+        <div class="col-md-1 ms-auto">
+            <label class="form-label invisible">Actions</label>
+            <div class="d-flex gap-2 justify-content-end">
+                <button type="submit" class="btn-apply">Apply</button>
+                <a asp-page="./Archive" class="btn-reset">Reset</a>
+            </div>
+        </div>
+    </form>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Ticket ID</th>
-            <th>Title of Request</th>
-            <th>Created By</th>
-            <th>Assigned To</th>
-            <th>Info</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.ClosedRequests.Any())
-        {
-            @foreach (var item in Model.ClosedRequests)
+<!-- Table Card -->
+<div class="table-card">
+    <table class="table table-borderless" id="archive-table">
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Title of Request</th>
+                <th>Created By</th>
+                <th>Assigned To</th>
+                <th>Info</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.ClosedRequests.Any())
             {
-                var createdByName = item.createdBy != null
-                ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
-                : "Unknown";
-
-                var assignedToName = item.assignedTo != null
-                ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
-                : "Unassigned";
-
+                @foreach (var item in Model.ClosedRequests)
+                {
+                    var createdByName = item.createdBy != null
+                    ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
+                    : "Unknown";
+                    var assignedToName = item.assignedTo != null
+                    ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
+                    : "Unassigned";
+                    <tr class="archive-row">
+                        <td class="ticket-id">@item.requestID</td>
+                        <td class="ticket-title">@item.title</td>
+                        <td class="ticket-user">@createdByName</td>
+                        <td class="@(item.assignedTo != null ? "ticket-user" : "text-muted")">@assignedToName</td>
+                        <td>
+                            <a asp-page="/Manager/ArchiveExport"
+                               asp-route-id="@item.requestID"
+                               class="info-btn"
+                               title="Archived Request Info">
+                                i
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
                 <tr>
-                    <td>@item.requestID</td>
-                    <td>@item.title</td>
-                    <td>@createdByName</td>
-                    <td>@assignedToName</td>
-                    <td>
-                        <a asp-page="/Manager/ArchiveExport"
-                           asp-route-id="@item.requestID"
-                           class="info-btn"
-                           title="Archived Request Info">
-                            i
-                        </a>
-                    </td>
+                    <td colspan="5" class="text-center text-muted py-4">No archived requests found.</td>
                 </tr>
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="5" class="text-center">No archived requests found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
+    <div class="pagination-bar" id="pagination-archive"></div>
+</div>
+
+<!-- Export Button -->
 <div class="mt-4">
     <a asp-page="./Archive"
        asp-page-handler="ExportCsv"
        asp-route-SearchTerm="@Model.SearchTerm"
        asp-route-DateFrom="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
        asp-route-DateTo="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
-       class="btn btn-primary">
+       class="btn-export">
         Export All to CSV
     </a>
 </div>
+
+
+@section Scripts {
+    <script src="~/js/manager_archive.js"></script>
+}

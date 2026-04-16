@@ -1,148 +1,72 @@
 @page
 @model CampusConnect.Pages.Admin.UserPages.CreateModel
-
 @{
     ViewData["Title"] = "Create User";
 }
 
-<style>
-    .shell {
-        max-width: 900px;
-        margin: 18px auto;
-        padding: 18px;
-    }
+<link rel="stylesheet" href="~/css/admin_create.css" />
 
-    .card {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        background: #fff;
-        padding: 18px;
-    }
+<div class="create-header">
+    <h1>Create User</h1>
+    <p>Create an Identity login and optional app profile.</p>
+</div>
 
-    .title {
-        font-size: 28px;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }
+<div class="create-card">
 
-    .sub {
-        color: #6b7280;
-        margin-bottom: 16px;
-    }
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="alert-error"></div>
 
-    .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-    }
-
-    .field label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 6px;
-    }
-
-    .field input, .field select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
-    }
-
-    .row {
-        margin-top: 14px;
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-
-    .btn {
-        padding: 10px 16px;
-        border-radius: 10px;
-        border: 1px solid transparent;
-        cursor: pointer;
-    }
-
-    .btn-primary {
-        background: #0b5ed7;
-        color: #fff;
-    }
-
-    .btn-light {
-        background: #f3f4f6;
-        color: #111827;
-        border-color: #e5e7eb;
-    }
-
-    .text-danger {
-        color: #dc2626;
-    }
-
-    @@media (max-width: 760px) {
-        .grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="shell">
-    <div class="card">
-        <div class="title">Create User</div>
-        <div class="sub">Create an Identity login + (optional) app profile.</div>
-
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="grid">
-                <div class="field">
-                    <label asp-for="Input.Email"></label>
-                    <input asp-for="Input.Email" type="email" />
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-
-                <div class="field">
-                    <label asp-for="Input.Role"></label>
-                    <select asp-for="Input.Role" asp-items="Model.RoleOptions"></select>
-                    <span asp-validation-for="Input.Role" class="text-danger"></span>
-                </div>
-
-                <div class="field">
-                    <label asp-for="Input.Password"></label>
-                    <input asp-for="Input.Password" type="password" />
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-
-                <div class="field">
-                    <label asp-for="Input.ConfirmPassword"></label>
-                    <input asp-for="Input.ConfirmPassword" type="password" />
-                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-                </div>
-
-                <div class="field">
-                    <label asp-for="Input.FirstName"></label>
-                    <input asp-for="Input.FirstName" />
-                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
-                </div>
-
-                <div class="field">
-                    <label asp-for="Input.LastName"></label>
-                    <input asp-for="Input.LastName" />
-                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
-                </div>
-
-                <div class="field" style="grid-column: 1 / -1;">
-                    <label asp-for="Input.Department"></label>
-                    <input asp-for="Input.Department" />
-                    <span asp-validation-for="Input.Department" class="text-danger"></span>
-                </div>
+        <div class="section-label">Account Info</div>
+        <div class="field-grid">
+            <div class="field">
+                <label asp-for="Input.Email" class="field-label"></label>
+                <input asp-for="Input.Email" type="email" class="field-input" placeholder="e.g. user@campusconnect.com" />
+                <span asp-validation-for="Input.Email" class="field-error"></span>
             </div>
-
-            <div class="row">
-                <a class="btn btn-light" asp-page="./Index">Cancel</a>
-                <button type="submit" class="btn btn-primary">Create</button>
+            <div class="field">
+                <label asp-for="Input.Role" class="field-label"></label>
+                <select asp-for="Input.Role" asp-items="Model.RoleOptions" class="field-input"></select>
+                <span asp-validation-for="Input.Role" class="field-error"></span>
             </div>
-        </form>
-    </div>
+            <div class="field">
+                <label asp-for="Input.Password" class="field-label"></label>
+                <input asp-for="Input.Password" type="password" class="field-input" placeholder="Min. 8 characters" />
+                <span asp-validation-for="Input.Password" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Input.ConfirmPassword" class="field-label"></label>
+                <input asp-for="Input.ConfirmPassword" type="password" class="field-input" placeholder="Re-enter password" />
+                <span asp-validation-for="Input.ConfirmPassword" class="field-error"></span>
+            </div>
+        </div>
+
+        <div class="field-divider"></div>
+
+        <div class="section-label">Profile Info</div>
+        <div class="field-grid">
+            <div class="field">
+                <label asp-for="Input.FirstName" class="field-label"></label>
+                <input asp-for="Input.FirstName" class="field-input" placeholder="First name" />
+                <span asp-validation-for="Input.FirstName" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Input.LastName" class="field-label"></label>
+                <input asp-for="Input.LastName" class="field-input" placeholder="Last name" />
+                <span asp-validation-for="Input.LastName" class="field-error"></span>
+            </div>
+            <div class="field field-full">
+                <label asp-for="Input.Department" class="field-label"></label>
+                <input asp-for="Input.Department" class="field-input" placeholder="e.g. Facilities, IT, Administration" />
+                <span asp-validation-for="Input.Department" class="field-error"></span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a asp-page="./Index" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-create">Create User</button>
+        </div>
+    </form>
+
 </div>
 
 @section Scripts {
