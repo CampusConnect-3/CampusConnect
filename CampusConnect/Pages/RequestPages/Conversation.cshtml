@@ -222,7 +222,7 @@
                                     <span>
                                         <span class="history-author">@Model.GetDisplayName(comment.creator)</span>
                                     </span>
-                                    <span>@comment.createdAt.ToLocalTime().ToString("MM/dd/yyyy h:mm tt")</span>
+                                    <span>@comment.createdAt.ToString("MM/dd/yyyy h:mm tt")</span>
                                 </div>
                                 <div class="history-text">@comment.commentText</div>
                             </div>
