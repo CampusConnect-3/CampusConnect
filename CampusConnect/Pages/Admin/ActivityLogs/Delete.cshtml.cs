@@ -17,25 +17,39 @@ namespace CampusConnect.Pages.Admin.ActivityLogs
         }
 
         [BindProperty]
-        public string Id { get; set; } = string.Empty;
+        public ActivityLog ActivityLog { get; set; } = default!;
 
-        public ActivityLog? ActivityLog { get; set; }
-
-        public async Task<IActionResult> OnGetAsync(string id)
+        public async Task<IActionResult> OnGetAsync(string? id)
         {
-            var logs = await _mongoService.GetRecentActivityAsync(1000);
-            ActivityLog = logs.FirstOrDefault(l => l.Id == id);
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
 
-            if (ActivityLog == null) return NotFound();
+            var activityLog = await _mongoService.GetActivityByIdAsync(id);
 
-            Id = id;
+            if (activityLog == null)
+            {
+                return NotFound();
+            }
+
+            ActivityLog = activityLog;
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string? id)
         {
-            var success = await _mongoService.DeleteActivityLogAsync(Id);
-            if (!success) return NotFound();
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            var success = await _mongoService.DeleteActivityLogAsync(id);
+
+            if (!success)
+            {
+                return NotFound();
+            }
 
             return RedirectToPage("./Index");
         }
