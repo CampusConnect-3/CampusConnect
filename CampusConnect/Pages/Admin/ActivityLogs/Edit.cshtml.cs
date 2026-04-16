@@ -1,51 +1,89 @@
 using CampusConnect.Models.MongoDB;
 using CampusConnect.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusConnect.Pages.Admin.ActivityLogs
 {
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin")]
     public class EditModel : PageModel
     {
         private readonly MongoDBService _mongoService;
-        private readonly UserManager<IdentityUser> _userManager;
 
-        public EditModel(MongoDBService mongoService, UserManager<IdentityUser> userManager)
+        public EditModel(MongoDBService mongoService)
         {
             _mongoService = mongoService;
-            _userManager = userManager;
         }
 
         [BindProperty]
-        public string Id { get; set; } = string.Empty;
+        public InputModel Input { get; set; } = new();
 
-        [BindProperty]
-        public string ReviewNotes { get; set; } = string.Empty;
+        public class InputModel
+        {
+            [Required]
+            public string Id { get; set; } = string.Empty;
+
+            [Required]
+            [Display(Name = "Reviewed By")]
+            public string ReviewedBy { get; set; } = string.Empty;
+
+            [Display(Name = "Review Notes")]
+            [DataType(DataType.MultilineText)]
+            public string? ReviewNotes { get; set; }
+
+            [Display(Name = "Mark as Reviewed")]
+            public bool Reviewed { get; set; }
+        }
 
         public ActivityLog? ActivityLog { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string id)
+        public async Task<IActionResult> OnGetAsync(string? id)
         {
-            var logs = await _mongoService.GetRecentActivityAsync(1000);
-            ActivityLog = logs.FirstOrDefault(l => l.Id == id);
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
 
-            if (ActivityLog == null) return NotFound();
+            ActivityLog = await _mongoService.GetActivityByIdAsync(id);
 
-            Id = id;
+            if (ActivityLog == null)
+            {
+                return NotFound();
+            }
+
+            Input = new InputModel
+            {
+                Id = ActivityLog.Id!,
+                ReviewedBy = ActivityLog.ReviewedBy ?? User.Identity?.Name ?? "Admin",
+                ReviewNotes = ActivityLog.ReviewNotes,
+                Reviewed = ActivityLog.Reviewed
+            };
+
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (!ModelState.IsValid)
+            {
+                ActivityLog = await _mongoService.GetActivityByIdAsync(Input.Id);
+                return Page();
+            }
 
-            var success = await _mongoService.UpdateActivityLogAsync(Id, user.UserName ?? "Unknown", ReviewNotes);
+            var success = await _mongoService.UpdateActivityLogAsync(
+                Input.Id,
+                Input.ReviewedBy,
+                Input.ReviewNotes ?? string.Empty
+            );
 
-            if (!success) return NotFound();
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, "Failed to update activity log.");
+                ActivityLog = await _mongoService.GetActivityByIdAsync(Input.Id);
+                return Page();
+            }
 
             return RedirectToPage("./Index");
         }
