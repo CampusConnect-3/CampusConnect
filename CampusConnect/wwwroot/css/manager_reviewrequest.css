@@ -1,0 +1,259 @@
+﻿/* manager_reviewrequests.css */
+
+body {
+    background-color: #f0f2f5;
+}
+
+/* --- Page Header --- */
+
+.review-header {
+    margin-bottom: 24px;
+}
+
+    .review-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 6px;
+        text-align: center;
+    }
+
+    .review-header p {
+        font-size: 16px;
+        color: #6b7280;
+        margin: 0;
+        text-align: center;
+    }
+
+/* --- Table Card --- */
+
+.table-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .table-card table {
+        margin: 0;
+    }
+
+    .table-card thead tr {
+        background: #f8f8f8;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .table-card thead th {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        padding: 14px 16px;
+        border: none;
+    }
+
+        .table-card thead th:first-child {
+            text-align: center;
+        }
+
+    .table-card tbody tr {
+        border-top: 1px solid #ececec;
+        transition: background 0.1s;
+        cursor: pointer;
+    }
+
+        .table-card tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+    .table-card tbody td {
+        padding: 16px 16px;
+        border: none;
+        vertical-align: middle;
+        font-size: 16px;
+        padding: 16px 16px;
+    }
+
+/* --- Cell Styles --- */
+
+.ticket-id {
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+}
+
+.ticket-title {
+    color: #111;
+    font-weight: 500;
+}
+
+.ticket-user {
+    color: #185FA5;
+}
+
+.ticket-date {
+    color: #555;
+    font-size: 13px;
+}
+
+/* --- Priority Badges --- */
+
+.badge-pill {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.priority-high {
+    background: #fff0f0;
+    color: #A32D2D;
+    border-color: #f5c0c0;
+}
+
+.priority-critical {
+    background: #fff0f0;
+    color: #A32D2D;
+    border-color: #f5c0c0;
+}
+
+.priority-medium {
+    background: #fff8ec;
+    color: #BA7517;
+    border-color: #f0d8a0;
+}
+
+.priority-low {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+/* --- Status Badges --- */
+
+.status-inprogress {
+    background: #fff8ec;
+    color: #BA7517;
+    border-color: #f0d8a0;
+}
+
+.status-todo {
+    background: #f0f7ff;
+    color: #185FA5;
+    border-color: #d0e4f7;
+}
+
+.status-closed {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+/* --- Action Buttons --- */
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-close-ticket {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+    .btn-close-ticket:hover {
+        background: transparent;
+        color: #185FA5;
+    }
+
+    .btn-close-ticket:active {
+        transform: scale(0.95);
+        background: #0C447C;
+        color: #fff;
+        border-color: #0C447C;
+    }
+
+.btn-view-ticket {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1.5px solid #6b7280;
+    background: transparent;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+    .btn-view-ticket:hover {
+        background: #6b7280;
+        color: #fff;
+    }
+
+    .btn-view-ticket:active {
+        transform: scale(0.95);
+    }
+
+/* --- Pagination --- */
+
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 16px;
+    background: white;
+    flex-wrap: wrap;
+    border-top: 1px solid #f3f4f6;
+}
+
+.page-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1.5px solid #d0e4f7;
+    background: #fff;
+    color: #185FA5;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+    .page-btn:hover:not(:disabled) {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn.active {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn:disabled {
+        color: #aaa;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+
+    .page-btn:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+.page-info {
+    font-size: 12px;
+    color: #888;
+    margin-left: 8px;
+}
