@@ -60,4 +60,4 @@ namespace CampusConnect.Pages.Admin.ActivityLogs
             return RedirectToPage(new { id });
         }
     }
-} 
+}
