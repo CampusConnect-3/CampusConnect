@@ -10,6 +10,7 @@
     bool isAIInsights = currentPage == "/Manager/AIInsights/Index";
     bool isTestMongo = currentPage == "/Admin/TestMongo";
     bool isActivityLogs = currentPage == "/Admin/ActivityLogs/Index";
+    bool isCreateUser = currentPage == "/Admin/UserPages/Create";
 }
 
 <!DOCTYPE html>
@@ -42,45 +43,68 @@
                 </button>
 
                 <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between" id="mainNavbarCollapse">
-
                     <ul class="navbar-nav flex-grow-1">
 
+                        @* Home - all roles *@
                         <li class="nav-item">
                             <a class="nav-link @(isHome ? "active fw-bold text-primary" : "text-dark")"
-                               asp-area="" asp-page="/Index">Home</a>
+                               asp-area="" asp-page="/Index">
+                                <i class="bi bi-house-fill"></i> Home
+                            </a>
                         </li>
 
+                        @* User role nav *@
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("User"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link @(isSubmitRequest ? "active fw-bold text-primary" : "text-dark")"
-                                   asp-page="/RequestPages/Create">Submit Request</a>
+                                   asp-page="/RequestPages/Create">
+                                    <i class="bi bi-plus-circle"></i> Submit Request
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(isMyRequests ? "active fw-bold text-primary" : "text-dark")"
-                                   asp-page="/RequestPages/MyRequests">My Requests</a>
+                                   asp-page="/RequestPages/MyRequests">
+                                    <i class="bi bi-list-check"></i> My Requests
+                                </a>
                             </li>
                         }
 
+                        @* Staff role nav *@
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Staff"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/StaffPages/Queue">Request Queue</a>
+                                <a class="nav-link text-dark" asp-area="" asp-page="/StaffPages/Dashboard">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/StaffPages/Queue">
+                                    <i class="bi bi-inbox"></i> Request Queue
+                                </a>
                             </li>
                         }
+
+                        @* Manager role nav *@
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Manager"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link @(isQueue ? "active fw-bold text-primary" : "text-dark")"
-                                   asp-page="/Manager/Queue">Queue</a>
+                                   asp-page="/Manager/Queue">
+                                    <i class="bi bi-kanban"></i> Queue
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(isReviewRequests ? "active fw-bold text-primary" : "text-dark")"
-                                   asp-page="/Manager/ReviewRequests">Review Requests</a>
+                                   asp-page="/Manager/ReviewRequests">
+                                    <i class="bi bi-clipboard-check"></i> Review Requests
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(isArchive ? "active fw-bold text-primary" : "text-dark")"
-                                   asp-page="/Manager/Archive">Archive</a>
+                                   asp-page="/Manager/Archive">
+                                    <i class="bi bi-archive"></i> Archive
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(isAIInsights ? "active fw-bold text-primary" : "text-dark")"
@@ -89,8 +113,16 @@
                                 </a>
                             </li>
                         }
+
+                        @* Admin role nav *@
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                         {
+                            <li class="nav-item">
+                                <a class="nav-link @(isCreateUser ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Admin/UserPages/Create">
+                                    <i class="bi bi-person-plus"></i> Create User
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link @(isTestMongo ? "active fw-bold text-primary" : "text-dark")"
                                    asp-page="/Admin/TestMongo">
@@ -104,6 +136,7 @@
                                 </a>
                             </li>
                         }
+
                     </ul>
 
                     <partial name="_LoginPartial" />
