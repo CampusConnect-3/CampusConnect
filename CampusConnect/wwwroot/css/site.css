@@ -2,12 +2,7 @@
 
 .navbar-brand {
     white-space: normal;
-    text-align: center;
     word-break: break-all;
-    font-size: 18px;
-    font-weight: 700;
-    color: #111 !important;
-    letter-spacing: 0.3px;
 }
 
 /* Links */
