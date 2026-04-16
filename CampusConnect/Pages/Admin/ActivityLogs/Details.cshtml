@@ -1,0 +1,140 @@
+@page
+@using MongoDB.Bson
+@using MongoDB.Bson.IO
+@model CampusConnect.Pages.Admin.ActivityLogs.DetailsModel
+@{
+    ViewData["Title"] = "Activity Log Details";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-text"></i> Activity Log Details</h1>
+        <div>
+            <a asp-page="./Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5 class="text-muted">Timestamp</h5>
+                    <p class="lead">@Model.ActivityLog.Timestamp.ToLocalTime().ToString("MMMM dd, yyyy hh:mm:ss tt")</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-muted">Status</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        @if (Model.ActivityLog.Reviewed)
+                        {
+                            <span class="badge bg-success fs-6">Reviewed</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning fs-6">Pending</span>
+                            <form method="post" asp-page-handler="MarkReviewed" class="d-inline">
+                                <input type="hidden" name="id" value="@Model.ActivityLog.Id" />
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-circle"></i> Mark as Reviewed
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5 class="text-muted">User</h5>
+                    <p><strong>@Model.ActivityLog.UserName</strong></p>
+                    <p class="text-muted">Role: @Model.ActivityLog.UserRole</p>
+                    <p class="text-muted">User ID: @Model.ActivityLog.UserId</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-muted">Action</h5>
+                    <p><span class="badge bg-info fs-6">@Model.ActivityLog.Action.Replace("_", " ")</span></p>
+                </div>
+            </div>
+
+            <hr />
+
+            @if (Model.ActivityLog.RequestId.HasValue)
+            {
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h5 class="text-muted">Related Request</h5>
+                        <p>
+                            <a asp-page="/RequestPages/Details" asp-route-id="@Model.ActivityLog.RequestId" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right"></i> View Request #@Model.ActivityLog.RequestId
+                            </a>
+                        </p>
+                        <p><strong>Title:</strong> @Model.ActivityLog.RequestTitle</p>
+                    </div>
+                </div>
+                <hr />
+            }
+
+            @if (!string.IsNullOrEmpty(Model.ActivityLog.IpAddress))
+            {
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h5 class="text-muted">IP Address</h5>
+                        <p><code>@Model.ActivityLog.IpAddress</code></p>
+                    </div>
+                </div>
+                <hr />
+            }
+
+            @if (Model.ActivityLog.Details != null && Model.ActivityLog.Details.ElementCount > 0)
+            {
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h5 class="text-muted">Additional Details</h5>
+                        <div class="bg-light p-3 rounded">
+                            <pre class="mb-0">@Model.ActivityLog.Details.ToJson(new JsonWriterSettings { Indent = true })</pre>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+            }
+
+            @if (Model.ActivityLog.Reviewed)
+            {
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h5 class="text-muted">Review Information</h5>
+                        <p><strong>Reviewed By:</strong> @Model.ActivityLog.ReviewedBy</p>
+                        @if (!string.IsNullOrEmpty(Model.ActivityLog.ReviewNotes))
+                        {
+                            <p><strong>Review Notes:</strong></p>
+                            <div class="alert alert-info">
+                                @Model.ActivityLog.ReviewNotes
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="card-footer">
+            <div class="btn-group">
+                <a asp-page="./Edit" asp-route-id="@Model.ActivityLog.Id" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit / Add Notes
+                </a>
+                <a asp-page="./Delete" asp-route-id="@Model.ActivityLog.Id" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
