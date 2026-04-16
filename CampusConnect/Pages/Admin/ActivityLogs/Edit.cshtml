@@ -5,27 +5,66 @@
 }
 
 <div class="container mt-4">
-    <h1>Review Activity Log</h1>
+    <h1><i class="bi bi-pencil"></i> Review Activity Log</h1>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5>@Model.ActivityLog?.Action.Replace("_", " ")</h5>
-            <p class="text-muted">
-                By @Model.ActivityLog?.UserName (@Model.ActivityLog?.UserRole) <br/>
-                @Model.ActivityLog?.Timestamp.ToLocalTime()
-            </p>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Activity Information</h5>
+        </div>
+        <div class="card-body bg-light">
+            <p><strong>User:</strong> @Model.ActivityLog.UserName (@Model.ActivityLog.UserRole)</p>
+            <p><strong>Action:</strong> <span class="badge bg-info">@Model.ActivityLog.Action.Replace("_", " ")</span></p>
+            <p><strong>Timestamp:</strong> @Model.ActivityLog.Timestamp.ToLocalTime().ToString("MMM dd, yyyy hh:mm tt")</p>
+            @if (Model.ActivityLog.RequestId.HasValue)
+            {
+                <p><strong>Request:</strong> #@Model.ActivityLog.RequestId - @Model.ActivityLog.RequestTitle</p>
+            }
         </div>
     </div>
 
-    <form method="post">
-        <input type="hidden" asp-for="Id" />
-
-        <div class="mb-3">
-            <label class="form-label">Review Notes</label>
-            <textarea asp-for="ReviewNotes" class="form-control" rows="4" placeholder="Add your review notes..."></textarea>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Review Information</h5>
         </div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" asp-for="Input.Id" />
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="Input.Reviewed" />
+                    <label class="form-check-label" asp-for="Input.Reviewed">
+                        Mark this activity log as reviewed
+                    </label>
+                </div>
 
-        <button type="submit" class="btn btn-success">Mark as Reviewed</button>
-        <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
-    </form>
+                <div class="mb-3">
+                    <label asp-for="Input.ReviewedBy" class="form-label"></label>
+                    <input asp-for="Input.ReviewedBy" class="form-control" />
+                    <span asp-validation-for="Input.ReviewedBy" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.ReviewNotes" class="form-label"></label>
+                    <textarea asp-for="Input.ReviewNotes" class="form-control" rows="5" 
+                              placeholder="Add any notes about this activity..."></textarea>
+                    <span asp-validation-for="Input.ReviewNotes" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Save Review
+                    </button>
+                    <a asp-page="./Index" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+
+                <div asp-validation-summary="All" class="text-danger mt-3"></div>
+            </form>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
