@@ -25,8 +25,6 @@
         // Identity user id (AspNetUsers.Id)
         var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var unreadCount = 0;
-        var recentNotifications = new List<CampusConnect.Models.notification>();
-
         if (!string.IsNullOrWhiteSpace(identityUserId))
         {
             // Link Identity -> your app user profile table
@@ -50,7 +48,6 @@
             if (canSeeNotifications)
             {
                 unreadCount = await Notifications.GetUnreadCountForIdentityUserAsync(identityUserId);
-                recentNotifications = await Notifications.GetRecentForIdentityUserAsync(identityUserId, 6);
             }
         }
 
@@ -62,13 +59,9 @@
         </li>
         @if (canSeeNotifications)
         {
-            <li class="nav-item dropdown">
-                <a class="nav-link text-dark dropdown-toggle position-relative"
-                   href="#"
-                   id="notificationsDropdown"
-                   role="button"
-                   data-bs-toggle="dropdown"
-                   aria-expanded="false"
+            <li class="nav-item">
+                <a class="nav-link text-dark position-relative"
+                   asp-page="/Notifications/Index"
                    title="Notifications">
                     <svg aria-hidden="true"
                          width="18"
@@ -95,37 +88,6 @@
                         </span>
                     }
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" style="min-width: 340px;">
-                    <li class="dropdown-header d-flex justify-content-between align-items-center">
-                        <span>Notifications</span>
-                        @if (unreadCount > 0)
-                        {
-                            <span class="badge bg-primary">@unreadCount new</span>
-                        }
-                    </li>
-
-                    @if (recentNotifications.Any())
-                    {
-                        @foreach (var notification in recentNotifications)
-                        {
-                            <li>
-                                <a class="dropdown-item text-wrap @(notification.isRead ? "" : "fw-bold")"
-                                   asp-page="/Notifications/Go"
-                                   asp-route-notificationId="@notification.id">
-                                    <div>@notification.title</div>
-                                    <div class="small text-muted">@notification.message</div>
-                                </a>
-                            </li>
-                        }
-                    }
-                    else
-                    {
-                        <li><span class="dropdown-item-text text-muted">No notifications yet.</span></li>
-                    }
-
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" asp-page="/Notifications/Index">View all notifications</a></li>
-                </ul>
             </li>
         }
         <li class="nav-item">

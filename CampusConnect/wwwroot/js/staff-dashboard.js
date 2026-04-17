@@ -282,7 +282,7 @@ function initializeModalFormHandlers(requestId) {
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
     // Handle attachment upload form
-    const attachmentForm = modalContent.querySelector('form[asp-page-handler="AddAttachment"], form[action*="AddAttachment"]');
+    const attachmentForm = modalContent.querySelector('.staff-attachment-form');
     if (attachmentForm) {
         attachmentForm.onsubmit = function (e) {
             e.preventDefault();
@@ -326,7 +326,7 @@ function initializeModalFormHandlers(requestId) {
     }
 
     // Handle comment form
-    const commentForm = modalContent.querySelector('form[asp-page-handler="AddComment"], form[action*="AddComment"]');
+    const commentForm = modalContent.querySelector('.staff-comment-form');
     if (commentForm) {
         commentForm.onsubmit = function (e) {
             e.preventDefault();

@@ -79,7 +79,11 @@
                 <p class="text-muted">No attachments</p>
             }
 
-            <form method="post" asp-page-handler="AddAttachment" enctype="multipart/form-data" class="mt-2">
+            <form method="post"
+                  asp-page="/StaffPages/RequestDetail"
+                  asp-page-handler="AddAttachment"
+                  enctype="multipart/form-data"
+                  class="mt-2 staff-attachment-form">
                 <input type="hidden" name="requestId" value="@Model.requestID" />
                 <div class="input-group">
                     <input type="file" class="form-control" name="file" required />
@@ -97,7 +101,8 @@
             <form method="post"
                   asp-page="/StaffPages/RequestDetail"
                   asp-page-handler="AddComment"
-                  class="staff-comment-form">
+                  class="staff-comment-form"
+                  data-request-id="@Model.requestID">
                 <input type="hidden" name="requestId" value="@Model.requestID" />
                 <div class="input-group mb-2">
                     <textarea class="form-control staff-comment-textarea" name="commentText" rows="2" placeholder="Add a comment..." required></textarea>
