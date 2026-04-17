@@ -95,11 +95,11 @@
         display: flex;
     }
 
-    .history-item.requester {
+    .history-item.other {
         justify-content: flex-start;
     }
 
-    .history-item.staff {
+    .history-item.current-user {
         justify-content: flex-end;
     }
 
@@ -110,12 +110,7 @@
         width: min(100%, 640px);
     }
 
-    .history-item.requester .history-bubble {
-        background: #f7f7f7;
-        border-color: #d7d7d7;
-    }
-
-    .history-item.staff .history-bubble {
+    .history-item.current-user .history-bubble {
         background: #eef5ff;
         border-color: #bcd0ef;
     }
@@ -214,7 +209,7 @@
                 <ul class="history-list">
                     @foreach (var comment in Model.Comments)
                     {
-                        var sideClass = Model.IsRequesterComment(comment) ? "requester" : "staff";
+                        var sideClass = Model.IsCurrentUserComment(comment) ? "current-user" : "other";
 
                         <li class="history-item @sideClass">
                             <div class="history-bubble">
