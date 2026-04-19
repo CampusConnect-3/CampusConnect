@@ -1,0 +1,354 @@
+﻿
+/* student_index.css */
+
+body {
+    background-color: #f0f2f5;
+}
+
+/* --- Page Shell --- */
+
+.home-shell {
+    max-width: 1110px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+/* --- Welcome Section --- */
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.welcome-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 6px;
+}
+
+.welcome-sub {
+    font-size: 15px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* --- Hero Action Buttons --- */
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+    .btn-submit:hover {
+        background: transparent;
+        color: #185FA5;
+    }
+
+    .btn-submit:active {
+        transform: scale(0.97);
+    }
+
+.btn-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: 1.5px solid #6b7280;
+    background: transparent;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+    .btn-view:hover {
+        background: #6b7280;
+        color: #fff;
+    }
+
+    .btn-view:active {
+        transform: scale(0.97);
+    }
+
+/* --- Stat Cards --- */
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid #e0e0e0;
+    text-align: center;
+}
+
+    .stat-card .stat-label {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-card.blue {
+        border-color: #d0e4f7;
+    }
+
+        .stat-card.blue .stat-label {
+            color: #185FA5;
+        }
+
+        .stat-card.blue .stat-value {
+            color: #0C447C;
+        }
+
+    .stat-card.amber {
+        border-color: #f0d8a0;
+    }
+
+        .stat-card.amber .stat-label {
+            color: #BA7517;
+        }
+
+        .stat-card.amber .stat-value {
+            color: #633806;
+        }
+
+    .stat-card.green {
+        border-color: #b8dca0;
+    }
+
+        .stat-card.green .stat-label {
+            color: #3B6D11;
+        }
+
+        .stat-card.green .stat-value {
+            color: #173404;
+        }
+
+/* --- Table Card --- */
+
+.table-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+    padding: 16px 20px;
+    border-bottom: 1px solid #ececec;
+    text-align: center;
+    background: #f8f8f8;
+}
+
+.table-card table {
+    margin: 0;
+}
+
+.table-card thead tr {
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.table-card thead th {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    padding: 12px 16px;
+    border: none;
+}
+
+.table-card tbody tr {
+    border-top: 1px solid #ececec;
+    transition: background 0.1s;
+    cursor: pointer;
+}
+
+    .table-card tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+.table-card tbody td {
+    padding: 13px 16px;
+    border: none;
+    vertical-align: middle;
+    font-size: 15px;
+}
+
+/* --- Cell Styles --- */
+
+.ticket-id {
+    font-weight: 600;
+    text-align: left;
+}
+
+.ticket-link {
+    color: #185FA5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+    .ticket-link:hover {
+        text-decoration: underline;
+    }
+
+.ticket-title {
+    color: #111;
+    font-weight: 500;
+}
+
+.ticket-date {
+    color: #555;
+    font-size: 13px;
+}
+
+/* --- Status Badges --- */
+
+.badge-pill {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.status-todo {
+    background: #f0f7ff;
+    color: #185FA5;
+    border-color: #d0e4f7;
+}
+
+.status-inprogress {
+    background: #fff8ec;
+    color: #BA7517;
+    border-color: #f0d8a0;
+}
+
+.status-closed {
+    background: #f4fbee;
+    color: #3B6D11;
+    border-color: #b8dca0;
+}
+
+/* --- View All Bar --- */
+
+.view-all-bar {
+    padding: 12px 20px;
+    text-align: right;
+    border-top: 1px solid #ececec;
+}
+
+.view-all-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+    .view-all-link:hover {
+        text-decoration: underline;
+    }
+
+/* --- Pagination --- */
+
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 16px;
+    background: white;
+    flex-wrap: wrap;
+    border-top: 1px solid #f3f4f6;
+}
+
+.page-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1.5px solid #d0e4f7;
+    background: #fff;
+    color: #185FA5;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+    .page-btn:hover:not(:disabled) {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn.active {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn:disabled {
+        color: #aaa;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+
+    .page-btn:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+.page-info {
+    font-size: 12px;
+    color: #888;
+    width: 100%;
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 600px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
