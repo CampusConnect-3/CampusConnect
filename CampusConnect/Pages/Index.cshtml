@@ -1,204 +1,90 @@
 ﻿@page
 @model CampusConnect.Pages.IndexModel
 
-<style>
-    /* Page shell */
-    .home-shell {
-        padding: 48px 24px;
-    }
-
-    .home-title {
-        font-size: 48px;
-        font-weight: 500;
-        margin-bottom: 6px;
-    }
-
-    .student-id {
-        color: #333;
-        margin-bottom: 28px;
-    }
-
-    /* Primary large buttons */
-    .hero-actions {
-        display: flex;
-        gap: 28px;
-        justify-content: center;
-        margin-bottom: 18px;
-    }
-
-    .btn-hero {
-        padding: 18px 48px;
-        border-radius: 14px;
-        font-size: 18px;
-        font-weight: 500;
-        display: inline-block;
-        text-decoration: none;
-        box-shadow: 6px 8px 0 rgba(0,0,0,0.9);
-        border: 2px solid rgba(0,0,0,0.7);
-    }
-
-    .btn-hero-primary {
-        background: #2156b0;
-        color: white;
-    }
-
-    .btn-hero-outline {
-        background: #fff;
-        color: #222;
-        border-color: #222;
-    }
-
-    /* Count pills */
-    .counts {
-        display: flex;
-        gap: 18px;
-        justify-content: center;
-        margin: 20px 0 34px 0;
-    }
-
-    .pill {
-        padding: 14px 36px;
-        border-radius: 12px;
-        font-size: 18px;
-        box-shadow: 6px 6px 0 rgba(0,0,0,0.9);
-        border: 2px solid rgba(0,0,0,0.9);
-    }
-
-    .pill-blue {
-        background: #2156b0;
-        color: #fff;
-    }
-
-    .pill-orange {
-        background: #f39f5f;
-        color: #222;
-    }
-
-    .pill-green {
-        background: #4CAF50;
-        color: #fff;
-    }
-
-    /* Recent requests card */
-    .recent-card {
-        max-width: 920px;
-        margin: 0 auto;
-        border: 4px solid #0b0b0b;
-        padding: 0;
-        background: #fff;
-    }
-
-    .recent-header {
-        padding: 18px 22px;
-        font-size: 22px;
-        border-bottom: 3px solid #111;
-        text-align: center;
-    }
-
-    .recent-inner {
-        padding: 18px 28px 8px 28px;
-    }
-
-    table.recent-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        table.recent-table thead th {
-            text-align: left;
-            padding: 18px 8px 6px 8px;
-            font-size: 18px;
-            border-bottom: 4px solid transparent;
-        }
-
-            table.recent-table thead th.th-center {
-                text-align: center;
-            }
-
-        table.recent-table td {
-            padding: 18px 8px;
-            font-size: 18px;
-            border-top: 4px solid #111;
-        }
-
-    .request-link {
-        text-decoration: none;
-    }
-
-    .view-all {
-        margin: 18px 0 8px 0;
-        text-align: right;
-    }
-
-    .view-all a {
-        color: #1b6ec2;
-        font-weight: 600;
-        text-decoration: none;
-    }
-</style>
+<link rel="stylesheet" href="~/css/student_index.css" />
 
 <div class="home-shell">
-    <div class="text-center">
-        <h1 class="home-title">Welcome @Model.DisplayName</h1>
-        <div class="student-id">Student ID: @Model.StudentId</div>
 
-        <div class="hero-actions">
-            <a class="btn-hero btn-hero-primary" asp-page="/RequestPages/Create">+ Submit New Request</a>
-            <a class="btn-hero btn-hero-outline" asp-page="/RequestPages/MyRequests">View My Requests</a>
+    <!-- Welcome Header -->
+    <div class="welcome-section">
+        <h1 class="welcome-title">Welcome, @Model.DisplayName</h1>
+        <p class="welcome-sub">Student ID: @Model.StudentId</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="hero-actions">
+        <a class="btn-submit" asp-page="/RequestPages/Create">
+            <i class="bi bi-plus-circle"></i> Submit New Request
+        </a>
+   
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+        <div class="stat-card blue">
+            <div class="stat-label">Open Requests</div>
+            <div class="stat-value">@Model.OpenCount</div>
         </div>
-
-        <div class="counts">
-            <div class="pill pill-blue">@Model.OpenCount Open Request@(Model.OpenCount == 1 ? "" : "s")</div>
-            <div class="pill pill-orange">@Model.InProgressCount In Progress</div>
-            <div class="pill pill-green">@Model.ClosedCount Closed Request@(Model.ClosedCount == 1 ? "" : "s")</div>
+        <div class="stat-card amber">
+            <div class="stat-label">In Progress</div>
+            <div class="stat-value">@Model.InProgressCount</div>
         </div>
-
-        <div class="recent-card">
-            <div class="recent-header">Recent Requests</div>
-
-            <div class="recent-inner">
-                <table class="recent-table">
-                    <thead>
-                        <tr>
-                            <th>Request ID</th>
-                            <th class="th-center">Title</th>
-                            <th>Status</th>
-                            <th>Last Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.RecentRequests != null && Model.RecentRequests.Any())
-                        {
-                            foreach (var r in Model.RecentRequests)
-                            {
-                                <tr>
-                                    <td>
-                                        <a class="request-link" asp-page="/RequestPages/Details" asp-route-id="@r.requestID">
-                                            @r.requestID
-                                        </a>
-                                    </td>
-                                    <td>@r.title</td>
-                                    <td>@(r.status?.statusName ?? "N/A")</td>
-                                    <td>@r.createdAt.ToString("MM/dd/yyyy")</td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="4" style="text-align:center;">No requests yet.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-
-                @if (Model.HasMoreRecentRequests)
-                {
-                    <div class="view-all">
-                        <a asp-page="/RequestPages/MyRequests">View All Requests</a>
-                    </div>
-                }
-            </div>
+        <div class="stat-card green">
+            <div class="stat-label">Closed Requests</div>
+            <div class="stat-value">@Model.ClosedCount</div>
         </div>
     </div>
+
+    <!-- Recent Requests Table -->
+    <div class="table-card">
+        <div class="table-title">Recent Requests</div>
+        <table class="table table-borderless" id="recent-table">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.RecentRequests != null && Model.RecentRequests.Any())
+                {
+                    foreach (var r in Model.RecentRequests)
+                    {
+                        var statusClass = (r.status?.statusName?.ToLower().Replace(" ", "")) switch
+                        {
+                            "todo" => "status-todo",
+                            "inprogress" => "status-inprogress",
+                            "closed" => "status-closed",
+                            _ => "status-todo"
+                        };
+
+                        <tr class="recent-row">
+                            <td class="ticket-id">
+                                <a asp-page="/RequestPages/Details" asp-route-id="@r.requestID"
+                                   class="ticket-link">@r.requestID</a>
+                            </td>
+                            <td class="ticket-title">@r.title</td>
+                            <td><span class="badge-pill @statusClass">@(r.status?.statusName ?? "N/A")</span></td>
+                            <td class="ticket-date">@r.createdAt.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No requests yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="pagination-bar" id="pagination-recent"></div>
+    </div>
+
 </div>
+
+@section Scripts {
+    <script src="~/js/student_index.js"></script>
+}
