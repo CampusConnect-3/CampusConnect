@@ -39,9 +39,11 @@ namespace CampusConnect.Pages.Admin.UserPages
             public string Email { get; set; } = "";
 
             [Required, MinLength(6)]
+            [Display(Name = "Temporary Password")]
             public string Password { get; set; } = "";
 
             [Required, Compare(nameof(Password))]
+            [Display(Name = "Confirm Temporary Password")]
             public string ConfirmPassword { get; set; } = "";
 
             [Required]
@@ -102,16 +104,17 @@ namespace CampusConnect.Pages.Admin.UserPages
             // Add role (must already exist from your DbSeeder)
             await _userManager.AddToRoleAsync(user, Input.Role);
 
-            // Create app profile row
+            // Create app profile row with RequirePasswordChange flag
             var appUser = new user
             {
                 email = Input.Email,
-                username = Input.Email, // <-- FIX: Set username (required, unique index)
+                username = Input.Email,
                 fName = Input.FirstName ?? "N/A",
                 lName = Input.LastName ?? "N/A",
                 department = Input.Department,
                 status = Input.Role == "Pending" ? "Pending" : "Active",
-                identityUserId = user.Id
+                identityUserId = user.Id,
+                RequirePasswordChange = true // Force password change on first login
             };
 
             try
@@ -127,7 +130,7 @@ namespace CampusConnect.Pages.Admin.UserPages
                 return Page();
             }
 
-            TempData["Success"] = "User created successfully.";
+            TempData["Success"] = $"User created successfully. Temporary password: {Input.Password} (provide this to the user securely)";
             return RedirectToPage("./Index");
         }
 
