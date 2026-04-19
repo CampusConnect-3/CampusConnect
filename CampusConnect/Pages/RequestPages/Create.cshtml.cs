@@ -232,7 +232,8 @@ namespace CampusConnect.Pages.RequestPages
 
         private async Task<bool> ApplySystemManagedDefaultsAsync(CancellationToken cancellationToken)
         {
-            request.priority = string.Empty;
+            // Set default priority instead of empty string
+            request.priority = "Medium"; // or "Low", "Normal", etc. - whatever your system uses
 
             if (request.categoryID <= 0)
             {
