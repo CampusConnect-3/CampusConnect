@@ -1,0 +1,277 @@
+﻿/* managerarchive.css */
+
+body {
+    background-color: #f0f2f5;
+}
+
+/* Page Header */
+
+.archive-header {
+    margin-bottom: 24px;
+}
+
+    .archive-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 6px;
+        text-align: center;
+    }
+
+    .archive-header p {
+        font-size: 16px;
+        color: #6b7280;
+        margin: 0;
+        text-align: center;
+    }
+
+/* Search Card */
+
+.search-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 24px;
+    border: 1px solid #e0e0e0;
+}
+
+    .search-card .form-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+        margin-bottom: 0.4rem;
+    }
+
+    .search-card .form-control {
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+        padding: 0.625rem 1rem;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+        .search-card .form-control:focus {
+            border-color: #185FA5;
+            box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.1);
+        }
+
+/* Search Buttons */
+
+.btn-apply {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+    .btn-apply:hover {
+        background: transparent;
+        color: #185FA5;
+    }
+
+    .btn-apply:active {
+        transform: scale(0.95);
+    }
+
+.btn-reset {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1.5px solid #6b7280;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-block;
+}
+
+    .btn-reset:hover {
+        background: #6b7280;
+        color: #fff;
+    }
+
+    .btn-reset:active {
+        transform: scale(0.95);
+    }
+
+/* Table Card */
+
+.table-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .table-card table {
+        margin: 0;
+    }
+
+    .table-card thead tr {
+        background: #f8f8f8;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .table-card thead th {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        padding: 14px 16px;
+        border: none;
+    }
+
+        .table-card thead th:first-child {
+            text-align: center;
+        }
+
+    .table-card tbody tr {
+        border-top: 1px solid #ececec;
+        transition: background 0.1s;
+        cursor: pointer;
+    }
+
+        .table-card tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+    .table-card tbody td {
+        padding: 16px 16px;
+        border: none;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+
+/* Cell Styles */
+
+.ticket-id {
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+}
+
+.ticket-title {
+    color: #111;
+    font-weight: 500;
+    font-size: 14px; 
+}
+
+.ticket-user {
+    color: #185FA5;
+}
+
+/* Info Button */
+
+.info-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #185FA5;
+    background: #fff;
+    color: #185FA5;
+    font-size: 12px;
+    font-weight: 700;
+    font-style: italic;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+    .info-btn:hover {
+        background: #185FA5;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .info-btn:active {
+        transform: scale(0.95);
+    }
+
+/* Export Button */
+
+.btn-export {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1.5px solid #185FA5;
+    background: #185FA5;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+    .btn-export:hover {
+        background: transparent;
+        color: #185FA5;
+    }
+
+    .btn-export:active {
+        transform: scale(0.95);
+    }
+
+/* Pagination */
+
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 16px;
+    background: white;
+    flex-wrap: wrap;
+    border-top: 1px solid #f3f4f6;
+}
+
+.page-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1.5px solid #d0e4f7;
+    background: #fff;
+    color: #185FA5;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+    .page-btn:hover:not(:disabled) {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn.active {
+        background: #185FA5;
+        color: #fff;
+        border-color: #185FA5;
+    }
+
+    .page-btn:disabled {
+        color: #aaa;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+
+    .page-btn:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+.page-info {
+    font-size: 12px;
+    color: #888;
+    margin-left: 8px;
+}

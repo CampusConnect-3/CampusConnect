@@ -1,5 +1,4 @@
-﻿using CampusConnect.BackgroundServices;
-using CampusConnect.Configuration;
+﻿using CampusConnect.Configuration;
 using CampusConnect.Data;
 using CampusConnect.Middleware;
 using CampusConnect.Services;
@@ -70,14 +69,22 @@ builder.Services.Configure<MongoDBSettings>(
 builder.Services.AddSingleton<MongoDBService>();
 builder.Services.AddScoped<RequestSyncService>();
 
-// Configure OpenAI
-builder.Services.Configure<GeminiSettings>(
-    builder.Configuration.GetSection("Gemini"));
+// Configure Gemini with debugging
+builder.Services.Configure<GeminiSettings>(geminiSettings =>
+{
+    var config = builder.Configuration.GetSection("Gemini");
+    config.Bind(geminiSettings);
+    
+    // Debug logging
+    var logger = LoggerFactory.Create(b => b.AddConsole()).CreateLogger("Startup");
+    var apiKey = geminiSettings.ApiKey;
+    logger.LogInformation("🔧 Gemini API Key loaded: {HasKey}", !string.IsNullOrWhiteSpace(apiKey) ? $"Yes ({apiKey.Length} chars)" : "NO - MISSING!");
+    logger.LogInformation("🔧 Gemini Model: {Model}", geminiSettings.Model);
+});
 
 builder.Services.AddHttpClient(); // Required for Gemini
 builder.Services.AddScoped<GeminiInsightService>();
-
-builder.Services.AddHostedService<BackgroundInsightGenerator>();
+builder.Services.AddScoped<TestDataSeeder>();
 
 var app = builder.Build();
 
@@ -111,16 +118,18 @@ app.MapRazorPages();
 app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
 {
     var endpoints = sources.SelectMany(s => s.Endpoints)
-        .Select(e => e.DisplayName)
-        .Where(n => n != null);
-
-    return string.Join("\n", endpoints!);
+                           .OfType<RouteEndpoint>()
+                           .Select(e => new
+                           {
+                               Pattern = e.RoutePattern.RawText,
+                               Name = e.DisplayName
+                           });
+    return Results.Json(endpoints);
 });
 
-// Db Seeder Registration
 using (var scope = app.Services.CreateScope())
 {
-    await DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
+    await CampusConnect.Data.DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
 }
 
 app.Run();

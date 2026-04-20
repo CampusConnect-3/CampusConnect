@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using CampusConnect.Data;
 using CampusConnect.Models.MongoDB;
 using CampusConnect.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 
@@ -26,6 +28,7 @@ namespace CampusConnect.Areas.Identity.Pages.Account
         private readonly ILogger<LoginModel> _logger;
         private readonly MongoDBService _mongoService;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly TablesDbContext _tablesDb;
 
         private string? ClientIp => HttpContext?.Connection?.RemoteIpAddress?.ToString();
         private string TraceId => HttpContext?.TraceIdentifier ?? "";
@@ -34,12 +37,14 @@ namespace CampusConnect.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager, 
             ILogger<LoginModel> logger,
             MongoDBService mongoService,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            TablesDbContext tablesDb)
         {
             _signInManager = signInManager;
             _logger = logger;
             _mongoService = mongoService;
             _userManager = userManager;
+            _tablesDb = tablesDb;
         }
 
         [BindProperty]
@@ -109,10 +114,20 @@ namespace CampusConnect.Areas.Identity.Pages.Account
                 _logger.LogInformation("LOGIN SUCCESS. Email={Email} IP={IP} TraceId={TraceId}",
                     Input.Email, ClientIp, TraceId);
 
-                // Log successful login to MongoDB
                 var user = await _userManager.FindByEmailAsync(Input.Email);
                 if (user != null)
                 {
+                    // Check if user needs to change password
+                    var appUser = await _tablesDb.users
+                        .FirstOrDefaultAsync(u => u.identityUserId == user.Id);
+
+                    if (appUser != null && appUser.RequirePasswordChange)
+                    {
+                        _logger.LogInformation("User {Email} requires password change. Redirecting to FirstLoginPasswordChange.", Input.Email);
+                        return RedirectToPage("./FirstLoginPasswordChange");
+                    }
+
+                    // Log successful login to MongoDB
                     var roles = await _userManager.GetRolesAsync(user);
                     await _mongoService.LogActivityAsync(new ActivityLog
                     {

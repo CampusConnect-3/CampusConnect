@@ -1,25 +1,129 @@
-html {
-  font-size: 14px;
+/* site.css */
+
+.navbar-brand {
+    white-space: normal;
+    word-break: break-all;
 }
 
-@media (min-width: 768px) {
-  html {
+/* Links */
+
+a {
+    color: #185FA5;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+    a:hover {
+        color: #0C447C;
+    }
+
+/* Primary Button */
+
+.btn-primary {
+    color: #fff;
+    background-color: #185FA5;
+    border-color: #185FA5;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+    .btn-primary:hover {
+        background-color: #0C447C;
+        border-color: #0C447C;
+        color: #fff;
+    }
+
+    .btn-primary:active {
+        transform: scale(0.97);
+    }
+
+/* Secondary Button */
+
+.btn-secondary {
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+    .btn-secondary:active {
+        transform: scale(0.97);
+    }
+
+/* Nav Pills */
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #185FA5;
+    border-color: #185FA5;
+}
+
+/*  Navbar */
+
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.navbar-light .navbar-nav .nav-link {
     font-size: 16px;
-  }
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
 }
 
-.btn:focus,
-.nav-link:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    border-radius: 6px;
+    .navbar-light .navbar-nav .nav-link:hover {
+        background-color: #f0f2f5;
+        color: #185FA5 !important;
+    }
+
+    .navbar-light .navbar-nav .nav-link.active {
+        color: #185FA5 !important;
+    }
+
+/* Borders  */
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
 }
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+/* Box Shadow */
+
+.box-shadow {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Cookie Policy Button */
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Footer  */
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* Global Body  */
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }

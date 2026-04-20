@@ -1,80 +1,108 @@
 ﻿@page
 @model CampusConnect.Pages.Manager.IndexModel
-
 @{
     ViewData["Title"] = "Manager Dashboard";
 }
 
+<link rel="stylesheet" href="~/css/manager_index.css" />
+
 <h1>Manager Dashboard</h1>
-<br />
-<div class="row mb-4">
+
+<div class="row g-3 mb-4">
     <div class="col">
-        <h4>Unassigned</h4>
-        <h2>@Model.UnassignedCount</h2>
+        <div class="stat-card blue">
+            <div class="stat-label">Unassigned</div>
+            <div class="stat-value">@Model.UnassignedCount</div>
+        </div>
     </div>
     <div class="col">
-        <h4>In Progress</h4>
-        <h2>@Model.InProgressCount</h2>
+        <div class="stat-card amber">
+            <div class="stat-label">In Progress</div>
+            <div class="stat-value">@Model.InProgressCount</div>
+        </div>
     </div>
     <div class="col">
-        <h4>High / Critical</h4>
-        <h2>@Model.HighPriorityCount</h2>
+        <div class="stat-card red">
+            <div class="stat-label">High / Critical</div>
+            <div class="stat-value">@Model.HighPriorityCount</div>
+        </div>
     </div>
     <div class="col">
-        <h4>Closed</h4>
-        <h2>@Model.ClosedCount</h2>
+        <div class="stat-card green">
+            <div class="stat-label">Closed</div>
+            <div class="stat-value">@Model.ClosedCount</div>
+        </div>
     </div>
 </div>
 
-<hr />
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Ticket ID</th>
-            <th>Title of Request</th>
-            <th>Created By</th>
-            <th>Assigned To</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.RecentRequests.Any())
-        {
-            @foreach (var r in Model.RecentRequests)
+<div class="table-card">
+    <table class="table table-borderless">
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Title of Request</th>
+                <th>Created By</th>
+                <th>Assigned To</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.RecentRequests.Any())
             {
-                var createdByName = r.createdBy != null
-                ? $"{r.createdBy.fName} {r.createdBy.lName}".Trim()
-                : "Unknown";
+                @foreach (var r in Model.RecentRequests)
+                {
+                    var createdByName = r.createdBy != null
+                    ? $"{r.createdBy.fName} {r.createdBy.lName}".Trim()
+                    : "Unknown";
 
-                var assignedToName = r.assignedTo != null
-                ? $"{r.assignedTo.fName} {r.assignedTo.lName}".Trim()
-                : "Unassigned";
+                    var assignedToName = r.assignedTo != null
+                    ? $"{r.assignedTo.fName} {r.assignedTo.lName}".Trim()
+                    : "Unassigned";
 
+                    var priorityClass = (r.priority?.ToLower()) switch
+                    {
+                        "high" => "priority-high",
+                        "critical" => "priority-critical",
+                        "medium" => "priority-medium",
+                        "low" => "priority-low",
+                        _ => "priority-medium"
+                    };
+
+                    var statusClass = (r.status?.statusName?.ToLower().Replace(" ", "")) switch
+                    {
+                        "todo" => "status-todo",
+                        "inprogress" => "status-inprogress",
+                        "closed" => "status-closed",
+                        _ => "status-todo"
+                    };
+
+                    <tr>
+                        <td class="ticket-id">@r.requestID</td>
+                        <td class="ticket-title">@r.title</td>
+                        <td class="ticket-user">@createdByName</td>
+                        <td class="@(r.assignedTo != null ? "ticket-user" : "text-muted")">@assignedToName</td>
+                        <td><span class="badge-pill @priorityClass">@r.priority</span></td>
+                        <td><span class="badge-pill @statusClass">@r.status?.statusName</span></td>
+                        <td>
+                            <a asp-page="/Manager/ManageRequest" asp-route-id="@r.requestID" class="btn-manage">
+                                Manage
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
                 <tr>
-                    <td>@r.requestID</td>
-                    <td>@r.title</td>
-                    <td>@createdByName</td>
-                    <td>@assignedToName</td>
-                    <td>@r.priority</td>
-                    <td>@r.status?.statusName</td>
-                    <td>
-                        <a asp-page="/Manager/ManageRequest" asp-route-id="@r.requestID" class="btn btn-sm btn-primary">
-                            Manage
-                        </a>
-                    </td>
+                    <td colspan="7" class="text-center text-muted py-4">No active requests found.</td>
                 </tr>
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" class="text-center">No active requests found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
 
-<hr />
+@section Scripts {
+    <script src="~/js/manager_index.js"></script>
+}

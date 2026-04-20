@@ -1,66 +1,94 @@
 ﻿@page
 @model CampusConnect.Pages.Manager.ReviewRequestsModel
-
 @{
     ViewData["Title"] = "Review Requests";
 }
 
-<h1>Review Requests</h1>
+<link rel="stylesheet" href="~/css/manager_reviewrequest.css" />
 
-<p>Requests currently in progress and ready for manager review.</p>
+<div class="review-header">
+    <h1>Review Requests</h1>
+    <p>Requests currently in progress and ready for manager review.</p>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Ticket ID</th>
-            <th>Title of Request</th>
-            <th>Created By</th>
-            <th>Assigned To</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Review</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Requests.Any())
-        {
-            @foreach (var item in Model.Requests)
+<div class="table-card">
+    <table class="table table-borderless" id="review-table">
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Title of Request</th>
+                <th>Created By</th>
+                <th>Assigned To</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Review</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Requests.Any())
             {
-                var createdByName = item.createdBy != null
-                ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
-                : "Unknown";
+                @foreach (var item in Model.Requests)
+                {
+                    var createdByName = item.createdBy != null
+                    ? $"{item.createdBy.fName} {item.createdBy.lName}".Trim()
+                    : "Unknown";
 
-                var assignedToName = item.assignedTo != null
-                ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
-                : "Unassigned";
+                    var assignedToName = item.assignedTo != null
+                    ? $"{item.assignedTo.fName} {item.assignedTo.lName}".Trim()
+                    : "Unassigned";
 
+                    var priorityClass = (item.priority?.ToLower()) switch
+                    {
+                        "high" => "priority-high",
+                        "critical" => "priority-critical",
+                        "medium" => "priority-medium",
+                        "low" => "priority-low",
+                        _ => "priority-medium"
+                    };
+
+                    var statusClass = (item.status?.statusName?.ToLower().Replace(" ", "")) switch
+                    {
+                        "inprogress" => "status-inprogress",
+                        "todo" => "status-todo",
+                        "closed" => "status-closed",
+                        _ => "status-inprogress"
+                    };
+
+                    <tr class="review-row">
+                        <td class="ticket-id">@item.requestID</td>
+                        <td class="ticket-title">@item.title</td>
+                        <td class="ticket-user">@createdByName</td>
+                        <td class="@(item.assignedTo != null ? "ticket-user" : "text-muted")">@assignedToName</td>
+                        <td><span class="badge-pill @priorityClass">@item.priority</span></td>
+                        <td><span class="badge-pill @statusClass">@item.status?.statusName</span></td>
+                        <td class="ticket-date">@item.createdAt.ToString("MM/dd/yyyy")</td>
+                        <td>
+                            <div class="action-buttons">
+                                <form method="post" asp-page-handler="Close" style="display:inline;">
+                                    <input type="hidden" name="RequestId" value="@item.requestID" />
+                                    <button type="submit" class="btn-close-ticket">Mark as Closed</button>
+                                </form>
+                                <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn-view-ticket">
+                                    View
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
                 <tr>
-                    <td>@item.requestID</td>
-                    <td>@item.title</td>
-                    <td>@createdByName</td>
-                    <td>@assignedToName</td>
-                    <td>@item.priority</td>
-                    <td>@item.status?.statusName</td>
-                    <td>@item.createdAt.ToString("MM/dd/yyyy")</td>
-                    <td>
-                        <form method="post" asp-page-handler="Close" style="display:inline;">
-                            <input type="hidden" name="RequestId" value="@item.requestID" />
-                            <button type="submit" class="btn btn-sm btn-primary">Mark as Closed</button>
-                        </form>
-
-                        <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn btn-sm btn-secondary">
-                            View
-                        </a>
-                    </td>
+                    <td colspan="8" class="text-center text-muted py-4">No in-progress requests found.</td>
                 </tr>
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="8" class="text-center">No in-progress requests found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+
+    <div class="pagination-bar" id="pagination-review"></div>
+</div>
+
+@section Scripts {
+    <script src="~/js/manager_reviewrequest.js"></script>
+}

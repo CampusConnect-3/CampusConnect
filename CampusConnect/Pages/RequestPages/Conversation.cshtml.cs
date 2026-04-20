@@ -33,6 +33,7 @@ namespace CampusConnect.Pages.RequestPages
 
         public request RequestItem { get; private set; } = default!;
         public List<requestComments> Comments { get; private set; } = new();
+        public int? CurrentUserId { get; private set; }
 
         [BindProperty]
         public NewCommentInput Input { get; set; } = new();
@@ -50,6 +51,8 @@ namespace CampusConnect.Pages.RequestPages
                 return Forbid();
 
             RequestItem = req;
+            await LoadCurrentUserAsync(cancellationToken);
+            await MarkCommentNotificationsReadAsync(req.requestID, cancellationToken);
             await LoadCommentsAsync(req.requestID, cancellationToken);
             return Page();
         }
@@ -67,6 +70,7 @@ namespace CampusConnect.Pages.RequestPages
                 return Forbid();
 
             RequestItem = req;
+            await LoadCurrentUserAsync(cancellationToken);
             await LoadCommentsAsync(req.requestID, cancellationToken);
 
             if (string.IsNullOrWhiteSpace(Input.CommentText))
@@ -90,7 +94,7 @@ namespace CampusConnect.Pages.RequestPages
                 requestID = req.requestID,
                 creatorID = appUser.userID,
                 commentText = Input.CommentText.Trim(),
-                createdAt = DateTime.UtcNow
+                createdAt = DateTime.Now
             };
 
             await EnsureCommentIdAsync(comment, cancellationToken);
@@ -165,8 +169,30 @@ namespace CampusConnect.Pages.RequestPages
                 .AsNoTracking()
                 .Where(c => c.requestID == requestId)
                 .Include(c => c.creator)
-                .OrderBy(c => c.createdAt)
+                .OrderBy(c => c.commentID)
                 .ToListAsync(cancellationToken);
+        }
+
+        private async Task MarkCommentNotificationsReadAsync(int requestId, CancellationToken cancellationToken)
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(identityUserId))
+                return;
+
+            await _notifications.MarkCommentNotificationsAsReadAsync(requestId, identityUserId, cancellationToken);
+        }
+
+        private async Task LoadCurrentUserAsync(CancellationToken cancellationToken)
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(identityUserId))
+                return;
+
+            CurrentUserId = await _context.users
+                .AsNoTracking()
+                .Where(u => u.identityUserId == identityUserId)
+                .Select(u => (int?)u.userID)
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
         private async Task<bool> CanAccessRequestAsync(request req, CancellationToken cancellationToken)
@@ -243,9 +269,9 @@ namespace CampusConnect.Pages.RequestPages
             return fallback;
         }
 
-        public bool IsRequesterComment(requestComments comment)
+        public bool IsCurrentUserComment(requestComments comment)
         {
-            return comment.creatorID == RequestItem.created_by;
+            return CurrentUserId.HasValue && comment.creatorID == CurrentUserId.Value;
         }
 
         public class NewCommentInput
