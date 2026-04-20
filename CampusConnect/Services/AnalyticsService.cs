@@ -68,6 +68,143 @@ namespace CampusConnect.Services
             };
         }
 
+        // NEW: Staff/Technician-specific analytics
+        public async Task<StaffAnalyticsData> GetStaffDashboardDataAsync(int staffUserId, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            // Default to last 30 days if no dates provided
+            startDate ??= DateTime.Now.AddDays(-30);
+            endDate ??= DateTime.Now;
+
+            // Get all requests assigned to this staff member
+            var assignedRequests = await _context.request
+                .Include(r => r.category)
+                .Include(r => r.status)
+                .Include(r => r.createdBy)
+                .Where(r => r.assigned_to == staffUserId && r.createdAt >= startDate && r.createdAt <= endDate)
+                .ToListAsync();
+
+            // Get currently active (non-closed) requests
+            var activeRequests = await _context.request
+                .Include(r => r.category)
+                .Include(r => r.status)
+                .Include(r => r.createdBy)
+                .Where(r => r.assigned_to == staffUserId && 
+                           !r.closedAt.HasValue &&
+                           (r.status.statusName == "Pending" || r.status.statusName == "In Progress"))
+                .OrderBy(r => r.createdAt)
+                .Take(5)
+                .ToListAsync();
+
+            var completedRequests = assignedRequests.Where(r => r.status?.statusName == "Completed").ToList();
+            var inProgressCount = assignedRequests.Count(r => r.status?.statusName == "In Progress");
+            var pendingCount = assignedRequests.Count(r => r.status?.statusName == "Pending");
+
+            // Get team averages for comparison (all staff members)
+            var teamComparison = await CalculateTeamAveragesAsync(startDate.Value, endDate.Value);
+
+            return new StaffAnalyticsData
+            {
+                TotalAssignedRequests = assignedRequests.Count,
+                CompletedRequests = completedRequests.Count,
+                InProgressRequests = inProgressCount,
+                PendingRequests = pendingCount,
+                
+                CompletionRate = assignedRequests.Count > 0 
+                    ? Math.Round((double)completedRequests.Count / assignedRequests.Count * 100, 1) 
+                    : 0,
+
+                AverageResolutionTimeHours = CalculateAverageResolutionTime(completedRequests),
+
+                RequestsByCategory = assignedRequests
+                    .GroupBy(r => r.category?.categoryName ?? "Uncategorized")
+                    .Select(g => new KeyValuePair<string, int>(g.Key, g.Count()))
+                    .OrderByDescending(kv => kv.Value)
+                    .ToList(),
+
+                RequestsByPriority = assignedRequests
+                    .GroupBy(r => r.priority)
+                    .Select(g => new KeyValuePair<string, int>(g.Key, g.Count()))
+                    .OrderByDescending(kv => kv.Value)
+                    .ToList(),
+
+                DailyCompletionTrend = GetDailyCompletionTrend(completedRequests, startDate.Value, endDate.Value),
+
+                RecentActiveRequests = activeRequests.Select(r => new StaffRequestSummary
+                {
+                    RequestID = r.requestID,
+                    Title = r.title,
+                    Category = r.category?.categoryName ?? "Uncategorized",
+                    Priority = r.priority,
+                    Status = r.status?.statusName ?? "Unknown",
+                    CreatedAt = r.createdAt,
+                    DaysOpen = (DateTime.Now - r.createdAt).Days
+                }).ToList(),
+
+                // Team comparison data
+                TeamComparison = teamComparison,
+
+                StartDate = startDate.Value,
+                EndDate = endDate.Value
+            };
+        }
+
+        // NEW: Calculate team-wide averages for comparison
+        private async Task<TeamComparisonData> CalculateTeamAveragesAsync(DateTime startDate, DateTime endDate)
+        {
+            // Get all staff/technician assignments in the date range
+            var allStaffRequests = await _context.request
+                .Include(r => r.status)
+                .Include(r => r.assignedTo)
+                .ThenInclude(u => u.userRoles)
+                .ThenInclude(ur => ur.role)
+                .Where(r => r.assigned_to.HasValue && 
+                           r.createdAt >= startDate && 
+                           r.createdAt <= endDate)
+                .ToListAsync();
+
+            // Filter to only staff role (not managers/admins)
+            var staffRequests = allStaffRequests
+                .Where(r => r.assignedTo != null && 
+                           r.assignedTo.userRoles.Any(ur => ur.role.roleName == "Staff"))
+                .ToList();
+
+            if (!staffRequests.Any())
+            {
+                return new TeamComparisonData();
+            }
+
+            // Group by staff member
+            var staffGroups = staffRequests
+                .GroupBy(r => r.assigned_to)
+                .ToList();
+
+            var staffCount = staffGroups.Count;
+
+            // Calculate averages
+            var totalAssignedAvg = Math.Round((double)staffRequests.Count / staffCount, 1);
+            
+            var completedRequests = staffRequests.Where(r => r.status?.statusName == "Completed").ToList();
+            var completedAvg = Math.Round((double)completedRequests.Count / staffCount, 1);
+            
+            var avgCompletionRate = staffGroups.Average(g =>
+            {
+                var total = g.Count();
+                var completed = g.Count(r => r.status?.statusName == "Completed");
+                return total > 0 ? (double)completed / total * 100 : 0;
+            });
+
+            var avgResolutionTime = CalculateAverageResolutionTime(completedRequests);
+
+            return new TeamComparisonData
+            {
+                AverageTotalAssigned = totalAssignedAvg,
+                AverageCompleted = completedAvg,
+                AverageCompletionRate = Math.Round(avgCompletionRate, 1),
+                AverageResolutionTimeHours = avgResolutionTime,
+                TeamMemberCount = staffCount
+            };
+        }
+
         private double CalculateAverageResolutionTime(List<request> requests)
         {
             var completedRequests = requests.Where(r => r.closedAt.HasValue).ToList();
@@ -94,6 +231,19 @@ namespace CampusConnect.Services
 
             return dailyData;
         }
+
+        private List<KeyValuePair<string, int>> GetDailyCompletionTrend(List<request> completedRequests, DateTime startDate, DateTime endDate)
+        {
+            var dailyData = new List<KeyValuePair<string, int>>();
+
+            for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
+            {
+                var count = completedRequests.Count(r => r.closedAt.HasValue && r.closedAt.Value.Date == date);
+                dailyData.Add(new KeyValuePair<string, int>(date.ToString("MM/dd"), count));
+            }
+
+            return dailyData;
+        }
     }
 
     public class AnalyticsDashboardData
@@ -113,5 +263,46 @@ namespace CampusConnect.Services
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+    }
+
+    public class StaffAnalyticsData
+    {
+        public int TotalAssignedRequests { get; set; }
+        public int CompletedRequests { get; set; }
+        public int InProgressRequests { get; set; }
+        public int PendingRequests { get; set; }
+        public double CompletionRate { get; set; }
+        public double AverageResolutionTimeHours { get; set; }
+
+        public List<KeyValuePair<string, int>> RequestsByCategory { get; set; } = new();
+        public List<KeyValuePair<string, int>> RequestsByPriority { get; set; } = new();
+        public List<KeyValuePair<string, int>> DailyCompletionTrend { get; set; } = new();
+        public List<StaffRequestSummary> RecentActiveRequests { get; set; } = new();
+        
+        // NEW: Team comparison data
+        public TeamComparisonData TeamComparison { get; set; } = new();
+
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+    }
+
+    public class TeamComparisonData
+    {
+        public double AverageTotalAssigned { get; set; }
+        public double AverageCompleted { get; set; }
+        public double AverageCompletionRate { get; set; }
+        public double AverageResolutionTimeHours { get; set; }
+        public int TeamMemberCount { get; set; }
+    }
+
+    public class StaffRequestSummary
+    {
+        public int RequestID { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Priority { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public int DaysOpen { get; set; }
     }
 }
