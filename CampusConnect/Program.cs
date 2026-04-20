@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IActivityLoggerService, ActivityLoggerService>();
+builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddHttpContextAccessor(); // Required for getting HTTP context
 
 if (builder.Environment.IsDevelopment())

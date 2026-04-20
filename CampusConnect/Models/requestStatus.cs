@@ -9,10 +9,11 @@ namespace CampusConnect.Models
     {
         [Key]
         [Column("statusID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int statusID { get; set; }
 
         [Required, MaxLength(256)]
-        public string statusName { get; set; }
+        public string statusName { get; set; } = string.Empty;
 
         // Navigation
         public virtual ICollection<request> requests { get; set; } = new List<request>();
