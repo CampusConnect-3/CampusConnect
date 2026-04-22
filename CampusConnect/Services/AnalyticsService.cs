@@ -95,7 +95,11 @@ namespace CampusConnect.Services
                 .Take(5)
                 .ToListAsync();
 
-            var completedRequests = assignedRequests.Where(r => r.status?.statusName == "Completed").ToList();
+            // CHANGED: Include BOTH "Completed" (awaiting review) and "Closed" (archived) for analytics
+            var completedRequests = assignedRequests
+                .Where(r => r.status?.statusName == "Completed" || r.status?.statusName == "Closed")
+                .ToList();
+            
             var inProgressCount = assignedRequests.Count(r => r.status?.statusName == "In Progress");
             var pendingCount = assignedRequests.Count(r => r.status?.statusName == "Pending");
 
@@ -183,13 +187,17 @@ namespace CampusConnect.Services
             // Calculate averages
             var totalAssignedAvg = Math.Round((double)staffRequests.Count / staffCount, 1);
             
-            var completedRequests = staffRequests.Where(r => r.status?.statusName == "Completed").ToList();
+            // CHANGED: Count both "Completed" and "Closed" as finished requests
+            var completedRequests = staffRequests
+                .Where(r => r.status?.statusName == "Completed" || r.status?.statusName == "Closed")
+                .ToList();
             var completedAvg = Math.Round((double)completedRequests.Count / staffCount, 1);
             
             var avgCompletionRate = staffGroups.Average(g =>
             {
                 var total = g.Count();
-                var completed = g.Count(r => r.status?.statusName == "Completed");
+                // CHANGED: Count both "Completed" and "Closed"
+                var completed = g.Count(r => r.status?.statusName == "Completed" || r.status?.statusName == "Closed");
                 return total > 0 ? (double)completed / total * 100 : 0;
             });
 

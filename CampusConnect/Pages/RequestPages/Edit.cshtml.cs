@@ -86,6 +86,27 @@ namespace CampusConnect.Pages.RequestPages
 
             request.created_by = existing.created_by;
             request.createdAt = existing.createdAt;
+            
+            // ADDED: Get the new status to check if it's "Completed"
+            var newStatus = await _context.requestStatus
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.statusID == request.statusID, cancellationToken);
+
+            // ADDED: Automatically set closedAt when marking as Completed
+            if (statusChanged && newStatus?.statusName == "Completed" && !request.closedAt.HasValue)
+            {
+                request.closedAt = DateTime.Now;
+            }
+            // ADDED: Clear closedAt if status is changed back from Completed to something else
+            else if (statusChanged && newStatus?.statusName != "Completed" && existing.status?.statusName == "Completed")
+            {
+                request.closedAt = null;
+            }
+            else
+            {
+                // Preserve existing closedAt value if status didn't change
+                request.closedAt = existing.closedAt;
+            }
 
             var recipientIdentityUserId = await _context.users
                 .AsNoTracking()

@@ -67,8 +67,10 @@ namespace CampusConnect.Pages.StaffPages
                 .Where(r => r.status != null && r.status.statusName == RequestStatuses.InProgress)
                 .ToList();
 
+            // CHANGED: Complete column shows "Completed" status (awaiting manager review)
+            // These will disappear from staff board once manager moves them to "Closed"
             CompleteRequests = myAssignedRequests
-                .Where(r => r.status != null && r.status.statusName == RequestStatuses.Closed)
+                .Where(r => r.status != null && r.status.statusName == RequestStatuses.Completed)
                 .ToList();
 
             return Page();
@@ -103,16 +105,23 @@ namespace CampusConnect.Pages.StaffPages
 
             request.statusID = status.statusID;
 
-            // If status is Closed, set closedAt
-            if (updateRequest.NewStatus == RequestStatuses.Closed)
+            // CHANGED: Set closedAt when staff marks as Completed (finished work)
+            if (updateRequest.NewStatus == RequestStatuses.Completed && !request.closedAt.HasValue)
             {
                 request.closedAt = DateTime.Now;
+            }
+            // Clear closedAt if moved back from Completed
+            else if (request.closedAt.HasValue && 
+                     updateRequest.NewStatus != RequestStatuses.Completed && 
+                     updateRequest.NewStatus != RequestStatuses.Closed)
+            {
+                request.closedAt = null;
             }
 
             await _context.SaveChangesAsync();
 
-            // TODO: Trigger notification to user here
-            // This is where you'd integrate a notification system
+            // TODO: Trigger notification to manager when moved to Completed
+            // TODO: Trigger notification to user when moved to Closed
 
             return new JsonResult(new { success = true });
         }

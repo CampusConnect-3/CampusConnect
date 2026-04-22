@@ -28,6 +28,7 @@ namespace CampusConnect.Pages.Manager
 
         private async Task LoadPageAsync()
         {
+            // CHANGED: Show only "Completed" requests awaiting manager review
             Requests = await _context.request
                 .AsNoTracking()
                 .Include(r => r.createdBy)
@@ -36,7 +37,7 @@ namespace CampusConnect.Pages.Manager
                 .Include(r => r.category)
                 .Where(r =>
                     r.status != null &&
-                    r.status.statusName == RequestStatuses.InProgress)
+                    r.status.statusName == RequestStatuses.Completed) // CHANGED from InProgress
                 .OrderByDescending(r => r.createdAt)
                 .ToListAsync();
         }
@@ -65,8 +66,15 @@ namespace CampusConnect.Pages.Manager
                 return Page();
             }
 
+            // Move from "Completed" to "Closed" (archive)
             req.statusID = closedStatus.statusID;
-            req.closedAt = DateTime.Now;
+            
+            // closedAt should already be set from when staff marked it completed
+            // But ensure it's set if somehow missing
+            if (!req.closedAt.HasValue)
+            {
+                req.closedAt = DateTime.Now;
+            }
 
             await _context.SaveChangesAsync();
 

@@ -128,6 +128,7 @@ app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
     return Results.Json(endpoints);
 });
 
+// Seed data on startup
 using (var scope = app.Services.CreateScope())
 {
     await CampusConnect.Data.DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);

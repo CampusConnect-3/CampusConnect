@@ -4,6 +4,7 @@ namespace CampusConnect.Constants
     {
         public const string ToDo = "To-Do";
         public const string InProgress = "In Progress";
-        public const string Closed = "Closed";
+        public const string Completed = "Completed";  // Staff finished, awaiting manager review
+        public const string Closed = "Closed";        // Manager archived
     }
 }

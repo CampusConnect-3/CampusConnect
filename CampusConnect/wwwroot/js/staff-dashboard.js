@@ -179,6 +179,8 @@ function updateRequestStatus(requestId, newStatus) {
         return;
     }
 
+    console.log('🔑 Token found:', token.substring(0, 20) + '...');
+
     // Show loading indicator
     const originalCursor = document.body.style.cursor;
     document.body.style.cursor = 'wait';
@@ -188,7 +190,8 @@ function updateRequestStatus(requestId, newStatus) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'RequestVerificationToken': token
+            'X-CSRF-TOKEN': token,  // CHANGED: Use X-CSRF-TOKEN header
+            'RequestVerificationToken': token  // Keep this too for compatibility
         },
         body: JSON.stringify({
             requestId: parseInt(requestId),
@@ -197,10 +200,23 @@ function updateRequestStatus(requestId, newStatus) {
     })
         .then(response => {
             console.log('📥 Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
+            console.log('📥 Response headers:', [...response.headers.entries()]);
+            
+            // Try to get response text first to see what the server is returning
+            return response.text().then(text => {
+                console.log('📥 Response text:', text);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                }
+                
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('❌ Failed to parse JSON:', e);
+                    throw new Error('Invalid JSON response: ' + text);
+                }
+            });
         })
         .then(data => {
             console.log('📥 Response data:', data);
@@ -220,7 +236,7 @@ function updateRequestStatus(requestId, newStatus) {
         .catch(error => {
             document.body.style.cursor = originalCursor;
             console.error('❌ Error updating status:', error);
-            alert('Error updating request status. Please try again.');
+            alert('Error updating request status. Please try again.\n\nDetails: ' + error.message);
             // Reload to revert the optimistic update
             location.reload();
         });
@@ -248,137 +264,33 @@ function showRequestDetail(requestId) {
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
-    // Load request detail via AJAX
-    fetch(`/StaffPages/RequestDetail?requestId=${requestId}`)
+    // Load content via AJAX - ADD modal=true parameter
+    fetch(`/RequestPages/Details?id=${requestId}&modal=true`)
         .then(response => {
-            console.log('📥 Detail response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.text();
         })
         .then(html => {
-            console.log('📄 Detail HTML received, length:', html.length);
             modalContent.innerHTML = html;
-            initializeModalFormHandlers(requestId);
         })
         .catch(error => {
             console.error('❌ Error loading details:', error);
-            modalContent.innerHTML = `
-                <div class="alert alert-danger">
-                    <h5>Error Loading Request Details</h5>
-                    <p>${error.message}</p>
-                    <p>Request ID: ${requestId}</p>
-                </div>
-            `;
+            modalContent.innerHTML = '<div class="alert alert-danger">Failed to load request details.</div>';
         });
 }
 
-function initializeModalFormHandlers(requestId) {
-    const modalContent = document.getElementById('modalContent');
-    if (!modalContent) return;
-
-    // Get the antiforgery token from the main form
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-    // Handle attachment upload form
-    const attachmentForm = modalContent.querySelector('.staff-attachment-form');
-    if (attachmentForm) {
-        attachmentForm.onsubmit = function (e) {
-            e.preventDefault();
-            console.log('📎 Attachment form submitted');
-
-            const formData = new FormData(this);
-            
-            // Add the antiforgery token if not already in form
-            if (token && !formData.has('__RequestVerificationToken')) {
-                formData.append('__RequestVerificationToken', token);
-            }
-
-            fetch('/StaffPages/RequestDetail?handler=AddAttachment', {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': token
-                },
-                body: formData
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    console.log('✅ Attachment uploaded successfully');
-                    // Update modal content with refreshed data
-                    modalContent.innerHTML = html;
-                    // Re-initialize handlers for the new content
-                    initializeModalFormHandlers(requestId);
-                    showNotification('Attachment uploaded successfully!', 'success');
-                })
-                .catch(error => {
-                    console.error('❌ Error uploading attachment:', error);
-                    alert('Error uploading attachment. Please try again.');
-                });
-
-            return false;
-        };
-    }
-
-    // Handle comment form
-    const commentForm = modalContent.querySelector('.staff-comment-form');
-    if (commentForm) {
-        commentForm.onsubmit = function (e) {
-            e.preventDefault();
-            console.log('💬 Comment form submitted');
-
-            const formData = new FormData(this);
-            
-            // Add the antiforgery token if not already in form
-            if (token && !formData.has('__RequestVerificationToken')) {
-                formData.append('__RequestVerificationToken', token);
-            }
-
-            fetch('/StaffPages/RequestDetail?handler=AddComment', {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': token
-                },
-                body: formData
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    console.log('✅ Comment added successfully');
-                    // Update modal content with refreshed data
-                    modalContent.innerHTML = html;
-                    // Re-initialize handlers for the new content
-                    initializeModalFormHandlers(requestId);
-                    showNotification('Comment added successfully!', 'success');
-                })
-                .catch(error => {
-                    console.error('❌ Error adding comment:', error);
-                    alert('Error adding comment. Please try again.');
-                });
-
-            return false;
-        };
-    }
-}
-
 function showNotification(message, type = 'info') {
-    // Create a simple toast notification
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3`;
-    toast.style.zIndex = '9999';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
+    // Simple notification - you can enhance this
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+    notification.style.zIndex = '9999';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
     setTimeout(() => {
-        toast.remove();
+        notification.remove();
     }, 3000);
 }
