@@ -1,5 +1,5 @@
-﻿using CampusConnect.BackgroundServices;
-using CampusConnect.Configuration;
+﻿using CampusConnect.Configuration;
+using CampusConnect.BackgroundServices;
 using CampusConnect.Data;
 using CampusConnect.Middleware;
 using CampusConnect.Services;
@@ -70,13 +70,13 @@ builder.Services.Configure<MongoDBSettings>(
 builder.Services.AddSingleton<MongoDBService>();
 builder.Services.AddScoped<RequestSyncService>();
 
-// Configure OpenAI
+// Configure Gemini
 builder.Services.Configure<GeminiSettings>(
     builder.Configuration.GetSection("Gemini"));
 
 builder.Services.AddHttpClient(); // Required for Gemini
 builder.Services.AddScoped<GeminiInsightService>();
-
+builder.Services.AddScoped<TestDataSeeder>();
 builder.Services.AddHostedService<BackgroundInsightGenerator>();
 
 var app = builder.Build();
@@ -111,16 +111,18 @@ app.MapRazorPages();
 app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
 {
     var endpoints = sources.SelectMany(s => s.Endpoints)
-        .Select(e => e.DisplayName)
-        .Where(n => n != null);
-
-    return string.Join("\n", endpoints!);
+                           .OfType<RouteEndpoint>()
+                           .Select(e => new
+                           {
+                               Pattern = e.RoutePattern.RawText,
+                               Name = e.DisplayName
+                           });
+    return Results.Json(endpoints);
 });
 
-// Db Seeder Registration
 using (var scope = app.Services.CreateScope())
 {
-    await DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
+    await CampusConnect.Data.DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
 }
 
 app.Run();

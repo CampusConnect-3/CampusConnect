@@ -38,6 +38,9 @@ namespace CampusConnect.Models
         [MaxLength(450)]
         public string? identityUserId { get; set; }
 
+        // Force password change on first login
+        public bool RequirePasswordChange { get; set; } = false;
+
         // Navigation
         public virtual ICollection<userRoles> userRoles { get; set; } = new List<userRoles>();
         public virtual ICollection<request> requestsCreated { get; set; } = new List<request>();

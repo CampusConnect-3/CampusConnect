@@ -1,91 +1,104 @@
 ﻿@page
 @model CampusConnect.Pages.Admin.TestMongoModel
+@{
+    ViewData["Title"] = "Test MongoDB";
+}
 
-<div class="container mt-5">
-    <h1>MongoDB & AI Test Dashboard</h1>
-    
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div class="alert alert-info">
-            <strong>@Model.Message</strong>
-        </div>
-    }
+<h1>MongoDB Test Dashboard</h1>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">📊 Request Snapshots</h5>
-                    <p class="display-4">@Model.SyncedCount</p>
-                    <p class="text-muted">Documents in MongoDB</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">🤖 AI Insights</h5>
-                    <p class="display-4">@Model.InsightCount</p>
-                    <p class="text-muted">Generated insights</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">🕒 Activity Logs</h5>
-                    <p class="display-4">@Model.ActivityLogCount</p>
-                    <p class="text-muted">Activity log entries</p>
-                </div>
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @Model.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Request Snapshots</h5>
+                <p class="card-text display-4">@Model.SyncedCount</p>
+                <p class="text-muted">Requests synced to MongoDB</p>
             </div>
         </div>
     </div>
-    
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Request Sync</h5>
-                </div>
-                <div class="card-body">
-                    <p>Sync all requests from SQL Server to MongoDB</p>
-                    <form method="post">
-                        <button type="submit" asp-page-handler="SyncAll" class="btn btn-primary w-100">
-                            <i class="bi bi-arrow-repeat"></i> Sync All Requests
-                        </button>
-                    </form>
-                </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">AI Insights</h5>
+                <p class="card-text display-4">@Model.InsightCount</p>
+                <p class="text-muted">Generated insights</p>
             </div>
         </div>
-
-        <div class="col-md-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5>AI Insights</h5>
-                </div>
-                <div class="card-body">
-                    <p>Generate AI-powered insights using Gemini</p>
-                    <form method="post">
-                        <button type="submit" asp-page-handler="GenerateInsights" class="btn btn-success w-100">
-                            <i class="bi bi-lightbulb"></i> Generate AI Insights
-                        </button>
-                    </form>
-                </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Activity Logs</h5>
+                <p class="card-text display-4">@Model.ActivityLogCount</p>
+                <p class="text-muted">Logged activities</p>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="col-md-12 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Activity Logs</h5>
-                </div>
-                <div class="card-body">
-                    <p>View all activity logs tracked in the system</p>
-                    <a asp-page="/Admin/ActivityLogs/Index" class="btn btn-info">
-                        <i class="bi bi-eye"></i> View Activity Logs
-                    </a>
-                </div>
-            </div>
+@if (!string.IsNullOrEmpty(Model.DebugInfo))
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">📊 Pattern Detection Status</h5>
+        </div>
+        <div class="card-body">
+            <pre class="mb-0">@Model.DebugInfo</pre>
+        </div>
+    </div>
+}
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h3>Actions</h3>
+        <div class="d-flex gap-2 flex-wrap">
+            <form method="post" asp-page-handler="SeedTestData">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-database-add"></i> 1. Seed Test Data
+                </button>
+            </form>
+            
+            <form method="post" asp-page-handler="SyncAll">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-arrow-repeat"></i> 2. Sync All Requests
+                </button>
+            </form>
+            
+            <form method="post" asp-page-handler="GenerateInsights">
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-lightbulb"></i> 3. Generate AI Insights
+                </button>
+            </form>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <strong>📋 Workflow:</strong>
+            <ol class="mb-0">
+                <li><strong>Seed Test Data</strong> - Creates 15 pattern-based requests from sarabrown@school.edu
+                    <ul>
+                        <li>6 HVAC issues in Science Building</li>
+                        <li>5 Network issues in Library</li>
+                        <li>4 Plumbing issues in Student Center</li>
+                    </ul>
+                </li>
+                <li><strong>Sync All Requests</strong> - ⚠️ IMPORTANT: Copies SQL requests to MongoDB (required for AI analysis)</li>
+                <li><strong>Generate AI Insights</strong> - Analyzes MongoDB patterns with Gemini AI</li>
+            </ol>
+            <hr />
+            <p class="mb-0"><strong>Requirements for AI Insights:</strong></p>
+            <ul class="mb-0">
+                <li>Building must have <strong>5+ requests</strong> in last 30 days</li>
+                <li>Same category must have <strong>3+ requests</strong> within that building</li>
+                <li>Requests must be <strong>synced to MongoDB</strong> first</li>
+            </ul>
         </div>
     </div>
 </div>
