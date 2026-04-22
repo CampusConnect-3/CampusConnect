@@ -83,6 +83,11 @@
                                     <i class="bi bi-inbox"></i> Request Queue
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-page="/Staff/MyAnalytics">
+                                    <i class="bi bi-graph-up"></i> My Analytics
+                                </a>
+                            </li>
                         }
 
                         @* Manager role nav *@
@@ -110,6 +115,12 @@
                                 <a class="nav-link @(isAIInsights ? "active fw-bold text-primary" : "text-dark")"
                                    asp-page="/Manager/AIInsights/Index">
                                     <i class="bi bi-lightbulb"></i> AI Insights
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Analytics" ? "active fw-bold text-primary" : "text-dark")"
+                                   asp-page="/Manager/Analytics">
+                                    <i class="bi bi-graph-up"></i> Analytics
                                 </a>
                             </li>
                         }

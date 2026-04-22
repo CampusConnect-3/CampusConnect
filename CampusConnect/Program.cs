@@ -1,5 +1,4 @@
 ﻿using CampusConnect.Configuration;
-using CampusConnect.BackgroundServices;
 using CampusConnect.Data;
 using CampusConnect.Middleware;
 using CampusConnect.Services;
@@ -15,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IActivityLoggerService, ActivityLoggerService>();
+builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddHttpContextAccessor(); // Required for getting HTTP context
 
 if (builder.Environment.IsDevelopment())
@@ -70,14 +70,22 @@ builder.Services.Configure<MongoDBSettings>(
 builder.Services.AddSingleton<MongoDBService>();
 builder.Services.AddScoped<RequestSyncService>();
 
-// Configure Gemini
-builder.Services.Configure<GeminiSettings>(
-    builder.Configuration.GetSection("Gemini"));
+// Configure Gemini with debugging
+builder.Services.Configure<GeminiSettings>(geminiSettings =>
+{
+    var config = builder.Configuration.GetSection("Gemini");
+    config.Bind(geminiSettings);
+    
+    // Debug logging
+    var logger = LoggerFactory.Create(b => b.AddConsole()).CreateLogger("Startup");
+    var apiKey = geminiSettings.ApiKey;
+    logger.LogInformation("🔧 Gemini API Key loaded: {HasKey}", !string.IsNullOrWhiteSpace(apiKey) ? $"Yes ({apiKey.Length} chars)" : "NO - MISSING!");
+    logger.LogInformation("🔧 Gemini Model: {Model}", geminiSettings.Model);
+});
 
 builder.Services.AddHttpClient(); // Required for Gemini
 builder.Services.AddScoped<GeminiInsightService>();
 builder.Services.AddScoped<TestDataSeeder>();
-builder.Services.AddHostedService<BackgroundInsightGenerator>();
 
 var app = builder.Build();
 
@@ -120,6 +128,7 @@ app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
     return Results.Json(endpoints);
 });
 
+// Seed data on startup
 using (var scope = app.Services.CreateScope())
 {
     await CampusConnect.Data.DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);

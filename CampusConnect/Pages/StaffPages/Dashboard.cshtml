@@ -47,18 +47,22 @@
             </div>
         </div>
 
-        <!-- Complete Column -->
+        <!-- Complete Column (CHANGED: Now shows "Completed" status awaiting manager review) -->
         <div class="col-md-4">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Complete</h5>
+                    <h5 class="mb-0">Completed</h5>
                     <span class="badge bg-light text-dark">@Model.CompleteRequests.Count</span>
                 </div>
                 <div class="card-body p-2 drop-zone" id="complete-column" 
-                     data-status="Closed" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
+                     data-status="Completed" style="min-height: 500px; max-height: 70vh; overflow-y: auto;">
                     @foreach (var request in Model.CompleteRequests)
                     {
                         <partial name="_RequestCard" model="request" />
+                    }
+                    @if (!Model.CompleteRequests.Any())
+                    {
+                        <p class="text-muted text-center mt-3">Requests here are awaiting manager review</p>
                     }
                 </div>
             </div>

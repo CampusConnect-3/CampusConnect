@@ -83,6 +83,10 @@ namespace CampusConnect.Data
                     tablesDb.users.Add(adminUser);
                     await tablesDb.SaveChangesAsync();
                 }
+
+                // NOTE: Request statuses are managed via database schema
+                // The following statuses exist: "To-Do", "In Progress", "Completed", "Closed"
+                // Do not seed them here as the database IDENTITY column handles it
             }
         }
     }       

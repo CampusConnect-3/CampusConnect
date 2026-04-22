@@ -1,0 +1,333 @@
+@page
+@model CampusConnect.Pages.Staff.MyAnalyticsModel
+@{
+    ViewData["Title"] = "My Analytics";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5"><i class="bi bi-person-badge"></i> My Performance Dashboard</h1>
+
+        <!-- Date Range Filter -->
+        <form method="get" class="d-flex gap-2">
+            <input type="date" name="StartDate" class="form-control" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+            <input type="date" name="EndDate" class="form-control" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <a asp-page="/Staff/MyAnalytics" class="btn btn-outline-secondary">Reset</a>
+        </form>
+    </div>
+
+    <p class="text-muted">
+        Showing your performance from <strong>@Model.DashboardData.StartDate.ToString("MMM dd, yyyy")</strong> to 
+        <strong>@Model.DashboardData.EndDate.ToString("MMM dd, yyyy")</strong>
+    </p>
+
+    <!-- Key Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Total Assigned</h6>
+                    <h2 class="card-title text-primary">@Model.DashboardData.TotalAssignedRequests</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Completed</h6>
+                    <h2 class="card-title text-success">@Model.DashboardData.CompletedRequests</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">In Progress</h6>
+                    <h2 class="card-title text-info">@Model.DashboardData.InProgressRequests</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Pending</h6>
+                    <h2 class="card-title text-warning">@Model.DashboardData.PendingRequests</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Completion Rate</h6>
+                    <h1 class="card-title text-success">@Model.DashboardData.CompletionRate%</h1>
+                    <div class="progress mt-3" style="height: 25px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: @Model.DashboardData.CompletionRate%" 
+                             aria-valuenow="@Model.DashboardData.CompletionRate" aria-valuemin="0" aria-valuemax="100">
+                            @Model.DashboardData.CompletionRate%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-center border-secondary">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Average Resolution Time</h6>
+                    <h1 class="card-title text-secondary">@Model.DashboardData.AverageResolutionTimeHours.ToString("F1") hrs</h1>
+                    <p class="text-muted mt-3">
+                        @if (Model.DashboardData.AverageResolutionTimeHours < 24)
+                        {
+                            <span class="badge bg-success">Excellent Response Time!</span>
+                        }
+                        else if (Model.DashboardData.AverageResolutionTimeHours < 48)
+                        {
+                            <span class="badge bg-warning">Good Response Time</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info">Room for Improvement</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Daily Completion Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyCompletionChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Requests by Priority</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="priorityPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Comparison & Active Requests -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-people-fill"></i> Team Comparison</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.DashboardData.TeamComparison.TeamMemberCount > 0)
+                    {
+                        <p class="text-muted small mb-3">
+                            Comparing your performance against <strong>@Model.DashboardData.TeamComparison.TeamMemberCount staff members</strong>
+                        </p>
+
+                        <!-- Total Assigned Comparison -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold">Total Assigned</span>
+                                <span>
+                                    You: <strong>@Model.DashboardData.TotalAssignedRequests</strong> | 
+                                    Team Avg: <strong>@Model.DashboardData.TeamComparison.AverageTotalAssigned</strong>
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                @{
+                                    var assignedPercentage = Model.DashboardData.TeamComparison.AverageTotalAssigned > 0
+                                        ? Math.Min((Model.DashboardData.TotalAssignedRequests / Model.DashboardData.TeamComparison.AverageTotalAssigned) * 100, 200)
+                                        : 0;
+                                    var assignedColor = assignedPercentage >= 100 ? "success" : "info";
+                                }
+                                <div class="progress-bar bg-@assignedColor" role="progressbar" 
+                                     style="width: @assignedPercentage%" 
+                                     aria-valuenow="@assignedPercentage" aria-valuemin="0" aria-valuemax="200">
+                                    @Math.Round(assignedPercentage, 0)%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completion Rate Comparison -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold">Completion Rate</span>
+                                <span>
+                                    You: <strong>@Model.DashboardData.CompletionRate%</strong> | 
+                                    Team Avg: <strong>@Model.DashboardData.TeamComparison.AverageCompletionRate%</strong>
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                @{
+                                    var completionPercentage = Model.DashboardData.TeamComparison.AverageCompletionRate > 0
+                                        ? Math.Min((Model.DashboardData.CompletionRate / Model.DashboardData.TeamComparison.AverageCompletionRate) * 100, 200)
+                                        : 0;
+                                    var completionColor = completionPercentage >= 100 ? "success" : "warning";
+                                }
+                                <div class="progress-bar bg-@completionColor" role="progressbar" 
+                                     style="width: @completionPercentage%" 
+                                     aria-valuenow="@completionPercentage" aria-valuemin="0" aria-valuemax="200">
+                                    @Math.Round(completionPercentage, 0)%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resolution Time Comparison (Lower is better) -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold">Avg. Resolution Time</span>
+                                <span>
+                                    You: <strong>@Model.DashboardData.AverageResolutionTimeHours.ToString("F1")h</strong> | 
+                                    Team Avg: <strong>@Model.DashboardData.TeamComparison.AverageResolutionTimeHours.ToString("F1")h</strong>
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                @{
+                                    var resolutionPercentage = Model.DashboardData.AverageResolutionTimeHours > 0
+                                        ? Math.Min((Model.DashboardData.TeamComparison.AverageResolutionTimeHours / Model.DashboardData.AverageResolutionTimeHours) * 100, 200)
+                                        : 100;
+                                    var resolutionColor = resolutionPercentage >= 100 ? "success" : "danger";
+                                }
+                                <div class="progress-bar bg-@resolutionColor" role="progressbar" 
+                                     style="width: @resolutionPercentage%" 
+                                     aria-valuenow="@resolutionPercentage" aria-valuemin="0" aria-valuemax="200">
+                                    @Math.Round(resolutionPercentage, 0)%
+                                </div>
+                            </div>
+                            <small class="text-muted">Lower resolution time is better</small>
+                        </div>
+
+                        <!-- Performance Badge -->
+                        <div class="text-center mt-4">
+                            @{
+                                var avgPerformance = (assignedPercentage + completionPercentage + resolutionPercentage) / 3;
+                            }
+                            @if (avgPerformance >= 110)
+                            {
+                                <h4><span class="badge bg-success"><i class="bi bi-trophy-fill"></i> Top Performer!</span></h4>
+                            }
+                            else if (avgPerformance >= 90)
+                            {
+                                <h4><span class="badge bg-info"><i class="bi bi-check-circle-fill"></i> Meeting Expectations</span></h4>
+                            }
+                            else
+                            {
+                                <h4><span class="badge bg-warning"><i class="bi bi-graph-up-arrow"></i> Room for Growth</span></h4>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mb-0">No team data available for comparison.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Active Requests -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> My Active Requests</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.DashboardData.RecentActiveRequests.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var req in Model.DashboardData.RecentActiveRequests)
+                            {
+                                <a asp-page="/RequestPages/Details" asp-route-id="@req.RequestID" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@req.Title</h6>
+                                        <small>
+                                            <span class="badge bg-@(req.Priority == "High" ? "danger" : req.Priority == "Medium" ? "warning" : "secondary")">
+                                                @req.Priority
+                                            </span>
+                                        </small>
+                                    </div>
+                                    <p class="mb-1 small text-muted">
+                                        <i class="bi bi-folder"></i> @req.Category | 
+                                        <i class="bi bi-info-circle"></i> @req.Status
+                                    </p>
+                                    <small class="text-muted">Open for @req.DaysOpen days</small>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mb-0">No active requests assigned to you.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Daily Completion Trend Chart
+        const dailyCompletionCtx = document.getElementById('dailyCompletionChart').getContext('2d');
+        new Chart(dailyCompletionCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DashboardData.DailyCompletionTrend.Select(d => d.Key))),
+                datasets: [{
+                    label: 'Requests Completed',
+                    data: @Html.Raw(Json.Serialize(Model.DashboardData.DailyCompletionTrend.Select(d => d.Value))),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+
+        // Priority Pie Chart
+        const priorityPieCtx = document.getElementById('priorityPieChart').getContext('2d');
+        new Chart(priorityPieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DashboardData.RequestsByPriority.Select(p => p.Key))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.DashboardData.RequestsByPriority.Select(p => p.Value))),
+                    backgroundColor: [
+                        'rgba(220, 53, 69, 0.7)',   // High - Red
+                        'rgba(255, 193, 7, 0.7)',   // Medium - Yellow
+                        'rgba(108, 117, 125, 0.7)'  // Low - Gray
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
+}

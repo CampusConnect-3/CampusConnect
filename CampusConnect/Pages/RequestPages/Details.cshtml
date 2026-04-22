@@ -3,6 +3,11 @@
 
 @{
     ViewData["Title"] = "Request Details";
+    // Don't use layout when loading in modal
+    if (ViewContext.HttpContext.Request.Query.ContainsKey("modal"))
+    {
+        Layout = null;
+    }
 }
 
 <style>

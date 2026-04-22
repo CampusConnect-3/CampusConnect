@@ -1,14 +1,14 @@
 ﻿@page
 @model CampusConnect.Pages.Manager.ReviewRequestsModel
 @{
-    ViewData["Title"] = "Review Requests";
+    ViewData["Title"] = "Review Completed Requests";
 }
 
 <link rel="stylesheet" href="~/css/manager_reviewrequest.css" />
 
 <div class="review-header">
-    <h1>Review Requests</h1>
-    <p>Requests currently in progress and ready for manager review.</p>
+    <h1>Review Completed Requests</h1>
+    <p>Requests completed by staff and awaiting manager approval to archive.</p>
 </div>
 
 <div class="table-card">
@@ -21,8 +21,8 @@
                 <th>Assigned To</th>
                 <th>Priority</th>
                 <th>Status</th>
-                <th>Created</th>
-                <th>Review</th>
+                <th>Completed At</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -47,12 +47,14 @@
                         _ => "priority-medium"
                     };
 
+                    // Updated status class for "Completed"
                     var statusClass = (item.status?.statusName?.ToLower().Replace(" ", "")) switch
                     {
+                        "completed" => "status-completed",
                         "inprogress" => "status-inprogress",
                         "todo" => "status-todo",
                         "closed" => "status-closed",
-                        _ => "status-inprogress"
+                        _ => "status-completed"
                     };
 
                     <tr class="review-row">
@@ -62,15 +64,26 @@
                         <td class="@(item.assignedTo != null ? "ticket-user" : "text-muted")">@assignedToName</td>
                         <td><span class="badge-pill @priorityClass">@item.priority</span></td>
                         <td><span class="badge-pill @statusClass">@item.status?.statusName</span></td>
-                        <td class="ticket-date">@item.createdAt.ToString("MM/dd/yyyy")</td>
+                        <td class="ticket-date">
+                            @if (item.closedAt.HasValue)
+                            {
+                                @item.closedAt.Value.ToString("MM/dd/yyyy hh:mm tt")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Pending</span>
+                            }
+                        </td>
                         <td>
                             <div class="action-buttons">
                                 <form method="post" asp-page-handler="Close" style="display:inline;">
                                     <input type="hidden" name="RequestId" value="@item.requestID" />
-                                    <button type="submit" class="btn-close-ticket">Mark as Closed</button>
+                                    <button type="submit" class="btn-close-ticket" title="Archive this completed request">
+                                        <i class="bi bi-archive"></i> Archive
+                                    </button>
                                 </form>
                                 <a asp-page="/RequestPages/Details" asp-route-id="@item.requestID" class="btn-view-ticket">
-                                    View
+                                    <i class="bi bi-eye"></i> View
                                 </a>
                             </div>
                         </td>
@@ -80,7 +93,10 @@
             else
             {
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">No in-progress requests found.</td>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2">No completed requests awaiting review.</p>
+                    </td>
                 </tr>
             }
         </tbody>
