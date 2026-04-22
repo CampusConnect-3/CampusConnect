@@ -15,6 +15,224 @@ namespace CampusConnect.Services
             _logger = logger;
         }
 
+        public async Task<string> SeedKatePlumbingRequestsAsync()
+        {
+            try
+            {
+                // Get or create Kate's user account
+                var kateUser = await GetOrCreateUserAsync("kateerickson57@gmail.com", "Kate", "Erickson", "User");
+
+                // Get existing staff members (assuming they already exist)
+                var staffMembers = await _context.users
+                    .Where(u => u.email.Contains("@ju.edu"))
+                    .Take(2)
+                    .ToListAsync();
+
+                if (staffMembers.Count < 2)
+                {
+                    return "❌ Error: Not enough staff members found in the system. Please ensure staff accounts exist before seeding Kate's requests.";
+                }
+
+                var staffUser1 = staffMembers[0];
+                var staffUser2 = staffMembers[1];
+
+                // Get or create categories and statuses
+                var plumbingCategory = await GetOrCreateCategoryAsync("Plumbing");
+                
+                var todoStatus = await GetOrCreateStatusAsync("To-Do");
+                var inProgressStatus = await GetOrCreateStatusAsync("In Progress");
+                var completedStatus = await GetOrCreateStatusAsync("Completed");
+
+                var baseDate = DateTime.Now.AddDays(-45);
+
+                var plumbingRequests = new List<request>
+                {
+                    // Completed plumbing requests
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser1.userID,
+                        title = "Leaking sink in Kinne Hall 304",
+                        description = "The bathroom sink has been dripping constantly for 3 days. Water is pooling on the floor and creating a slip hazard.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "High",
+                        statusID = completedStatus.statusID,
+                        createdAt = baseDate.AddDays(5).AddHours(8),
+                        closedAt = baseDate.AddDays(5).AddHours(14),
+                        buildingName = "Kinne Hall",
+                        roomNumber = "304",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser2.userID,
+                        title = "Clogged toilet in Phillips Hall women's restroom",
+                        description = "Toilet on first floor is completely clogged and overflowing. Unable to use that restroom.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "High",
+                        statusID = completedStatus.statusID,
+                        createdAt = baseDate.AddDays(12).AddHours(10),
+                        closedAt = baseDate.AddDays(12).AddHours(11.5),
+                        buildingName = "Phillips Hall",
+                        roomNumber = "1st Floor Women's Restroom",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser1.userID,
+                        title = "Low water pressure in Davis Hall water fountain",
+                        description = "Water fountain barely trickles water. Students can't fill water bottles.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "Medium",
+                        statusID = completedStatus.statusID,
+                        createdAt = baseDate.AddDays(18).AddHours(9),
+                        closedAt = baseDate.AddDays(19).AddHours(15),
+                        buildingName = "Davis Hall",
+                        roomNumber = "2nd Floor Hallway",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser2.userID,
+                        title = "Hot water not working in Science Building lab sink",
+                        description = "Lab sink only has cold water. Need hot water for experiments and safety protocols.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "High",
+                        statusID = completedStatus.statusID,
+                        createdAt = baseDate.AddDays(25).AddHours(11),
+                        closedAt = baseDate.AddDays(26).AddHours(9),
+                        buildingName = "Science Building",
+                        roomNumber = "Lab 210",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser1.userID,
+                        title = "Dripping shower in Athletic Center locker room",
+                        description = "Shower head continuously drips even when turned off. Wasting water.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "Low",
+                        statusID = completedStatus.statusID,
+                        createdAt = baseDate.AddDays(30).AddHours(7),
+                        closedAt = baseDate.AddDays(32).AddHours(13),
+                        buildingName = "Athletic Center",
+                        roomNumber = "Women's Locker Room",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+
+                    // In Progress requests
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser2.userID,
+                        title = "Broken pipe in Library basement",
+                        description = "Loud banging noise from pipes in ceiling. Sounds like water hammer or loose pipe.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "Medium",
+                        statusID = inProgressStatus.statusID,
+                        createdAt = baseDate.AddDays(38).AddHours(14),
+                        closedAt = null,
+                        buildingName = "Library",
+                        roomNumber = "Basement Storage",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser1.userID,
+                        title = "Slow draining sink in Student Center kitchen",
+                        description = "Kitchen sink drains very slowly. Standing water accumulates after washing dishes.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "Medium",
+                        statusID = inProgressStatus.statusID,
+                        createdAt = baseDate.AddDays(40).AddHours(16),
+                        closedAt = null,
+                        buildingName = "Student Center",
+                        roomNumber = "Kitchen",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+
+                    // Recent To-Do requests
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser2.userID,
+                        title = "Running toilet in Administration Building 2nd floor",
+                        description = "Toilet runs continuously, wasting water and making noise. Handle doesn't stop the flow.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "Medium",
+                        statusID = todoStatus.statusID,
+                        createdAt = DateTime.Now.AddHours(-48),
+                        closedAt = null,
+                        buildingName = "Administration Building",
+                        roomNumber = "2nd Floor Men's Restroom",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser1.userID,
+                        title = "Water fountain not working in Engineering Building",
+                        description = "Water fountain button is pressed but no water comes out. Might be a valve issue.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "Low",
+                        statusID = todoStatus.statusID,
+                        createdAt = DateTime.Now.AddHours(-24),
+                        closedAt = null,
+                        buildingName = "Engineering Building",
+                        roomNumber = "3rd Floor",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    },
+                    new request
+                    {
+                        created_by = kateUser.userID,
+                        assigned_to = staffUser2.userID,
+                        title = "Foul odor from drain in Residence Hall A bathroom",
+                        description = "Strong sewer smell coming from bathroom drain. Residents are complaining.",
+                        categoryID = plumbingCategory.categoryID,
+                        priority = "High",
+                        statusID = todoStatus.statusID,
+                        createdAt = DateTime.Now.AddHours(-6),
+                        closedAt = null,
+                        buildingName = "Residence Hall A",
+                        roomNumber = "Room 215 Bathroom",
+                        phoneNumber = "904-555-0157",
+                        email = kateUser.email
+                    }
+                };
+
+                _context.request.AddRange(plumbingRequests);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully seeded {Count} plumbing requests for Kate Erickson", plumbingRequests.Count);
+                return $"✅ Successfully seeded {plumbingRequests.Count} plumbing requests for Kate Erickson (kateerickson57@gmail.com)!\n\n" +
+                       $"Breakdown:\n" +
+                       $"• 5 Completed requests\n" +
+                       $"• 2 In Progress requests\n" +
+                       $"• 3 To-Do requests\n\n" +
+                       $"Assigned to existing staff: {staffUser1.fName} {staffUser1.lName} and {staffUser2.fName} {staffUser2.lName}\n\n" +
+                       $"Request types include: leaking sinks, clogged toilets, water pressure issues, hot water problems, and drain issues.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to seed Kate's plumbing requests");
+                return $"❌ Failed to seed Kate's plumbing requests: {ex.Message}";
+            }
+        }
+
         public async Task<string> SeedInsightTriggersAsync()
         {
             try
